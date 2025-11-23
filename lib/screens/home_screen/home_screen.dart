@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:go_router/go_router.dart';
+import 'package:gyawun/utils/internet_guard.dart';
 
 import '../../generated/l10n.dart';
 import '../../utils/adaptive_widgets/adaptive_widgets.dart';
@@ -104,7 +105,7 @@ class _HomeScreenState extends State<HomeScreen> {
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             decoration: BoxDecoration(
-                color: Colors.grey.withValues(alpha:0.3),
+                color: Colors.grey.withValues(alpha: 0.3),
                 borderRadius: BorderRadius.circular(10)),
             child: Text(element['title']),
           ),
@@ -128,75 +129,77 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: PreferredSize(
-        preferredSize:  AppBar().preferredSize,
-        child: AppBar(
-          automaticallyImplyLeading: false,
-          title: Material(
-            color: Colors.transparent,
-            child: LayoutBuilder(builder: (context, constraints) {
-              return Row(
-                children: [
-                  ConstrainedBox(
-                    constraints: BoxConstraints(
-                        maxWidth: constraints.maxWidth > 400
-                            ? (400)
-                            : constraints.maxWidth),
-                    child: AdaptiveTextField(
-                      onTap: () => context.go('/search'),
-                      readOnly: true,
-                      keyboardType: TextInputType.text,
-                      maxLines: 1,
-                      autofocus: false,
-                      textInputAction: TextInputAction.search,
-                      fillColor: Platform.isWindows
-                          ? null
-                          : Colors.grey.withValues(alpha:0.3),
-                      contentPadding: const EdgeInsets.symmetric(
-                          vertical: 2, horizontal: 8),
-                      borderRadius:
-                          BorderRadius.circular(Platform.isWindows ? 4.0 : 35),
-                      hintText: S.of(context).Search_Gyawun,
-                      prefix: Icon(AdaptiveIcons.search),
+    return InternetGuard(
+      child: Scaffold(
+        appBar: PreferredSize(
+          preferredSize: AppBar().preferredSize,
+          child: AppBar(
+            automaticallyImplyLeading: false,
+            title: Material(
+              color: Colors.transparent,
+              child: LayoutBuilder(builder: (context, constraints) {
+                return Row(
+                  children: [
+                    ConstrainedBox(
+                      constraints: BoxConstraints(
+                          maxWidth: constraints.maxWidth > 400
+                              ? (400)
+                              : constraints.maxWidth),
+                      child: AdaptiveTextField(
+                        onTap: () => context.go('/search'),
+                        readOnly: true,
+                        keyboardType: TextInputType.text,
+                        maxLines: 1,
+                        autofocus: false,
+                        textInputAction: TextInputAction.search,
+                        fillColor: Platform.isWindows
+                            ? null
+                            : Colors.grey.withValues(alpha: 0.3),
+                        contentPadding: const EdgeInsets.symmetric(
+                            vertical: 2, horizontal: 8),
+                        borderRadius: BorderRadius.circular(
+                            Platform.isWindows ? 4.0 : 35),
+                        hintText: S.of(context).Search_Gyawun,
+                        prefix: Icon(AdaptiveIcons.search),
+                      ),
                     ),
-                  ),
-                ],
-              );
-            }),
+                  ],
+                );
+              }),
+            ),
+            centerTitle: false,
           ),
-          centerTitle: false,
         ),
-      ),
-      body: initialLoading
-          ? const Center(child: AdaptiveProgressRing())
-          : RefreshIndicator(
-              onRefresh: () => refresh(),
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(vertical: 8),
-                controller: _scrollController,
-                child: SafeArea(
-                  child: Column(
-                    children: [
-                      _horizontalChipsRow(chips),
-                      Column(
-                        children: [
-                          ...sections.map((section) {
-                            return SectionItem(section: section);
-                          }),
-                          if (!nextLoading && continuation != null)
-                            const SizedBox(height: 50),
-                          if (nextLoading)
-                            const Padding(
-                                padding: EdgeInsets.all(8.0),
-                                child: AdaptiveProgressRing()),
-                        ],
-                      )
-                    ],
+        body: initialLoading
+            ? const Center(child: AdaptiveProgressRing())
+            : RefreshIndicator(
+                onRefresh: () => refresh(),
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  controller: _scrollController,
+                  child: SafeArea(
+                    child: Column(
+                      children: [
+                        _horizontalChipsRow(chips),
+                        Column(
+                          children: [
+                            ...sections.map((section) {
+                              return SectionItem(section: section);
+                            }),
+                            if (!nextLoading && continuation != null)
+                              const SizedBox(height: 50),
+                            if (nextLoading)
+                              const Padding(
+                                  padding: EdgeInsets.all(8.0),
+                                  child: AdaptiveProgressRing()),
+                          ],
+                        )
+                      ],
+                    ),
                   ),
                 ),
               ),
-            ),
+      ),
     );
   }
 }

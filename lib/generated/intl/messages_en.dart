@@ -118,6 +118,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "Equalizer": MessageLookupByLibrary.simpleMessage("Equalizer"),
     "Favourites": MessageLookupByLibrary.simpleMessage("Favourites"),
     "Feature_Request": MessageLookupByLibrary.simpleMessage("Feature Request"),
+    "Go_To_Downloads": MessageLookupByLibrary.simpleMessage("Go to Downloads"),
     "Google_Account": MessageLookupByLibrary.simpleMessage("Google Account"),
     "Gyawun": MessageLookupByLibrary.simpleMessage("Gyawun"),
     "High": MessageLookupByLibrary.simpleMessage("High"),
@@ -138,6 +139,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "Name": MessageLookupByLibrary.simpleMessage("Name"),
     "Next_Up": MessageLookupByLibrary.simpleMessage("Next Up"),
     "No": MessageLookupByLibrary.simpleMessage("No"),
+    "No_Internet_Connection": MessageLookupByLibrary.simpleMessage(
+      "No Internet Connection",
+    ),
     "Organisation": MessageLookupByLibrary.simpleMessage("Organisation"),
     "Pay_With_UPI": MessageLookupByLibrary.simpleMessage("Pay with UPI"),
     "Payment_Methods": MessageLookupByLibrary.simpleMessage("Payment Methods"),

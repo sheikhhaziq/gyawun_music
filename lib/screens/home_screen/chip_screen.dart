@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
+import 'package:gyawun/utils/internet_guard.dart';
 
 import '../../utils/adaptive_widgets/adaptive_widgets.dart';
 import '../../ytmusic/ytmusic.dart';
@@ -86,29 +87,31 @@ class _ChipScreenState extends State<ChipScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return AdaptiveScaffold(
-      appBar: AdaptiveAppBar(
-        title: Text(widget.title),
-        centerTitle: true,
-      ),
-      body: initialLoading
-          ? const Center(child: AdaptiveProgressRing())
-          : SingleChildScrollView(
-              controller: _scrollController,
-              child: SafeArea(
-                child: Column(
-                  children: [
-                    ...sections.map((section) {
-                      return SectionItem(section: section);
-                    }),
-                    if (nextLoading)
-                      const Padding(
-                          padding: EdgeInsets.all(8.0),
-                          child: AdaptiveProgressRing()),
-                  ],
+    return InternetGuard(
+      child: AdaptiveScaffold(
+        appBar: AdaptiveAppBar(
+          title: Text(widget.title),
+          centerTitle: true,
+        ),
+        body: initialLoading
+            ? const Center(child: AdaptiveProgressRing())
+            : SingleChildScrollView(
+                controller: _scrollController,
+                child: SafeArea(
+                  child: Column(
+                    children: [
+                      ...sections.map((section) {
+                        return SectionItem(section: section);
+                      }),
+                      if (nextLoading)
+                        const Padding(
+                            padding: EdgeInsets.all(8.0),
+                            child: AdaptiveProgressRing()),
+                    ],
+                  ),
                 ),
               ),
-            ),
+      ),
     );
   }
 }

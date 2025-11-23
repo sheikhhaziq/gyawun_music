@@ -239,5 +239,9 @@
   "Remove_All_History_Message": "Are you sure you want to clear all history?",
   "@Remove_All_History_Message": {},
   "Copied_To_Clipboard": "Copied to Clipboard",
-  "@Copied_To_Clipboard": {}
+  "@Copied_To_Clipboard": {},
+  "No_Internet_Connection": "No Internet Connection",
+  "@No_Internet_Connection": {},
+  "Go_To_Downloads": "Go to Downloads",
+  "@Go_To_Downloads": {}
 }

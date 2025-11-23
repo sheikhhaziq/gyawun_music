@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
 import 'package:get_it/get_it.dart';
 import 'package:go_router/go_router.dart';
+import 'package:gyawun/utils/internet_guard.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
 import '../../../generated/l10n.dart';
@@ -107,127 +108,130 @@ class _SearchScreenState extends State<SearchScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return AdaptiveScaffold(
-      appBar: PreferredSize(
-        preferredSize: const AdaptiveAppBar().preferredSize,
-        child: LayoutBuilder(builder: (context, constraints) {
-          return AdaptiveAppBar(
-            title: widget.endpoint != null
-                ? Text(widget.endpoint!['query'])
-                : Material(
-                    color: Colors.transparent,
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: TypeAheadField(
-                            suggestionsCallback: (query) =>
-                                GetIt.I<YTMusic>().getSearchSuggestions(query),
-                            builder: (context, controller, focusNode) {
-                              _textEditingController = controller;
-                              _focusNode = focusNode;
-                              return AdaptiveTextField(
-                                focusNode: _focusNode,
-                                controller: _textEditingController,
-                                onSubmitted: onSubmit,
-                                onChanged: (value) {
-                                  getSuggestions(value);
-                                },
-                                keyboardType: TextInputType.text,
-                                maxLines: 1,
-                                autofocus: true,
-                                textInputAction: TextInputAction.search,
-                                fillColor: Platform.isWindows
-                                    ? null
-                                    : Colors.grey.withValues(alpha: 0.3),
-                                contentPadding: const EdgeInsets.symmetric(
-                                    vertical: 2, horizontal: 8),
-                                borderRadius: BorderRadius.circular(
-                                    Platform.isWindows ? 4.0 : 35),
-                                hintText: S.of(context).Search_Gyawun,
-                                prefix: constraints.maxWidth > 400
-                                    ? null
-                                    : const AdaptiveBackButton(),
-                                suffix: GestureDetector(
-                                  onTap: () {
-                                    setState(() {
-                                      _textEditingController?.text = '';
-                                    });
+    return InternetGuard(
+      child: AdaptiveScaffold(
+        appBar: PreferredSize(
+          preferredSize: const AdaptiveAppBar().preferredSize,
+          child: LayoutBuilder(builder: (context, constraints) {
+            return AdaptiveAppBar(
+              title: widget.endpoint != null
+                  ? Text(widget.endpoint!['query'])
+                  : Material(
+                      color: Colors.transparent,
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: TypeAheadField(
+                              suggestionsCallback: (query) => GetIt.I<YTMusic>()
+                                  .getSearchSuggestions(query),
+                              builder: (context, controller, focusNode) {
+                                _textEditingController = controller;
+                                _focusNode = focusNode;
+                                return AdaptiveTextField(
+                                  focusNode: _focusNode,
+                                  controller: _textEditingController,
+                                  onSubmitted: onSubmit,
+                                  onChanged: (value) {
+                                    getSuggestions(value);
                                   },
-                                  child: const Icon(CupertinoIcons.clear),
-                                ),
-                              );
-                            },
-                            decorationBuilder: Platform.isWindows
-                                ? (context, child) {
-                                    return Ink(
-                                      padding: EdgeInsets.zero,
-                                      decoration: BoxDecoration(
-                                        color: AdaptiveTheme.of(context)
-                                            .inactiveBackgroundColor,
-                                        borderRadius: BorderRadius.circular(4),
-                                      ),
-                                      child: child,
-                                    );
-                                  }
-                                : null,
-                            itemBuilder: (context, value) {
-                              if (value['type'] == 'TEXT') {
-                                return AdaptiveListTile(
-                                    leading: value['isHistory'] != null
-                                        ? const Icon(Icons.history)
-                                        : null,
-                                    title: Text(value['query']),
+                                  keyboardType: TextInputType.text,
+                                  maxLines: 1,
+                                  autofocus: true,
+                                  textInputAction: TextInputAction.search,
+                                  fillColor: Platform.isWindows
+                                      ? null
+                                      : Colors.grey.withValues(alpha: 0.3),
+                                  contentPadding: const EdgeInsets.symmetric(
+                                      vertical: 2, horizontal: 8),
+                                  borderRadius: BorderRadius.circular(
+                                      Platform.isWindows ? 4.0 : 35),
+                                  hintText: S.of(context).Search_Gyawun,
+                                  prefix: constraints.maxWidth > 400
+                                      ? null
+                                      : const AdaptiveBackButton(),
+                                  suffix: GestureDetector(
                                     onTap: () {
                                       setState(() {
-                                        _textEditingController?.text =
-                                            value['query'];
+                                        _textEditingController?.text = '';
                                       });
-                                      onSubmit(value['query']);
-                                    });
-                              }
-                              return SearchListTile(item: value);
-                            },
-                            onSelected: (value) => (),
+                                    },
+                                    child: const Icon(CupertinoIcons.clear),
+                                  ),
+                                );
+                              },
+                              decorationBuilder: Platform.isWindows
+                                  ? (context, child) {
+                                      return Ink(
+                                        padding: EdgeInsets.zero,
+                                        decoration: BoxDecoration(
+                                          color: AdaptiveTheme.of(context)
+                                              .inactiveBackgroundColor,
+                                          borderRadius:
+                                              BorderRadius.circular(4),
+                                        ),
+                                        child: child,
+                                      );
+                                    }
+                                  : null,
+                              itemBuilder: (context, value) {
+                                if (value['type'] == 'TEXT') {
+                                  return AdaptiveListTile(
+                                      leading: value['isHistory'] != null
+                                          ? const Icon(Icons.history)
+                                          : null,
+                                      title: Text(value['query']),
+                                      onTap: () {
+                                        setState(() {
+                                          _textEditingController?.text =
+                                              value['query'];
+                                        });
+                                        onSubmit(value['query']);
+                                      });
+                                }
+                                return SearchListTile(item: value);
+                              },
+                              onSelected: (value) => (),
+                            ),
                           ),
-                        ),
+                        ],
+                      ),
+                    ),
+              automaticallyImplyLeading:
+                  (constraints.maxWidth <= 400) ? false : true,
+            );
+          }),
+        ),
+        body: initialLoading
+            ? const Center(child: AdaptiveProgressRing())
+            : SingleChildScrollView(
+                controller: _scrollController,
+                child: Center(
+                  child: Container(
+                    constraints: const BoxConstraints(maxWidth: 1000),
+                    padding: const EdgeInsets.all(8),
+                    child: Column(
+                      children: [
+                        ...results.map((section) {
+                          if (Platform.isWindows) {
+                            return Center(
+                              child: Adaptivecard(
+                                borderRadius: BorderRadius.circular(8),
+                                child: SearchSectionItem(
+                                    section: section, isMore: widget.isMore),
+                              ),
+                            );
+                          }
+                          return SearchSectionItem(
+                              section: section, isMore: widget.isMore);
+                        }),
+                        if (nextLoading)
+                          const Center(child: AdaptiveProgressRing())
                       ],
                     ),
                   ),
-            automaticallyImplyLeading:
-                (constraints.maxWidth <= 400) ? false : true,
-          );
-        }),
-      ),
-      body: initialLoading
-          ? const Center(child: AdaptiveProgressRing())
-          : SingleChildScrollView(
-              controller: _scrollController,
-              child: Center(
-                child: Container(
-                  constraints: const BoxConstraints(maxWidth: 1000),
-                  padding: const EdgeInsets.all(8),
-                  child: Column(
-                    children: [
-                      ...results.map((section) {
-                        if (Platform.isWindows) {
-                          return Center(
-                            child: Adaptivecard(
-                              borderRadius: BorderRadius.circular(8),
-                              child: SearchSectionItem(
-                                  section: section, isMore: widget.isMore),
-                            ),
-                          );
-                        }
-                        return SearchSectionItem(
-                            section: section, isMore: widget.isMore);
-                      }),
-                      if (nextLoading)
-                        const Center(child: AdaptiveProgressRing())
-                    ],
-                  ),
                 ),
               ),
-            ),
+      ),
     );
   }
 }
