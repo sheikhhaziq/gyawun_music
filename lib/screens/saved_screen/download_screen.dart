@@ -8,6 +8,7 @@ import 'package:get_it/get_it.dart';
 import 'package:go_router/go_router.dart';
 import 'package:gyawun/utils/extensions.dart';
 import 'package:gyawun/utils/pprint.dart';
+import 'package:gyawun/utils/song_thumbnail.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
 import '../../generated/l10n.dart';
@@ -161,9 +162,8 @@ class DownloadedSongTile extends StatelessWidget {
       title: Text(song['title'] ?? "", maxLines: 1),
       leading: ClipRRect(
         borderRadius: BorderRadius.circular(3),
-        child: CachedNetworkImage(
-          imageUrl:
-              thumbnails.where((el) => el['width'] >= 50).toList().first['url'],
+        child: SongThumbnail(
+          song: song,
           height: height,
           width: 50,
           fit: BoxFit.cover,

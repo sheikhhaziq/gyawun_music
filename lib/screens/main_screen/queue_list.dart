@@ -1,13 +1,12 @@
 import 'dart:io';
 import 'dart:ui';
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
+import 'package:gyawun/utils/song_thumbnail.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:just_audio_background/just_audio_background.dart';
 import '../../generated/l10n.dart';
 import '../../services/media_player.dart';
-import '../../utils/enhanced_image.dart';
 
 class QueueList extends StatelessWidget {
   const QueueList({super.key});
@@ -77,8 +76,7 @@ class QueueList extends StatelessWidget {
                                     ),
                                   ),
                                   onPressed: () {
-                                    player
-                                        .setShuffleModeEnabled(!shuffle);
+                                    player.setShuffleModeEnabled(!shuffle);
                                   },
                                   icon: const Icon(Icons.shuffle_outlined),
                                   label: Text(S.of(context).Shuffle),
@@ -155,36 +153,19 @@ class ArtworkWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final double dp = MediaQuery.of(context).devicePixelRatio;
-    final String? imageUrl =
-        song.extras?['thumbnails']?.first['url']?.toString();
-
-    Widget imageWidget;
-
-    if (song.extras?['offline'] == true &&
-        !(song.artUri?.toString().startsWith('http') ?? false)) {
-      imageWidget = Image.file(
-        File.fromUri(song.artUri!),
-        width: 50,
-        height: 50,
-        fit: BoxFit.fill,
-        errorBuilder: (_, __, ___) => const SizedBox(),
-      );
-    } else {
-      imageWidget = CachedNetworkImage(
-        imageUrl: getEnhancedImage(imageUrl!, dp: dp),
-        width: 50,
-        height: 50,
-        fit: BoxFit.fill,
-        errorWidget: (_, __, ___) =>
-            const Icon(Icons.music_note, size: 32),
-      );
-    }
 
     return ClipRRect(
       borderRadius: BorderRadius.circular(8),
       child: Stack(
         children: [
-          imageWidget,
+          SongThumbnail(
+            song: song.extras!,
+            dp: dp,
+            height: 50,
+            width: 50,
+            fit: BoxFit.fill,
+            errorWidget: (_, __, ___) => const Icon(Icons.music_note, size: 32),
+          ),
           if (isCurrent)
             Container(
               height: 50,

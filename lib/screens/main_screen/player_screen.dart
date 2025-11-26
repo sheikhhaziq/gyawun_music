@@ -8,6 +8,7 @@ import 'package:flutter/services.dart';
 import 'package:get_it/get_it.dart';
 import 'package:go_router/go_router.dart';
 import 'package:gyawun/utils/extensions.dart';
+import 'package:gyawun/utils/song_thumbnail.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:just_audio_background/just_audio_background.dart';
@@ -497,29 +498,9 @@ class Artwork extends StatelessWidget {
                               ),
                               child: ClipRRect(
                                 borderRadius: BorderRadius.circular(8),
-                                child: song?.extras?['offline'] == true &&
-                                        !song!.artUri
-                                            .toString()
-                                            .startsWith('https')
-                                    ? Image.file(
-                                        File.fromUri(song!.artUri!),
-                                      )
-                                    : CachedNetworkImage(
-                                        filterQuality: FilterQuality.high,
-                                        imageUrl: getEnhancedImage(
-                                          song!.extras!['thumbnails']
-                                              .first['url'],
-                                        ),
-                                        errorWidget: (context, url, error) {
-                                          return CachedNetworkImage(
-                                            imageUrl: getEnhancedImage(
-                                              song!.extras!['thumbnails']
-                                                  .first['url'],
-                                              quality: 'medium',
-                                            ),
-                                          );
-                                        },
-                                      ),
+                                child: SongThumbnail(
+                                  song: song!.extras!,
+                                ),
                               ),
                             ),
                     ),
