@@ -22,6 +22,9 @@ class InternetGuard extends StatelessWidget {
       stream: _internetStatusStream,
       builder: (context, snapshot) {
         final status = snapshot.data;
+        if (status == InternetStatus.connected) {
+          return child;
+        }
         if (status == InternetStatus.disconnected) {
           return Center(
             child: Column(
@@ -44,7 +47,9 @@ class InternetGuard extends StatelessWidget {
             ),
           );
         }
-        return child;
+        return const Center(
+          child: CircularProgressIndicator(),
+        );
       },
     );
   }

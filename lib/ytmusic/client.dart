@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:gyawun/ytmusic/helpers.dart';
 import 'package:gyawun/ytmusic/modals/yt_config.dart';
 import 'package:http/http.dart';
+import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
 
 class YTClient {
   YTClient({required this.config, this.onIdUpdate}) {
@@ -40,6 +41,11 @@ class YTClient {
     if (config?.visitorData != null) {
       headers['X-Goog-Visitor-Id'] = config!.visitorData;
     }
+  }
+
+  static Future<bool> isOffline() async {
+    return await InternetConnection().internetStatus ==
+        InternetStatus.disconnected;
   }
 
   Future<void> resetVisitorId() async {
@@ -80,6 +86,9 @@ class YTClient {
     String url,
     Map<String, String>? headers,
   ) async {
+    if (await isOffline()) {
+      return Response.bytes([], 503);
+    }
     final Uri uri = Uri.parse(url);
     final Response response = await get(uri, headers: headers);
     return response;
@@ -89,12 +98,18 @@ class YTClient {
     String url,
     Map<String, String>? headers,
   ) async {
+    if (await isOffline()) {
+      return Response.bytes([], 503);
+    }
     final Uri uri = Uri.parse(url);
     final Response response = await get(uri, headers: headers);
     return response;
   }
 
   Future<Response> addPlayingStats(String videoId, Duration time) async {
+    if (await isOffline()) {
+      return Response.bytes([], 503);
+    }
     final Uri uri = Uri.parse(
         'https://music.youtube.com/api/stats/watchtime?ns=yt&ver=2&c=WEB_REMIX&cmt=${(time.inMilliseconds / 1000)}&docid=$videoId');
     final Response response = await get(uri, headers: headers);
@@ -104,6 +119,9 @@ class YTClient {
   Future<Map> sendRequest(String endpoint, Map<String, dynamic> body,
       {Map<String, String>? headers, String additionalParams = ''}) async {
     //
+    if (await isOffline()) {
+      return {};
+    }
     body = {...body, ...context};
 
     this.headers.addAll(headers ?? {});

@@ -3,11 +3,16 @@ import 'dart:io';
 
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:http/http.dart' as http;
+import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 import '../app_config.dart';
 
 Future<UpdateInfo?> checkUpdate({BaseDeviceInfo? deviceInfo}) async {
+  if (await InternetConnection().internetStatus ==
+      InternetStatus.disconnected) {
+    return null;
+  }
   final response = await http.get(appConfig.updateUri,
       headers: {'Accept': 'application/vnd.github+json'});
   Map update = jsonDecode(response.body);
