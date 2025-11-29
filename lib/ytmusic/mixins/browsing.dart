@@ -222,6 +222,7 @@ mixin BrowsingMixin on YTClient {
     body['video_id'] = videoId;
 
     final Map response = await sendRequest('player', body);
+    if (response.isEmpty) return;
     String url =
         response['playbackTracking']['videostatsPlaybackUrl']['baseUrl'];
     const String cpna =

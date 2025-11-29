@@ -1,5 +1,3 @@
-import 'dart:typed_data';
-
 import 'package:audiotags/audiotags.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
@@ -13,6 +11,7 @@ class SongThumbnail extends StatefulWidget {
   final FilterQuality filterQuality;
   final BoxFit? fit;
   final Widget Function(BuildContext, String, Object)? errorWidget;
+  final void Function(ImageProvider)? onImageReady;
 
   const SongThumbnail({
     super.key,
@@ -23,6 +22,7 @@ class SongThumbnail extends StatefulWidget {
     this.filterQuality = FilterQuality.high,
     this.fit,
     this.errorWidget,
+    this.onImageReady,
   });
 
   @override
@@ -30,83 +30,90 @@ class SongThumbnail extends StatefulWidget {
 }
 
 class _SongThumbnailState extends State<SongThumbnail> {
-  Uint8List? thumbnailBytes;
-  bool isLoading = true;
+  MemoryImage? _localImageProvider;
+  bool _isCheckingLocal = true;
+  ImageProvider? _lastNotifiedProvider;
 
   @override
   void initState() {
     super.initState();
-    _loadLocalThumbnail();
+    _checkLocalThumbnail();
   }
 
   @override
   void didUpdateWidget(covariant SongThumbnail oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.song != oldWidget.song) {
-      _loadLocalThumbnail();
+      _lastNotifiedProvider = null;
+      _checkLocalThumbnail();
     }
   }
 
-  Future<void> _loadLocalThumbnail() async {
+  Future<void> _checkLocalThumbnail() async {
+    if (!_isCheckingLocal) setState(() => _isCheckingLocal = true);
+    MemoryImage? foundImage;
     if (widget.song['status'] == "DOWNLOADED" && widget.song['path'] != null) {
-      Tag? tag = await AudioTags.read(widget.song['path']);
-      if (tag != null && tag.pictures.isNotEmpty) {
-        setState(() {
-          thumbnailBytes = tag.pictures.first.bytes;
-        });
+      try {
+        final Tag? tag = await AudioTags.read(widget.song['path']);
+        if (tag?.pictures.isNotEmpty == true) {
+          foundImage = MemoryImage(tag!.pictures.first.bytes);
+        }
+      } catch (e) {
+        debugPrint("Errore lettura tag: $e");
+        _localImageProvider = null;
+        _isCheckingLocal = false;
       }
     }
+    if (!mounted) return;
     setState(() {
-      isLoading = false;
+      _localImageProvider = foundImage;
+      _isCheckingLocal = false;
     });
+  }
+
+  Widget _buildDisplayImage(ImageProvider provider) {
+    if (widget.onImageReady != null && provider != _lastNotifiedProvider) {
+      _lastNotifiedProvider = provider;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) widget.onImageReady!(provider);
+      });
+    }
+    return Image(
+      image: provider,
+      height: widget.height,
+      width: widget.width,
+      fit: widget.fit,
+      filterQuality: widget.filterQuality,
+      gaplessPlayback: true,
+    );
+  }
+
+  Widget _buildCachedNetworkImage(List<String> urls, int index) {
+    return CachedNetworkImage(
+      imageUrl: urls[index],
+      height: widget.height,
+      width: widget.width,
+      fit: widget.fit,
+      filterQuality: widget.filterQuality,
+      imageBuilder: (context, provider) => _buildDisplayImage(provider),
+      errorWidget: (index + 1 < urls.length)
+          ? (context, url, error) => _buildCachedNetworkImage(urls, index + 1)
+          : widget.errorWidget,
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    return isLoading
-        ? SizedBox()
-        : thumbnailBytes != null
-            ? Image.memory(
-                thumbnailBytes!,
-                height: widget.height,
-                width: widget.width,
-                fit: widget.fit,
-              )
-            : CachedNetworkImage(
-                imageUrl: getEnhancedImage(
-                  widget.song['thumbnails'].first['url'],
-                  dp: widget.dp,
-                  width: widget.width,
-                ),
-                height: widget.height,
-                width: widget.width,
-                filterQuality: widget.filterQuality,
-                fit: widget.fit,
-                errorWidget: (context, url, error) {
-                  return CachedNetworkImage(
-                    imageUrl: getEnhancedImage(
-                      widget.song['thumbnails'].first['url'],
-                      quality: 'medium',
-                    ),
-                    height: widget.height,
-                    width: widget.width,
-                    filterQuality: widget.filterQuality,
-                    fit: widget.fit,
-                    errorWidget: (context, url, error) {
-                      return CachedNetworkImage(
-                        imageUrl: getEnhancedImage(
-                          widget.song['thumbnails'].first['url'],
-                          quality: 'low',
-                        ),
-                        height: widget.height,
-                        width: widget.width,
-                        filterQuality: widget.filterQuality,
-                        fit: widget.fit,
-                        errorWidget: widget.errorWidget,
-                      );
-                    },
-                  );
-                },
-              );
+    if (_isCheckingLocal) return const SizedBox();
+    if (_localImageProvider != null) {
+      return _buildDisplayImage(_localImageProvider!);
+    }
+    final String baseUrl = widget.song['thumbnails'].first['url'];
+    final List<String> urls = [
+      getEnhancedImage(baseUrl, dp: widget.dp, width: widget.width),
+      getEnhancedImage(baseUrl, quality: 'medium'),
+      getEnhancedImage(baseUrl, quality: 'low'),
+    ];
+    return _buildCachedNetworkImage(urls, 0);
   }
 }

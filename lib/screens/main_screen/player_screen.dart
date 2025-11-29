@@ -2,12 +2,10 @@ import 'dart:io';
 import 'dart:math';
 import 'dart:ui';
 import 'package:audio_video_progress_bar/audio_video_progress_bar.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get_it/get_it.dart';
 import 'package:go_router/go_router.dart';
-import 'package:gyawun/utils/extensions.dart';
 import 'package:gyawun/utils/song_thumbnail.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:just_audio/just_audio.dart';
@@ -24,7 +22,6 @@ import '../../themes/dark.dart';
 import '../../themes/text_styles.dart';
 import '../../utils/adaptive_widgets/adaptive_widgets.dart';
 import '../../utils/bottom_modals.dart';
-import '../../utils/enhanced_image.dart';
 import '../../ytmusic/ytmusic.dart';
 import 'lyrics_box.dart';
 import 'play_button.dart';
@@ -41,8 +38,8 @@ class PlayerScreen extends StatefulWidget {
 class _PlayerScreenState extends State<PlayerScreen> {
   late PanelController panelController;
   final GlobalKey<ScaffoldState> _key = GlobalKey();
-  List? colors = [];
-  String? image;
+  Color color = Colors.grey[800]!;
+  ImageProvider? image;
   bool canPop = false;
   bool showLyrics = false;
   bool fetchedSong = false;
@@ -63,7 +60,6 @@ class _PlayerScreenState extends State<PlayerScreen> {
       });
     }
     currentSong = GetIt.I<MediaPlayer>().currentSongNotifier.value;
-    _fetchImage();
     GetIt.I<MediaPlayer>().currentSongNotifier.addListener(songListener);
   }
 
@@ -80,7 +76,6 @@ class _PlayerScreenState extends State<PlayerScreen> {
           currentSong = GetIt.I<MediaPlayer>().currentSongNotifier.value;
         });
       }
-      _fetchImage();
     }
   }
 
@@ -92,73 +87,15 @@ class _PlayerScreenState extends State<PlayerScreen> {
     }
   }
 
-  void _fetchImage() {
-    if (!mounted) return;
-    if (currentSong?.extras?['thumbnails'] != null &&
-        currentSong?.extras?['thumbnails'].isNotEmpty &&
-        image !=
-            getEnhancedImage(
-                currentSong?.extras?['thumbnails']?.first['url'])) {
-      if (mounted) {
-        setState(() {
-          image = getEnhancedImage(
-            currentSong?.extras?['thumbnails']?.first['url'],
-          );
-        });
-      }
-    }
-  }
-
-  Future<Color?> getColor(String? image, bool isDark) async {
-    if (image == null) return Theme.of(context).scaffoldBackgroundColor;
+  Future<void> updateBackgroundColor(ImageProvider image) async {
     final c = await ColorScheme.fromImageProvider(
-      provider: CachedNetworkImageProvider(
-        image,
-        errorListener: (p0) {
-          if (mounted) {
-            setState(() {
-              image = getEnhancedImage(image!,
-                  dp: MediaQuery.of(context).devicePixelRatio,
-                  quality: 'medium');
-            });
-          }
-        },
-      ),
+      provider: image,
     );
-    return c.primary;
-    // PaletteGenerator paletteGenerator =
-    //     await PaletteGenerator.fromImageProvider(
-    //   CachedNetworkImageProvider(
-    //     image,
-    //     errorListener: (p0) {
-    //       if (mounted) {
-    //         setState(() {
-    //           image = getEnhancedImage(image!,
-    //               dp: MediaQuery.of(context).devicePixelRatio,
-    //               quality: 'medium');
-    //         });
-    //       }
-    //     },
-    //   ),
-    // );
-
-    // if (mounted) {
-    //   if (isDark) {
-    //     return paletteGenerator.darkVibrantColor?.color ??
-    //         paletteGenerator.dominantColor?.color ??
-    //         paletteGenerator.darkMutedColor?.color ??
-    //         paletteGenerator.lightVibrantColor?.color ??
-    //         paletteGenerator.lightMutedColor?.color;
-    //   } else {
-    //     return paletteGenerator.lightMutedColor?.color ??
-    //         paletteGenerator.darkVibrantColor?.color ??
-    //         paletteGenerator.dominantColor?.color ??
-    //         paletteGenerator.darkMutedColor?.color ??
-    //         paletteGenerator.lightVibrantColor?.color;
-    //   }
-    // } else {
-    //   return Colors.transparent;
-    // }
+    if (mounted) {
+      setState(() {
+        color = c.primary;
+      });
+    }
   }
 
   MaterialColor primaryWhite = const MaterialColor(
@@ -207,243 +144,218 @@ class _PlayerScreenState extends State<PlayerScreen> {
                   statusBarIconBrightness: Brightness.light,
                   systemNavigationBarColor: Colors.transparent,
                 ),
-                child: FutureBuilder<Color?>(
-                    future: getColor(image, context.isDarkMode),
-                    builder: (context, snapshot) {
-                      if (!mounted) return Container();
-                      // pprint(snapshot.data?.toString());
-                      return Container(
-                        color: Colors.black,
-                        child: AnimatedContainer(
-                          duration: const Duration(milliseconds: 300),
-                          curve: Curves.easeIn,
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              colors: [
-                                snapshot.hasData && snapshot.data != null
-                                    ? snapshot.data!.withAlpha(200)
-                                    : Colors.transparent,
-                                snapshot.hasData && snapshot.data != null
-                                    ? snapshot.data!.withAlpha(80)
-                                    : Colors.transparent
-                              ],
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                            ),
+                child: Container(
+                  color: Colors.black,
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 300),
+                    curve: Curves.easeIn,
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          color.withAlpha(200),
+                          color.withAlpha(80),
+                        ],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                    ),
+                    child: Scaffold(
+                      appBar: PreferredSize(
+                        preferredSize: AppBar().preferredSize,
+                        child: AppBar(
+                          backgroundColor: Colors.transparent,
+                          surfaceTintColor: Colors.transparent,
+                          elevation: 0,
+                          iconTheme: const IconThemeData(color: Colors.white),
+                          leading: AdaptiveIconButton(
+                            onPressed: () {
+                              context.pop();
+                            },
+                            icon: Icon(AdaptiveIcons.chevron_down),
                           ),
-                          child: Scaffold(
-                            appBar: PreferredSize(
-                              preferredSize: AppBar().preferredSize,
-                              child: AppBar(
-                                backgroundColor: Colors.transparent,
-                                surfaceTintColor: Colors.transparent,
-                                elevation: 0,
-                                iconTheme:
-                                    const IconThemeData(color: Colors.white),
-                                leading: AdaptiveIconButton(
-                                  onPressed: () {
-                                    context.pop();
-                                  },
-                                  icon: Icon(AdaptiveIcons.chevron_down),
-                                ),
-                                actions: [
-                                  AdaptiveIconButton(
-                                    onPressed: () {
-                                      setState(() {
-                                        showLyrics = !showLyrics;
-                                      });
-                                    },
-                                    icon: Icon(AdaptiveIcons.lyrics),
-                                  ),
-                                  if (MediaQuery.of(context).size.width >
-                                          MediaQuery.of(context).size.height ||
-                                      Platform.isWindows)
-                                    AdaptiveIconButton(
-                                      onPressed: () {
-                                        _key.currentState?.openEndDrawer();
-                                      },
-                                      icon: Icon(AdaptiveIcons.queue),
-                                    ),
-                                ],
-                              ),
+                          actions: [
+                            AdaptiveIconButton(
+                              onPressed: () {
+                                setState(() {
+                                  showLyrics = !showLyrics;
+                                });
+                              },
+                              icon: Icon(AdaptiveIcons.lyrics),
                             ),
-                            key: _key,
-                            backgroundColor: Colors.transparent,
-                            endDrawer: MediaQuery.of(context).size.width >
-                                        MediaQuery.of(context).size.height ||
-                                    Platform.isWindows
-                                ? SizedBox(
-                                    width: min(400,
-                                            MediaQuery.of(context).size.width) -
-                                        50,
-                                    child: const QueueList(),
+                            if (MediaQuery.of(context).size.width >
+                                    MediaQuery.of(context).size.height ||
+                                Platform.isWindows)
+                              AdaptiveIconButton(
+                                onPressed: () {
+                                  _key.currentState?.openEndDrawer();
+                                },
+                                icon: Icon(AdaptiveIcons.queue),
+                              ),
+                          ],
+                        ),
+                      ),
+                      key: _key,
+                      backgroundColor: Colors.transparent,
+                      endDrawer: MediaQuery.of(context).size.width >
+                                  MediaQuery.of(context).size.height ||
+                              Platform.isWindows
+                          ? SizedBox(
+                              width:
+                                  min(400, MediaQuery.of(context).size.width) -
+                                      50,
+                              child: const QueueList(),
+                            )
+                          : null,
+                      body: SizedBox(
+                        width: double.maxFinite,
+                        child: LayoutBuilder(
+                          builder: (context, constraints) {
+                            EdgeInsets padding = MediaQuery.of(context).padding;
+                            double maxWidth = constraints.maxWidth -
+                                padding.left -
+                                padding.right;
+                            double maxHeight = constraints.maxHeight -
+                                padding.top -
+                                padding.bottom;
+                            if (maxWidth > maxHeight) {
+                              return Row(
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceEvenly,
+                                children: [
+                                  Artwork(
+                                    setShowLyrics: setShowLyrics,
+                                    showLyrics: showLyrics,
+                                    width: maxWidth / 2.3,
+                                    song: currentSong,
+                                    onImageReady: updateBackgroundColor,
+                                  ),
+                                  NameAndControls(
+                                    song: currentSong,
+                                    width: maxWidth - (maxWidth / 2.3),
+                                    height: maxHeight,
+                                    isRow: true,
                                   )
-                                : null,
-                            body: SizedBox(
-                              width: double.maxFinite,
-                              child: LayoutBuilder(
-                                builder: (context, constraints) {
-                                  EdgeInsets padding =
-                                      MediaQuery.of(context).padding;
-                                  double maxWidth = constraints.maxWidth -
-                                      padding.left -
-                                      padding.right;
-                                  double maxHeight = constraints.maxHeight -
-                                      padding.top -
-                                      padding.bottom;
-                                  if (maxWidth > maxHeight) {
-                                    return Row(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.center,
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceEvenly,
-                                      children: [
-                                        Artwork(
-                                          setShowLyrics: setShowLyrics,
-                                          showLyrics: showLyrics,
-                                          width: maxWidth / 2.3,
-                                          song: currentSong,
-                                        ),
-                                        NameAndControls(
-                                          song: currentSong,
-                                          width: maxWidth - (maxWidth / 2.3),
-                                          height: maxHeight,
-                                          isRow: true,
-                                        )
-                                      ],
-                                    );
-                                  }
-                                  return Stack(
-                                    children: [
-                                      Column(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.spaceAround,
+                                ],
+                              );
+                            }
+                            return Stack(
+                              children: [
+                                Column(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceAround,
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  children: [
+                                    Artwork(
+                                      setShowLyrics: setShowLyrics,
+                                      showLyrics: showLyrics,
+                                      width:
+                                          min(maxWidth, maxHeight / 2.2) - 24,
+                                      song: currentSong,
+                                      onImageReady: updateBackgroundColor,
+                                    ),
+                                    NameAndControls(
+                                      song: currentSong,
+                                      width: maxWidth,
+                                      height: maxHeight -
+                                          min(maxWidth, maxHeight / 2.2) -
+                                          24,
+                                    )
+                                  ],
+                                ),
+                                SlidingUpPanel(
+                                  controller: panelController,
+                                  color: Colors.transparent,
+                                  padding: EdgeInsets.zero,
+                                  margin: EdgeInsets.zero,
+                                  borderRadius: const BorderRadius.only(
+                                    topLeft: Radius.circular(20),
+                                    topRight: Radius.circular(20),
+                                  ),
+                                  boxShadow: const [],
+                                  minHeight: 50 +
+                                      MediaQuery.of(context).padding.bottom,
+                                  panel: ClipRRect(
+                                    borderRadius: const BorderRadius.only(
+                                        topLeft: Radius.circular(20),
+                                        topRight: Radius.circular(20)),
+                                    child: Container(
+                                      width: constraints.maxWidth,
+                                      alignment: Alignment.center,
+                                      decoration: const BoxDecoration(
+                                        borderRadius: BorderRadius.only(
+                                            topLeft: Radius.circular(20),
+                                            topRight: Radius.circular(20)),
+                                      ),
+                                      child: Column(
                                         crossAxisAlignment:
                                             CrossAxisAlignment.center,
+                                        mainAxisSize: MainAxisSize.max,
                                         children: [
-                                          Artwork(
-                                            setShowLyrics: setShowLyrics,
-                                            showLyrics: showLyrics,
-                                            width:
-                                                min(maxWidth, maxHeight / 2.2) -
-                                                    24,
-                                            song: currentSong,
-                                          ),
-                                          NameAndControls(
-                                            song: currentSong,
-                                            width: maxWidth,
-                                            height: maxHeight -
-                                                min(maxWidth, maxHeight / 2.2) -
-                                                24,
-                                          )
-                                        ],
-                                      ),
-                                      SlidingUpPanel(
-                                        controller: panelController,
-                                        color: Colors.transparent,
-                                        padding: EdgeInsets.zero,
-                                        margin: EdgeInsets.zero,
-                                        borderRadius: const BorderRadius.only(
-                                          topLeft: Radius.circular(20),
-                                          topRight: Radius.circular(20),
-                                        ),
-                                        boxShadow: const [],
-                                        minHeight: 50 +
-                                            MediaQuery.of(context)
-                                                .padding
-                                                .bottom,
-                                        panel: ClipRRect(
-                                          borderRadius: const BorderRadius.only(
-                                              topLeft: Radius.circular(20),
-                                              topRight: Radius.circular(20)),
-                                          child: Container(
-                                            width: constraints.maxWidth,
-                                            alignment: Alignment.center,
-                                            decoration: const BoxDecoration(
-                                              borderRadius: BorderRadius.only(
-                                                  topLeft: Radius.circular(20),
-                                                  topRight:
-                                                      Radius.circular(20)),
-                                            ),
-                                            child: Column(
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.center,
-                                              mainAxisSize: MainAxisSize.max,
-                                              children: [
-                                                ClipRRect(
-                                                  child: BackdropFilter(
-                                                    filter: ImageFilter.blur(
-                                                        sigmaX: 3, sigmaY: 3),
-                                                    child: Container(
-                                                      height: 50 +
-                                                          MediaQuery.of(context)
-                                                              .padding
-                                                              .bottom,
-                                                      width: double.maxFinite,
+                                          ClipRRect(
+                                            child: BackdropFilter(
+                                              filter: ImageFilter.blur(
+                                                  sigmaX: 3, sigmaY: 3),
+                                              child: Container(
+                                                height: 50 +
+                                                    MediaQuery.of(context)
+                                                        .padding
+                                                        .bottom,
+                                                width: double.maxFinite,
+                                                decoration: BoxDecoration(
+                                                  color: Theme.of(context)
+                                                      .scaffoldBackgroundColor
+                                                      .withAlpha(70),
+                                                  borderRadius:
+                                                      const BorderRadius.only(
+                                                          topLeft:
+                                                              Radius.circular(
+                                                                  20),
+                                                          topRight:
+                                                              Radius.circular(
+                                                                  20)),
+                                                ),
+                                                child: Column(
+                                                  mainAxisSize:
+                                                      MainAxisSize.max,
+                                                  mainAxisAlignment:
+                                                      MainAxisAlignment.center,
+                                                  children: [
+                                                    Container(
+                                                      height: 5,
+                                                      width: 50,
                                                       decoration: BoxDecoration(
-                                                        color: Theme.of(context)
-                                                            .scaffoldBackgroundColor
-                                                            .withAlpha(70),
+                                                        color: greyColor,
                                                         borderRadius:
-                                                            const BorderRadius
-                                                                .only(
-                                                                topLeft: Radius
-                                                                    .circular(
-                                                                        20),
-                                                                topRight: Radius
-                                                                    .circular(
-                                                                        20)),
-                                                      ),
-                                                      child: Column(
-                                                        mainAxisSize:
-                                                            MainAxisSize.max,
-                                                        mainAxisAlignment:
-                                                            MainAxisAlignment
-                                                                .center,
-                                                        children: [
-                                                          Container(
-                                                            height: 5,
-                                                            width: 50,
-                                                            decoration:
-                                                                BoxDecoration(
-                                                              color: greyColor,
-                                                              borderRadius:
-                                                                  BorderRadius
-                                                                      .circular(
-                                                                          20),
-                                                            ),
-                                                          ),
-                                                          const SizedBox(
-                                                              height: 8),
-                                                          Text(
-                                                            S
-                                                                .of(context)
-                                                                .Next_Up,
-                                                            style: textStyle(
-                                                                context,
-                                                                bold: true),
-                                                          ),
-                                                        ],
+                                                            BorderRadius
+                                                                .circular(20),
                                                       ),
                                                     ),
-                                                  ),
+                                                    const SizedBox(height: 8),
+                                                    Text(
+                                                      S.of(context).Next_Up,
+                                                      style: textStyle(context,
+                                                          bold: true),
+                                                    ),
+                                                  ],
                                                 ),
-                                                const Expanded(
-                                                    child: QueueList())
-                                              ],
+                                              ),
                                             ),
                                           ),
-                                        ),
-                                      )
-                                    ],
-                                  );
-                                },
-                              ),
-                            ),
-                          ),
+                                          const Expanded(child: QueueList())
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                )
+                              ],
+                            );
+                          },
                         ),
-                      );
-                    }),
+                      ),
+                    ),
+                  ),
+                ),
               ),
             ),
     );
@@ -456,11 +368,13 @@ class Artwork extends StatelessWidget {
       required this.width,
       required this.showLyrics,
       required this.setShowLyrics,
+      this.onImageReady,
       super.key});
   final double width;
   final MediaItem? song;
   final bool showLyrics;
   final Function setShowLyrics;
+  final void Function(ImageProvider)? onImageReady;
 
   @override
   Widget build(BuildContext context) {
@@ -500,6 +414,7 @@ class Artwork extends StatelessWidget {
                                 borderRadius: BorderRadius.circular(8),
                                 child: SongThumbnail(
                                   song: song!.extras!,
+                                  onImageReady: onImageReady,
                                 ),
                               ),
                             ),
