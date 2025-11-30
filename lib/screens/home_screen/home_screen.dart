@@ -130,6 +130,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return InternetGuard(
+      onInternetRestored: fetchHome,
       child: Scaffold(
         appBar: PreferredSize(
           preferredSize: AppBar().preferredSize,

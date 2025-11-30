@@ -102,6 +102,7 @@ class _BrowseScreenState extends State<BrowseScreen> {
   @override
   Widget build(BuildContext context) {
     return InternetGuard(
+      onInternetRestored: fetchData,
       child: AdaptiveScaffold(
         appBar: AdaptiveAppBar(
           title: header['title'] != null ? Text(header['title']) : null,

@@ -109,6 +109,11 @@ class _SearchScreenState extends State<SearchScreen> {
   @override
   Widget build(BuildContext context) {
     return InternetGuard(
+      onInternetRestored: () {
+        if (widget.endpoint != null) {
+          search(widget.endpoint!);
+        }
+      },
       child: AdaptiveScaffold(
         appBar: PreferredSize(
           preferredSize: const AdaptiveAppBar().preferredSize,

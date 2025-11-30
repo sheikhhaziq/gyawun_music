@@ -88,6 +88,7 @@ class _ChipScreenState extends State<ChipScreen> {
   @override
   Widget build(BuildContext context) {
     return InternetGuard(
+      onInternetRestored: fetchHome,
       child: AdaptiveScaffold(
         appBar: AdaptiveAppBar(
           title: Text(widget.title),
