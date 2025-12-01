@@ -31,7 +31,7 @@ mixin SearchMixin on YTClient {
             })
         .toList();
     var response = await sendRequest(endpoint, body);
-    var contents = response['contents'];
+    var contents = response['contents'] ?? [];
     for (Map content in contents) {
       List? searchSuggestionsSectionRendererContents =
           nav(content, ['searchSuggestionsSectionRenderer', 'contents']);

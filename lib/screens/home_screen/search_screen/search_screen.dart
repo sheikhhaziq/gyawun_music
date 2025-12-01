@@ -55,6 +55,7 @@ class _SearchScreenState extends State<SearchScreen> {
   }
 
   Future<void> onSubmit(String value) async {
+    if (value.trim() == '') return;
     _focusNode?.unfocus();
     setState(() {
       initialLoading = true;
@@ -109,9 +110,14 @@ class _SearchScreenState extends State<SearchScreen> {
   @override
   Widget build(BuildContext context) {
     return InternetGuard(
+      onInternetLost: () {
+        _focusNode?.unfocus();
+      },
       onInternetRestored: () {
         if (widget.endpoint != null) {
           search(widget.endpoint!);
+        } else {
+          _focusNode?.requestFocus();
         }
       },
       child: AdaptiveScaffold(
