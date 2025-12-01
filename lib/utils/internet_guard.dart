@@ -9,11 +9,13 @@ import 'package:internet_connection_checker_plus/internet_connection_checker_plu
 
 class InternetGuard extends StatefulWidget {
   final Widget child;
+  final VoidCallback? onInternetLost;
   final VoidCallback? onInternetRestored;
 
   const InternetGuard({
     super.key,
     required this.child,
+    this.onInternetLost,
     this.onInternetRestored,
   });
 
@@ -48,7 +50,10 @@ class _InternetGuardState extends State<InternetGuard> {
 
   void _handleConnectionChange(InternetStatus newStatus) {
     if (!mounted) return;
-    if (_internetStatus == InternetStatus.disconnected &&
+    if (_internetStatus == InternetStatus.connected &&
+        newStatus == InternetStatus.disconnected) {
+      widget.onInternetLost?.call();
+    } else if (_internetStatus == InternetStatus.disconnected &&
         newStatus == InternetStatus.connected) {
       widget.onInternetRestored?.call();
     }
