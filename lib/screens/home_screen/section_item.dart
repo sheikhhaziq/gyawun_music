@@ -215,12 +215,6 @@ class _SongListState extends State<SongList> {
   }
 
   @override
-  dispose() {
-    super.dispose();
-    widget.controller.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
     num = widget.songs.length <= 5 ? widget.songs.length : 4;
     pages = widget.songs.length ~/ num;

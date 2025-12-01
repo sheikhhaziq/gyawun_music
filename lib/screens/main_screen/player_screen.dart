@@ -38,7 +38,7 @@ class PlayerScreen extends StatefulWidget {
 class _PlayerScreenState extends State<PlayerScreen> {
   late PanelController panelController;
   final GlobalKey<ScaffoldState> _key = GlobalKey();
-  Color color = Colors.grey[800]!;
+  Color? color;
   ImageProvider? image;
   bool canPop = false;
   bool showLyrics = false;
@@ -152,8 +152,16 @@ class _PlayerScreenState extends State<PlayerScreen> {
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
                         colors: [
-                          color.withAlpha(200),
-                          color.withAlpha(80),
+                          (color ??
+                                  Theme.of(context)
+                                      .colorScheme
+                                      .surfaceContainerLow)
+                              .withAlpha(200),
+                          (color ??
+                                  Theme.of(context)
+                                      .colorScheme
+                                      .surfaceContainerLow)
+                              .withAlpha(80),
                         ],
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
