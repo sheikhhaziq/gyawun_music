@@ -104,7 +104,12 @@ class _SongThumbnailState extends State<SongThumbnail> {
 
   @override
   Widget build(BuildContext context) {
-    if (_isCheckingLocal) return const SizedBox();
+    if (_isCheckingLocal) {
+      return SizedBox(
+        height: widget.height,
+        width: widget.width,
+      );
+    }
     if (_localImageProvider != null) {
       return _buildDisplayImage(_localImageProvider!);
     }
