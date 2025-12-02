@@ -65,8 +65,10 @@ class _SearchScreenState extends State<SearchScreen> {
       await Hive.box('SEARCH_HISTORY').put(value.toLowerCase(), value);
     }
     Map response = await GetIt.I<YTMusic>().search(value);
-    results = response['sections'];
-    continuation = response['continuation'];
+    if (response.isNotEmpty) {
+      results = response['sections'];
+      continuation = response['continuation'];
+    }
     setState(() {
       initialLoading = false;
     });
