@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:gyawun_music/core/di.dart';
 import 'package:gyawun_music/core/utils/snackbar.dart';
-import 'package:gyawun_music/features/settings/widgets/setting_tile.dart';
+import 'package:gyawun_music/features/library/widgets/library_tile.dart';
 import 'package:gyawun_music/services/audio_service/media_player.dart';
 import 'package:gyawun_shared/gyawun_shared.dart';
 import 'package:library_manager/library_manager.dart';
@@ -35,11 +35,7 @@ class _ItemBottomLayoutState extends State<ItemBottomLayout> {
     item = widget.item;
     isPlayable = item is PlayableItem;
     isHorizontal = (item.type == SectionItemType.video || item.type == SectionItemType.episode);
-    isFavorite = sl<LibraryManager>().isSongInPlaylist(
-      playlistId: "favorites",
-      itemId: item.id,
-      provider: item.provider,
-    );
+    isFavorite = sl<LibraryManager>().isFavourite(item.id, item.provider);
   }
 
   @override
@@ -81,17 +77,10 @@ class _ItemBottomLayoutState extends State<ItemBottomLayout> {
                     onPressed: () async {
                       if (item is PlayableItem) {
                         if (isFavorite) {
-                          await sl<LibraryManager>().removeSongFromPlaylist(
-                            playlistId: "favorites",
-                            itemId: item.id,
-                            provider: item.provider,
-                          );
+                          await sl<LibraryManager>().removeFavourite(item.id, item.provider);
                           isFavorite = false;
                         } else {
-                          await sl<LibraryManager>().addSongToPlaylist(
-                            playlistId: "favorites",
-                            item: item as PlayableItem,
-                          );
+                          await sl<LibraryManager>().addFavourite(item as PlayableItem);
                           isFavorite = true;
                         }
                         setState(() {});
@@ -156,7 +145,7 @@ class _ItemBottomLayoutState extends State<ItemBottomLayout> {
                 const SizedBox(height: 8),
                 if (item is PlayableItem &&
                     sl<LibraryManager>()
-                        .getPlaylistsExcludingSong(item.id, PlaylistType.custom, item.provider)
+                        .getPlaylistsNotContainingItem(item.id, item.provider)
                         .isNotEmpty)
                   if (isPlayable)
                     ListTile(
@@ -359,11 +348,9 @@ class _AddToPlaylistLayoutState extends State<AddToPlaylistLayout> {
   @override
   initState() {
     super.initState();
-    playlists = sl<LibraryManager>().getPlaylistsExcludingSong(
+    playlists = sl<LibraryManager>().getPlaylistsNotContainingItem(
       widget.item.id,
-      PlaylistType.custom,
       widget.item.provider,
-      origin: PlaylistOrigin.local,
     );
   }
 
@@ -376,7 +363,7 @@ class _AddToPlaylistLayoutState extends State<AddToPlaylistLayout> {
         children: [
           if (playlists.isEmpty) const Text("No Playlist"),
           ...playlists.indexed.map(
-            (playlist) => SettingTile(
+            (playlist) => LibraryTile(
               title: playlist.$2.name,
               isFirst: playlist.$1 == 0,
               isLast: playlist.$1 == playlists.length - 1,

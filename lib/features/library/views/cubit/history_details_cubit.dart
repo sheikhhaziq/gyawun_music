@@ -19,4 +19,11 @@ class HistoryDetailsCubit extends Cubit<HistoryDetailsState> {
       emit(HistoryDetailsError(e.toString()));
     }
   }
+
+  Future<void> remove(String itemId, DataProvider provider) async {
+    if (state is HistoryDetailsSuccess) {
+      await libraryManager.removeFromPlaybackHistory(itemId, provider);
+      fetchSongs();
+    }
+  }
 }

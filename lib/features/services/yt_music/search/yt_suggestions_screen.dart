@@ -87,7 +87,7 @@ class _YTSuggestionsPageState extends State<YTSuggestionsPage> {
                   ],
             onSubmitted: (value) {
               if (value.isNotEmpty) {
-                libraryManager.addSearch(value);
+                libraryManager.addSearchQuery(value);
               }
               Navigator.pop(context, value);
             },
@@ -168,7 +168,7 @@ class _YTSuggestionsPageState extends State<YTSuggestionsPage> {
                       isFirst: state.data.textItems.indexOf(item) == 0,
                       isLast: state.data.textItems.indexOf(item) == state.data.textItems.length - 1,
                       onTap: () {
-                        libraryManager.addSearch(item);
+                        libraryManager.addSearchQuery(item);
                         Navigator.pop(context, item);
                       },
                     );
@@ -234,7 +234,7 @@ class _AnimatedHistoryListState extends State<_AnimatedHistoryList> {
     _items.removeAt(index);
 
     // Remove from DB
-    await libraryManager.deleteSearchById(removedItem.id);
+    await libraryManager.deleteSearchQuery(removedItem.id);
   }
 
   @override
@@ -258,7 +258,7 @@ class _AnimatedHistoryListState extends State<_AnimatedHistoryList> {
                     for (int i = _items.length - 1; i >= 0; i--) {
                       _removeItem(i);
                     }
-                    await libraryManager.clearSearchHistory();
+                    await libraryManager.clearSearchHistoryAll();
                   },
                   child: const Text('Clear all'),
                 ),
@@ -287,7 +287,7 @@ class _AnimatedHistoryListState extends State<_AnimatedHistoryList> {
                     onPressed: () => _removeItem(index),
                   ),
                   onTap: () {
-                    libraryManager.addSearch(item.query);
+                    libraryManager.addSearchQuery(item.query);
                     Navigator.pop(context, item.query);
                   },
                 ),

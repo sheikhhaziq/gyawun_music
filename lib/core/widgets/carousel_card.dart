@@ -8,14 +8,15 @@ class CarouselCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final image = item.thumbnails.first.url.contains('w60-h60')
+        ? item.thumbnails.first.url.replaceAll('w60-h60', 'w300-h300')
+        : item.thumbnails.last.url;
     return Stack(
       fit: StackFit.expand,
       children: [
         // Background Image
         CachedNetworkImage(
-          imageUrl: item.thumbnails.last.url,
-          width: item.thumbnails.last.width.toDouble(),
-          height: item.thumbnails.last.height.toDouble(),
+          imageUrl: image,
           fit: BoxFit.cover,
           errorWidget: (context, error, stackTrace) {
             return Container(

@@ -5,37 +5,38 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gyawun_music/core/di.dart';
 import 'package:gyawun_music/core/utils/modals.dart';
-import 'package:gyawun_music/features/library/views/cubit/history_details_cubit.dart';
+import 'package:gyawun_music/core/widgets/hint_text.dart';
+import 'package:gyawun_music/features/library/views/cubit/favourites_cubit.dart';
 import 'package:gyawun_music/features/library/widgets/library_song_tile.dart';
 import 'package:gyawun_music/services/audio_service/media_player.dart';
 
-class HistoryDetailsScreen extends StatelessWidget {
-  const HistoryDetailsScreen({super.key});
+class FavouritesScreen extends StatelessWidget {
+  const FavouritesScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (_) => HistoryDetailsCubit(sl())..fetchSongs(),
-      child: const HistoryDetailsView(),
+      create: (_) => FavouritesCubit(sl())..fetchSongs(),
+      child: const FavouritesView(),
     );
   }
 }
 
-class HistoryDetailsView extends StatelessWidget {
-  const HistoryDetailsView({super.key});
+class FavouritesView extends StatelessWidget {
+  const FavouritesView({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: BlocBuilder<HistoryDetailsCubit, HistoryDetailsState>(
+      body: BlocBuilder<FavouritesCubit, FavouritesState>(
         builder: (context, state) {
-          if (state is HistoryDetailsLoading) {
+          if (state is FavouritesLoading) {
             return const Center(child: CircularProgressIndicator());
           }
-          if (state is HistoryDetailsError) {
+          if (state is FavouritesError) {
             return Center(child: Text('Error: ${state.message}'));
           }
-          if (state is HistoryDetailsSuccess) {
+          if (state is FavouritesSuccess) {
             final songs = state.songs;
             return NestedScrollView(
               headerSliverBuilder: (context, innerBoxIsScrolled) {
@@ -58,9 +59,10 @@ class HistoryDetailsView extends StatelessWidget {
                           titlePadding: EdgeInsets.only(left: paddingLeft, bottom: 6, right: 16),
                           expandedTitleScale: 1.2,
                           title: Row(
+                            crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
                               Text(
-                                'History',
+                                'Favourites',
                                 style: Theme.of(context).appBarTheme.titleTextStyle,
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
@@ -103,19 +105,24 @@ class HistoryDetailsView extends StatelessWidget {
                     )
                   : Column(
                       children: [
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                          child: Text(
-                            "Swipe left on an item to remove it from the playlist",
-                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: Theme.of(context).colorScheme.onSurfaceVariant,
-                            ),
-                          ),
+                        HintText(
+                          text: "Swipe left on an item to remove it from favourites",
+                          color: Theme.of(context).colorScheme.onSecondaryContainer,
+                          backgroundColor: Theme.of(context).colorScheme.secondaryContainer,
                         ),
                         Expanded(
-                          child: ListView.builder(
+                          child: ReorderableListView.builder(
                             padding: const EdgeInsets.all(16),
                             itemCount: songs.length,
+                            buildDefaultDragHandles: false,
+                            onReorder: (oldIndex, newIndex) async {
+                              if (newIndex > oldIndex) newIndex -= 1;
+                              await context.read<FavouritesCubit>().reorder(
+                                songs[oldIndex],
+                                oldIndex,
+                                newIndex,
+                              );
+                            },
                             itemBuilder: (context, index) {
                               return Padding(
                                 key: ValueKey('${songs[index].provider.name}_${songs[index].id}'),
@@ -137,7 +144,7 @@ class HistoryDetailsView extends StatelessWidget {
                                       size: 24,
                                     ),
                                   ),
-                                  onDismissed: (_) => context.read<HistoryDetailsCubit>().remove(
+                                  onDismissed: (_) => context.read<FavouritesCubit>().remove(
                                     songs[index].id,
                                     songs[index].provider,
                                   ),
@@ -150,8 +157,19 @@ class HistoryDetailsView extends StatelessWidget {
                                         IconButton(
                                           onPressed: () async {
                                             await Modals.showItemBottomSheet(context, songs[index]);
+                                            if (context.mounted) {
+                                              context.read<FavouritesCubit>().fetchSongs();
+                                            }
                                           },
                                           icon: const Icon(Icons.more_vert_rounded),
+                                        ),
+                                        ReorderableDragStartListener(
+                                          index: index,
+                                          child: Icon(
+                                            FluentIcons.re_order_24_filled,
+                                            color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                            size: 30,
+                                          ),
                                         ),
                                       ],
                                     ),

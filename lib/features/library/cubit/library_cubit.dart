@@ -13,26 +13,11 @@ class LibraryCubit extends Cubit<LibraryState> {
 
   Future<void> loadLibrary() async {
     try {
-      final all = libraryManager.getAllPlaylists();
+      final localPlaylists = libraryManager.getLocalPlaylists();
 
-      final favorites = all.firstWhere((e) => e.type == PlaylistType.favorites);
-      final history = all.firstWhere((e) => e.type == PlaylistType.history);
-      final downloads = all.firstWhere((e) => e.type == PlaylistType.downloads);
+      final remotePlaylists = libraryManager.getRemotePlaylists();
 
-      final custom = all
-          .where((e) => e.type == PlaylistType.custom && e.origin == PlaylistOrigin.local)
-          .toList();
-      final remote = all.where((e) => e.origin == PlaylistOrigin.remote).toList();
-
-      emit(
-        LibrarySuccess(
-          favorites: favorites,
-          history: history,
-          downloads: downloads,
-          customPlaylists: custom,
-          remotePlaylists: remote,
-        ),
-      );
+      emit(LibrarySuccess(localPlaylists: localPlaylists, remotePlaylists: remotePlaylists));
     } catch (e) {
       emit(LibraryError(GeneralFailure(e.toString())));
     }
@@ -41,7 +26,7 @@ class LibraryCubit extends Cubit<LibraryState> {
   Future<void> createPlaylist(String id, String name) async {
     try {
       await libraryManager.createPlaylist(id: id, name: name);
-      await loadLibrary(); // reload
+      await loadLibrary();
     } catch (e) {
       emit(LibraryError(GeneralFailure(e.toString())));
     }
@@ -50,8 +35,13 @@ class LibraryCubit extends Cubit<LibraryState> {
   Future<void> deletePlaylist(Playlist playlist) async {
     final previousState = state;
     if (previousState is LibrarySuccess) {
-      final updatedCustom = List<Playlist>.from(previousState.customPlaylists)..remove(playlist);
-      emit(previousState.copyWith(customPlaylists: updatedCustom));
+      libraryManager.deletePlaylist(playlist.id);
+      final localPlaylists = libraryManager.getLocalPlaylists();
+
+      final remotePlaylists = libraryManager.getRemotePlaylists();
+      emit(
+        previousState.copyWith(localPlaylists: localPlaylists, remotePlaylists: remotePlaylists),
+      );
     }
 
     try {

@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gyawun_music/core/di.dart';
 import 'package:gyawun_music/core/utils/modals.dart';
+import 'package:gyawun_music/core/widgets/hint_text.dart';
 import 'package:gyawun_music/features/library/views/cubit/playlist_details_cubit.dart';
 import 'package:gyawun_music/features/library/widgets/library_song_tile.dart';
 import 'package:gyawun_music/services/audio_service/media_player.dart';
@@ -106,14 +107,10 @@ class PlaylistDetailsView extends StatelessWidget {
                     )
                   : Column(
                       children: [
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                          child: Text(
-                            "Swipe left on an item to remove it from the playlist",
-                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: Theme.of(context).colorScheme.onSurfaceVariant,
-                            ),
-                          ),
+                        HintText(
+                          text: "Swipe left on an item to remove it from playlist",
+                          color: Theme.of(context).colorScheme.onSecondaryContainer,
+                          backgroundColor: Theme.of(context).colorScheme.secondaryContainer,
                         ),
                         Expanded(
                           child: ReorderableListView.builder(
@@ -176,6 +173,7 @@ class PlaylistDetailsView extends StatelessWidget {
                               );
                             },
                             onReorder: (int oldIndex, int newIndex) async {
+                              if (newIndex > oldIndex) newIndex -= 1;
                               await context.read<PlaylistDetailsCubit>().reorder(
                                 songs[oldIndex],
                                 oldIndex,

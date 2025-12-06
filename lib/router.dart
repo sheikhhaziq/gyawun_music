@@ -4,6 +4,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:go_router/go_router.dart';
 import 'package:gyawun_music/core/extensions/context_extensions.dart';
 import 'package:gyawun_music/core/router/route_paths.dart';
+import 'package:gyawun_music/features/library/views/favourites_screen.dart';
 import 'package:gyawun_music/features/library/views/history_details.dart';
 import 'package:gyawun_music/features/library/views/playlist_details.dart';
 import 'package:gyawun_music/features/main/main_screen.dart';
@@ -119,8 +120,11 @@ final router = GoRouter(
             ),
             GoRoute(
               path: RoutePaths.libraryHistory,
-              builder: (context, state) =>
-                  HistoryDetailsScreen(name: state.pathParameters['name']!),
+              builder: (context, state) => const HistoryDetailsScreen(),
+            ),
+            GoRoute(
+              path: RoutePaths.libraryFavourites,
+              builder: (context, state) => const FavouritesScreen(),
             ),
 
             /// ---------- SETTINGS ----------

@@ -55,10 +55,7 @@ class _LibrarySuccessView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final favorites = state.favorites;
-    final history = state.history;
-    final downloads = state.downloads;
-    final playlists = state.customPlaylists;
+    final localPlaylists = state.localPlaylists;
     final remotePlaylists = state.remotePlaylists;
 
     return Scaffold(
@@ -90,11 +87,11 @@ class _LibrarySuccessView extends StatelessWidget {
               sliver: SliverToBoxAdapter(
                 child: LibraryTile(
                   leadingIcon: const Icon(FluentIcons.heart_24_filled, size: 30),
-                  subtitle: favorites.description,
+                  // subtitle: favorites.description,
                   title: AppLocalizations.of(context)!.favourites,
                   isFirst: true,
                   onTap: () {
-                    context.push(RouteLocations.libraryPlaylist(favorites.name, favorites.id));
+                    context.push(RoutePaths.libraryFavourites);
                   },
                 ),
               ),
@@ -107,9 +104,9 @@ class _LibrarySuccessView extends StatelessWidget {
                 child: LibraryTile(
                   leadingIcon: const Icon(Icons.queue_music, size: 30),
                   title: AppLocalizations.of(context)!.history,
-                  subtitle: history.description,
+                  // subtitle: history.description,
                   onTap: () {
-                    context.push(RouteLocations.libraryHistory(history.name));
+                    context.push(RoutePaths.libraryHistory);
                   },
                 ),
               ),
@@ -122,57 +119,57 @@ class _LibrarySuccessView extends StatelessWidget {
                 child: LibraryTile(
                   leadingIcon: const Icon(FluentIcons.cloud_arrow_down_24_filled, size: 30),
                   title: AppLocalizations.of(context)!.downloads,
-                  subtitle: downloads.description,
+                  // subtitle: downloads.description,
                   isLast: true,
                   onTap: () {
-                    context.push(RouteLocations.libraryPlaylist(downloads.name, downloads.id));
+                    // context.push(RouteLocations.libraryPlaylist(downloads.name, downloads.id));
                   },
                 ),
               ),
             ),
 
-            if (playlists.isNotEmpty) SliverGroupTitle(title: AppLocalizations.of(context)!.custom),
+            if (localPlaylists.isNotEmpty)
+              SliverGroupTitle(title: AppLocalizations.of(context)!.custom),
 
             SliverPadding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
-              sliver: SliverList(
-                delegate: SliverChildBuilderDelegate((context, index) {
-                  final itemIndex = index ~/ 2;
+              sliver: SliverList.separated(
+                itemCount: localPlaylists.length,
+                itemBuilder: (context, index) {
+                  return Dismissible(
+                    key: ValueKey(localPlaylists[index].id),
+                    resizeDuration: const Duration(milliseconds: 200),
 
-                  if (index.isEven) {
-                    final playlist = playlists[itemIndex];
-
-                    return Dismissible(
-                      key: ValueKey(playlist.id),
-                      resizeDuration: const Duration(milliseconds: 200),
-
-                      direction: DismissDirection.endToStart,
-                      background: Container(
-                        alignment: Alignment.centerRight,
-                        padding: const EdgeInsets.only(right: 20),
-                        color: Theme.of(context).colorScheme.errorContainer,
-                        child: Icon(
-                          Icons.delete_rounded,
-                          color: Theme.of(context).colorScheme.onErrorContainer,
-                          size: 24,
-                        ),
+                    direction: DismissDirection.endToStart,
+                    background: Container(
+                      alignment: Alignment.centerRight,
+                      padding: const EdgeInsets.only(right: 20),
+                      color: Theme.of(context).colorScheme.errorContainer,
+                      child: Icon(
+                        Icons.delete_rounded,
+                        color: Theme.of(context).colorScheme.onErrorContainer,
+                        size: 24,
                       ),
-                      onDismissed: (_) async {
-                        await context.read<LibraryCubit>().deletePlaylist(playlist);
+                    ),
+                    onDismissed: (_) async {
+                      await context.read<LibraryCubit>().deletePlaylist(localPlaylists[index]);
+                    },
+                    child: LibraryTile(
+                      title: localPlaylists[index].name,
+                      isFirst: index == 0,
+                      isLast: index == localPlaylists.length - 1,
+                      onTap: () {
+                        context.push(
+                          RouteLocations.libraryPlaylist(
+                            localPlaylists[index].name,
+                            localPlaylists[index].id,
+                          ),
+                        );
                       },
-                      child: LibraryTile(
-                        title: playlist.name,
-                        isFirst: itemIndex == 0,
-                        isLast: itemIndex == playlists.length - 1,
-                        onTap: () {
-                          context.push(RouteLocations.libraryPlaylist(playlist.name, playlist.id));
-                        },
-                      ),
-                    );
-                  }
-
-                  return const SizedBox(height: 1);
-                }, childCount: playlists.length * 2 - 1),
+                    ),
+                  );
+                },
+                separatorBuilder: (context, index) => const SizedBox(height: 2),
               ),
             ),
             if (remotePlaylists.isNotEmpty)

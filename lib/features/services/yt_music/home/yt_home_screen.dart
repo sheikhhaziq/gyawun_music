@@ -3,9 +3,13 @@ import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gyawun_music/core/di.dart';
+import 'package:gyawun_music/core/utils/item_click_handler.dart';
 import 'package:gyawun_music/core/widgets/bottom_playing_padding.dart';
+import 'package:gyawun_music/core/widgets/carousel_card.dart';
 import 'package:gyawun_music/core/widgets/section_widget.dart';
 import 'package:gyawun_music/core/widgets/tiles/chip_tile.dart';
+import 'package:gyawun_shared/gyawun_shared.dart';
+import 'package:library_manager/library_manager.dart';
 import 'package:ytmusic/ytmusic.dart';
 
 import 'cubit/home_cubit.dart';
@@ -29,6 +33,8 @@ class YTHomeScreenView extends StatefulWidget {
 class _YTHomeScreenViewState extends State<YTHomeScreenView> {
   final ScrollController _scrollController = ScrollController();
 
+  late List<PlayableItem> recentlyPlayed;
+
   void scrollListener() {
     final position = _scrollController.position;
     if (position.pixels >= position.maxScrollExtent - 200) {
@@ -39,6 +45,7 @@ class _YTHomeScreenViewState extends State<YTHomeScreenView> {
   @override
   void initState() {
     super.initState();
+    recentlyPlayed = sl<LibraryManager>().getRecentlyPlayed(size: 10);
     context.read<HomeCubit>().fetchData();
     _scrollController.addListener(scrollListener);
   }
@@ -48,6 +55,11 @@ class _YTHomeScreenViewState extends State<YTHomeScreenView> {
     _scrollController.removeListener(scrollListener);
     _scrollController.dispose();
     super.dispose();
+  }
+
+  Future<void> refreshPage() async {
+    recentlyPlayed = sl<LibraryManager>().getRecentlyPlayed(size: 10);
+    await context.read<HomeCubit>().refreshdata();
   }
 
   @override
@@ -77,7 +89,7 @@ class _YTHomeScreenViewState extends State<YTHomeScreenView> {
         if (homeState is HomeSuccess) {
           final homePage = homeState.data;
           return ExpressiveRefreshIndicator(
-            onRefresh: () => context.read<HomeCubit>().refreshdata(),
+            onRefresh: refreshPage,
             child: CustomScrollView(
               controller: _scrollController,
               slivers: [
@@ -99,6 +111,36 @@ class _YTHomeScreenViewState extends State<YTHomeScreenView> {
                     ),
                   ),
                 ),
+                if (recentlyPlayed.length >= 5)
+                  SliverPadding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    sliver: SliverToBoxAdapter(
+                      child: Text(
+                        'Recently Played',
+                        style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                          color: Theme.of(context).colorScheme.primary,
+                          fontWeight: FontWeight.w700,
+                          fontSize: 18,
+                        ),
+                      ),
+                    ),
+                  ),
+                if (recentlyPlayed.length >= 5)
+                  SliverToBoxAdapter(
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxHeight: 300),
+                      child: CarouselView(
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                        itemSnapping: true,
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        itemExtent: 300,
+                        onTap: (index) {
+                          onSectionItemTap(context, recentlyPlayed[index]);
+                        },
+                        children: recentlyPlayed.map((item) => CarouselCard(item: item)).toList(),
+                      ),
+                    ),
+                  ),
                 SectionsWidget(sections: homePage.sections),
                 if (homeState.loadingMore)
                   const SliverToBoxAdapter(

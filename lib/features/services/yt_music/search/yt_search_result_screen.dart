@@ -30,20 +30,17 @@ class _YTSearchResultViewState extends State<YTSearchResultView> {
             slivers: [
               if (searchState.chips.isNotEmpty)
                 SliverToBoxAdapter(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 8),
-                    child: SizedBox(
-                      height: 32,
-                      child: ListView.separated(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        scrollDirection: Axis.horizontal,
-                        itemCount: searchState.chips.length,
-                        separatorBuilder: (context, index) => const SizedBox(width: 8),
-                        itemBuilder: (context, index) {
-                          final chip = searchState.chips[index];
-                          return ChipTile(chip: chip);
-                        },
-                      ),
+                  child: SizedBox(
+                    height: 32,
+                    child: ListView.separated(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      scrollDirection: Axis.horizontal,
+                      itemCount: searchState.chips.length,
+                      separatorBuilder: (context, index) => const SizedBox(width: 8),
+                      itemBuilder: (context, index) {
+                        final chip = searchState.chips[index];
+                        return ChipTile(chip: chip);
+                      },
                     ),
                   ),
                 ),

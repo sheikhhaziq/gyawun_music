@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:gyawun_music/core/utils/item_click_handler.dart';
-import 'package:gyawun_music/core/widgets/carousel_card.dart';
 import 'package:gyawun_music/core/widgets/section_grid.dart';
 import 'package:gyawun_music/core/widgets/section_multi_column.dart';
 import 'package:gyawun_music/core/widgets/section_multi_row_column.dart';
@@ -17,27 +15,9 @@ class SectionsWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final carouselView = sections.first.type == SectionType.row ? sections.first : null;
     return MultiSliver(
       children: [
-        if (carouselView != null) SectionHeader(section: carouselView),
-        if (carouselView != null)
-          SliverToBoxAdapter(
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxHeight: 300),
-              child: CarouselView(
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                itemSnapping: true,
-                padding: const EdgeInsets.symmetric(horizontal: 8),
-                itemExtent: 300,
-                onTap: (index) {
-                  onSectionItemTap(context, sections.first.items[index]);
-                },
-                children: sections.first.items.map((item) => CarouselCard(item: item)).toList(),
-              ),
-            ),
-          ),
-        for (final section in (carouselView == null ? sections : sections.sublist(1))) ...[
+        for (final section in sections) ...[
           if ((section.title != null && section.title!.isNotEmpty) || section.trailing != null)
             SectionHeader(section: section),
 

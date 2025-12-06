@@ -18,9 +18,8 @@ class PlaylistCubit extends Cubit<PlaylistState> {
       final data = await ytmusic.getPlaylist(body: body);
       final issaved = lb.playlistExists(body['browseId']);
       emit(PlaylistSuccess(data, isSaved: issaved));
-    } catch (e, s) {
+    } catch (e) {
       emit(PlaylistError(e.toString()));
-      print(s.toString());
     }
   }
 

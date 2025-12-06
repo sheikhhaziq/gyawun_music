@@ -34,118 +34,158 @@ class PlayerScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.sizeOf(context);
-    final media = sl<MediaPlayer>();
 
     return Scaffold(
-      body: Stack(
-        fit: StackFit.expand,
-        children: [
-          // Background blur layer - only rebuilds when appearance settings change
-          _BackgroundBlurLayer(media: media),
+      body: StreamBuilder<PlayableItem?>(
+        stream: sl<MediaPlayer>().currentItemStream,
+        builder: (context, asyncSnapshot) {
+          if (!asyncSnapshot.hasData || asyncSnapshot.data == null) {
+            return const SizedBox.shrink();
+          }
+          final item = asyncSnapshot.data!;
+          return Stack(
+            fit: StackFit.expand,
+            children: [
+              _BackgroundBlurLayer(item.thumbnails),
 
-          SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                mainAxisSize: MainAxisSize.max,
-                children: [
-                  AppBar(
-                    leading: showBackButton
-                        ? IconButton(
-                            icon: const Icon(FluentIcons.arrow_down_24_filled),
-                            onPressed: () => Navigator.pop(context),
-                          )
-                        : null,
-                    backgroundColor: Colors.transparent,
-                  ),
-
-                  // Thumbnail
-                  SizedBox(
-                    width: min(400, size.width) * 0.8,
-                    height: min(400, size.width) * 0.8,
-                    child: Center(
-                      child: PlayerThumbnail(width: min(400, size.width) * 0.8, borderRadius: 16),
-                    ),
-                  ),
-
-                  const SizedBox(height: 16),
-
-                  const MarqueeWidget(child: PlayerTitle()),
-                  const PlayerSubtitle(),
-                  const SizedBox(height: 16),
-
-                  const Column(
+              SafeArea(
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    mainAxisSize: MainAxisSize.max,
                     children: [
-                      AudioProgressBar(),
-                      SizedBox(height: 8),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      AppBar(
+                        leading: showBackButton
+                            ? IconButton(
+                                icon: const Icon(FluentIcons.arrow_down_24_filled),
+                                onPressed: () => Navigator.pop(context),
+                              )
+                            : null,
+                        backgroundColor: Colors.transparent,
+                      ),
+
+                      // Thumbnail
+                      SizedBox(
+                        width: min(400, size.width) * 0.8,
+                        height: min(400, size.width) * 0.8,
+                        child: Center(
+                          child: PlayerThumbnail(
+                            thumbnails: item.thumbnails,
+                            width: min(400, size.width) * 0.8,
+                            borderRadius: 16,
+                          ),
+                        ),
+                      ),
+
+                      const SizedBox(height: 16),
+
+                      MarqueeWidget(child: PlayerTitle(title: item.title)),
+                      PlayerSubtitle(
+                        subtitle:
+                            item.subtitle ?? item.artists.map((artist) => artist.name).join(', '),
+                      ),
+                      const SizedBox(height: 16),
+
+                      const Column(
                         children: [
-                          ShuffleButton(iconSize: 24),
-                          PreviousButton(iconSize: 30),
-                          PlayButton(iconSize: 40, padding: EdgeInsets.all(16), isFilled: true),
-                          NextButton(iconSize: 30),
-                          LoopButton(iconSize: 24),
+                          AudioProgressBar(),
+                          SizedBox(height: 8),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceAround,
+                            children: [
+                              ShuffleButton(iconSize: 24),
+                              PreviousButton(iconSize: 30),
+                              PlayButton(iconSize: 40, padding: EdgeInsets.all(16), isFilled: true),
+                              NextButton(iconSize: 30),
+                              LoopButton(iconSize: 24),
+                            ],
+                          ),
+                        ],
+                      ),
+
+                      const SizedBox(height: 32),
+
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const TimerButton(),
+                          const QueueButton(),
+                          AddToPlaylist(item: item),
+                          FavouriteButton(item: item),
                         ],
                       ),
                     ],
                   ),
-
-                  const SizedBox(height: 32),
-
-                  const Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [TimerButton(), QueueButton(), AddToPlaylist(), FavouriteButton()],
-                  ),
-                ],
+                ),
               ),
-            ),
-          ),
-        ],
+            ],
+          );
+        },
       ),
     );
   }
 }
 
-class _BackgroundBlurLayer extends StatelessWidget {
-  const _BackgroundBlurLayer({required this.media});
+class _BackgroundBlurLayer extends StatefulWidget {
+  const _BackgroundBlurLayer(this.thumbnails);
+  final List<Thumbnail> thumbnails;
 
-  final MediaPlayer media;
+  @override
+  State<_BackgroundBlurLayer> createState() => _BackgroundBlurLayerState();
+}
+
+class _BackgroundBlurLayerState extends State<_BackgroundBlurLayer> {
+  final appearanceCubit = sl<SettingsService>().appearance;
+  late String? url;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.thumbnails.isEmpty) {
+      url = null;
+      return;
+    }
+    url = widget.thumbnails.first.url.contains('w60-h60')
+        ? widget.thumbnails.first.url.replaceAll('w60-h60', 'w500-h500')
+        : widget.thumbnails.last.url;
+  }
+
+  @override
+  void didUpdateWidget(covariant _BackgroundBlurLayer oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.thumbnails == widget.thumbnails) {
+      return;
+    }
+    if (widget.thumbnails.isEmpty) {
+      url = null;
+      return;
+    }
+    url = widget.thumbnails.first.url.contains('w60-h60')
+        ? widget.thumbnails.first.url.replaceAll('w60-h60', 'w500-h500')
+        : widget.thumbnails.last.url;
+  }
 
   @override
   Widget build(BuildContext context) {
-    final appearanceCubit = sl<SettingsService>().appearance;
-
     // BlocBuilder only wraps what needs to rebuild
     return BlocBuilder<AppearanceSettingsCubit, AppAppearanceState>(
       bloc: appearanceCubit,
       buildWhen: (prev, curr) => prev.enableNewPlayer != curr.enableNewPlayer,
       builder: (context, state) {
         if (!state.enableNewPlayer) return const SizedBox.shrink();
+        if (url == null) return const SizedBox.shrink();
 
         return Positioned.fill(
-          child: StreamBuilder<List<Thumbnail>?>(
-            stream: media.thumbnailStream,
-            builder: (context, snap) {
-              final thumbs = snap.data;
-              if (thumbs == null || thumbs.isEmpty) {
-                return const SizedBox.shrink();
-              }
-
-              final url = thumbs.first.url.replaceAll('w60-h60', 'w500-h500');
-
-              return RepaintBoundary(
-                child: AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 700),
-                  switchInCurve: Curves.easeOutCubic,
-                  switchOutCurve: Curves.easeInCubic,
-                  transitionBuilder: (child, animation) =>
-                      FadeTransition(opacity: animation, child: child),
-                  child: _BlurredImage(key: ValueKey(url), url: url),
-                ),
-              );
-            },
+          child: RepaintBoundary(
+            child: AnimatedSwitcher(
+              duration: const Duration(milliseconds: 700),
+              switchInCurve: Curves.easeOutCubic,
+              switchOutCurve: Curves.easeInCubic,
+              transitionBuilder: (child, animation) =>
+                  FadeTransition(opacity: animation, child: child),
+              child: _BlurredImage(key: ValueKey(url), url: url!),
+            ),
           ),
         );
       },

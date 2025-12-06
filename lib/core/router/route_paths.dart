@@ -23,7 +23,8 @@ class RoutePaths {
   // Library
   static const String libraryPlaylist = '/library/playlists/:name/:id';
 
-  static const String libraryHistory = '/library/history/:name';
+  static const String libraryHistory = '/library/history';
+  static const String libraryFavourites = '/library/favourites';
 
   // Settings
   static const String settingsAppearance = '/settings/appearance';
@@ -37,7 +38,7 @@ class RoutePaths {
 
 class RouteLocations {
   static String libraryPlaylist(String name, String id) => '/library/playlists/$name/$id';
-  static String libraryHistory(String name) => '/library/history/$name';
+
   static String ytMusicPage(String page, Map<String, dynamic> body) {
     final encoded = Uri.encodeComponent(jsonEncode(body));
     return '/ytmusic/$page/$encoded';
