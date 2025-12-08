@@ -96,6 +96,10 @@ class _SongThumbnailState extends State<SongThumbnail> {
       fit: widget.fit,
       filterQuality: widget.filterQuality,
       imageBuilder: (context, provider) => _buildDisplayImage(provider),
+      placeholder: (context, url) => SizedBox(
+        height: widget.height,
+        width: widget.width,
+      ),
       errorWidget: (index + 1 < urls.length)
           ? (context, url, error) => _buildCachedNetworkImage(urls, index + 1)
           : widget.errorWidget,
