@@ -48,7 +48,7 @@ Map<String, dynamic> handlePageHeader(Map<String, dynamic> header,
           'text'
         ]),
     'playlistId': nav(header, [
-      'startRadioButton',
+      'playButton',
       'buttonRenderer',
       'navigationEndpoint',
       'watchEndpoint',
@@ -328,10 +328,11 @@ Map<String, dynamic> handleMusicPlaylistShelfRenderer(Map item) {
     section['playlistId'] = nav(item, ['playlistId']);
     section['viewType'] = 'COLUMN';
   }
-  String? cont = nav(item,
-              ['continuations', 0, 'nextContinuationData', 'continuation']);
-  String? continuationparams =cont !=null ?  getContinuationString(cont):null;
-    section['continuation'] = continuationparams;
+  String? cont =
+      nav(item, ['continuations', 0, 'nextContinuationData', 'continuation']);
+  String? continuationparams =
+      cont != null ? getContinuationString(cont) : null;
+  section['continuation'] = continuationparams;
 
   List? contents = nav(item, ['contents']);
   if (contents != null) {
