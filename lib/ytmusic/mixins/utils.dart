@@ -54,6 +54,13 @@ Map<String, dynamic> handlePageHeader(Map<String, dynamic> header,
       'watchEndpoint',
       'playlistId'
     ])?.replaceAll('RDAMPL', ''),
+    'playlistRadioId': nav(header, [
+      'startRadioButton',
+      'buttonRenderer',
+      'navigationEndpoint',
+      'watchEndpoint',
+      'playlistId'
+    ])?.replaceAll('RDAMPL', ''),
     'videoId': nav(header, [
       'buttons',
       0,
@@ -114,7 +121,7 @@ Map<String, dynamic> handlePageHeader(Map<String, dynamic> header,
           'playlistId'
         ]);
       } else if (iconType == 'MIX') {
-        result['playlistId'] ??= nav(run, [
+        result['playlistRadioId'] ??= nav(run, [
           'menuNavigationItemRenderer',
           'navigationEndpoint',
           'watchPlaylistEndpoint',
@@ -229,7 +236,7 @@ Map<String, dynamic> checkRuns(List? runs) {
       ]);
     } else if (nav(run, ['menuNavigationItemRenderer', 'icon', 'iconType']) ==
         'MIX') {
-      runResult['playlistId'] ??= nav(run, [
+      runResult['playlistRadioId'] ??= nav(run, [
         'menuNavigationItemRenderer',
         'navigationEndpoint',
         'watchPlaylistEndpoint',

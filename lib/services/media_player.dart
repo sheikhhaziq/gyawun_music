@@ -399,7 +399,7 @@ class MediaPlayer extends ChangeNotifier {
     }
     List songs = await GetIt.I<YTMusic>().getNextSongList(
         videoId: song['videoId'],
-        playlistId: song['playlistId'],
+        playlistId: song['playlistRadioId'],
         radio: radio,
         shuffle: shuffle);
     if (songs.isNotEmpty) songs.removeAt(0);
