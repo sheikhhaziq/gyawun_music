@@ -356,8 +356,10 @@ class MediaPlayer extends ChangeNotifier {
 
       // Case 2: Playlist
     } else if (song['playlistId'] != null) {
-      final songs =
-          await GetIt.I<YTMusic>().getPlaylistSongs(song['playlistId']);
+      List songs = song['type'] == 'ARTIST'
+          ? await GetIt.I<YTMusic>()
+              .getNextSongList(playlistId: song['playlistId'])
+          : await GetIt.I<YTMusic>().getPlaylistSongs(song['playlistId']);
       await _addSongListToQueue(songs, isNext: true);
     }
   }
@@ -381,8 +383,10 @@ class MediaPlayer extends ChangeNotifier {
     if (song['videoId'] != null) {
       await _player.addAudioSource(await _getAudioSource(song));
     } else if (song['playlistId'] != null) {
-      List songs =
-          await GetIt.I<YTMusic>().getPlaylistSongs(song['playlistId']);
+      List songs = song['type'] == 'ARTIST'
+          ? await GetIt.I<YTMusic>()
+              .getNextSongList(playlistId: song['playlistId'])
+          : await GetIt.I<YTMusic>().getPlaylistSongs(song['playlistId']);
       await _addSongListToQueue(songs, isNext: false);
     }
   }
