@@ -233,6 +233,23 @@ mixin SearchMixin on YTClient {
     if (subtitle != null) {
       top.addAll(checkRuns(subtitle));
     }
+    List? buttons = nav(item, ['buttons']);
+    if (buttons != null) {
+      for (Map button in buttons) {
+        String? iconType = nav(button, ['buttonRenderer', 'icon', 'iconType']);
+        String? playlistId = nav(button, [
+          'buttonRenderer',
+          'command',
+          'watchPlaylistEndpoint',
+          'playlistId'
+        ]);
+        if (iconType == 'MUSIC_SHUFFLE') {
+          top['playlistId'] ??= playlistId;
+        } else if (iconType == 'MIX') {
+          top['playlistRadioId'] ??= playlistId?.replaceAll('RDAMPL', '');
+        }
+      }
+    }
     top.removeWhere((key, val) => val == null || val.isEmpty);
     return top;
   }
