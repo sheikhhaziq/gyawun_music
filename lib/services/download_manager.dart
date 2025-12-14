@@ -115,8 +115,9 @@ class DownloadManager {
   }
 
   Future<void> downloadPlaylist(Map playlist) async {
-    List songs =
-        await GetIt.I<YTMusic>().getPlaylistSongs(playlist['playlistId']);
+    List songs = !playlist['isPredefined']
+        ? playlist['songs']
+        : await GetIt.I<YTMusic>().getPlaylistSongs(playlist['playlistId']);
     for (Map song in songs) {
       await downloadSong(song); // Queue each song download
     }
