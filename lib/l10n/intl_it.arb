@@ -239,5 +239,11 @@
   "Remove_All_History_Message": "Sei sicuro di voler cancellare tutta la cronologia?",
   "@Remove_All_History_Message": {},
   "Copied_To_Clipboard": "Copiato negli appunti",
-  "@Copied_To_Clipboard": {}
+  "@Copied_To_Clipboard": {},
+  "No_Internet_Connection": "Nessuna Connessione Internet",
+  "@No_Internet_Connection": {},
+  "Go_To_Downloads": "Vai a Download",
+  "@Go_To_Downloads": {},
+  "Retry": "Riprova",
+  "@Retry": {}
 }

@@ -124,6 +124,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "Feature_Request": MessageLookupByLibrary.simpleMessage(
       "Richiesta funzionalità",
     ),
+    "Go_To_Downloads": MessageLookupByLibrary.simpleMessage("Vai a Download"),
     "Google_Account": MessageLookupByLibrary.simpleMessage("Account Google"),
     "Gyawun": MessageLookupByLibrary.simpleMessage("Gyawun"),
     "High": MessageLookupByLibrary.simpleMessage("Alta"),
@@ -146,6 +147,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "Name": MessageLookupByLibrary.simpleMessage("Nome"),
     "Next_Up": MessageLookupByLibrary.simpleMessage("Prossimo"),
     "No": MessageLookupByLibrary.simpleMessage("No"),
+    "No_Internet_Connection": MessageLookupByLibrary.simpleMessage(
+      "Nessuna Connessione Internet",
+    ),
     "Organisation": MessageLookupByLibrary.simpleMessage("Organizzazione"),
     "Pay_With_UPI": MessageLookupByLibrary.simpleMessage("Paga con UPI"),
     "Payment_Methods": MessageLookupByLibrary.simpleMessage(
@@ -191,6 +195,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "Restore_Success": MessageLookupByLibrary.simpleMessage(
       "Ripristino dati riuscito",
     ),
+    "Retry": MessageLookupByLibrary.simpleMessage("Riprova"),
     "Save": MessageLookupByLibrary.simpleMessage("Salva"),
     "Saved": MessageLookupByLibrary.simpleMessage("Salvati"),
     "Search_Gyawun": MessageLookupByLibrary.simpleMessage("Cerca in Gyawun"),

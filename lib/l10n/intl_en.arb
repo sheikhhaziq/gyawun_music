@@ -243,5 +243,7 @@
   "No_Internet_Connection": "No Internet Connection",
   "@No_Internet_Connection": {},
   "Go_To_Downloads": "Go to Downloads",
-  "@Go_To_Downloads": {}
+  "@Go_To_Downloads": {},
+  "Retry": "Retry",
+  "@Retry": {}
 }
