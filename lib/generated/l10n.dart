@@ -966,6 +966,11 @@ class S {
       args: [],
     );
   }
+
+  /// `Retry`
+  String get Retry {
+    return Intl.message('Retry', name: 'Retry', desc: '', args: []);
+  }
 }
 
 class AppLocalizationDelegate extends LocalizationsDelegate<S> {

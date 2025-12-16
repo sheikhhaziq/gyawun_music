@@ -23,6 +23,10 @@ class YTClient {
   static const userAgent =
       'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:88.0) Gecko/20100101 Firefox/88.0';
 
+  static final ValueNotifier<int> lastConnectionErrorTime =
+      ValueNotifier<int>(0);
+  ValueNotifier<int> get lastConnectionError => lastConnectionErrorTime;
+
   Future<void> init() async {
     headers = initializeHeaders();
     context = initializeContext();
@@ -87,6 +91,7 @@ class YTClient {
       return response;
     } catch (e) {
       debugPrint("Exception in YTClient::sendGetReques: $e");
+      lastConnectionErrorTime.value = DateTime.now().millisecondsSinceEpoch;
       return Response.bytes([], 503);
     }
   }
@@ -101,6 +106,7 @@ class YTClient {
       return response;
     } catch (e) {
       debugPrint("Exception in YTClient::_sendGetRequest: $e");
+      lastConnectionErrorTime.value = DateTime.now().millisecondsSinceEpoch;
       return Response.bytes([], 503);
     }
   }
@@ -113,6 +119,7 @@ class YTClient {
       return response;
     } catch (e) {
       debugPrint("Exception in YTClient::addPlayingStats: $e");
+      lastConnectionErrorTime.value = DateTime.now().millisecondsSinceEpoch;
       return Response.bytes([], 503);
     }
   }
@@ -147,6 +154,7 @@ class YTClient {
       }
     } catch (e) {
       debugPrint("Exception in YTClient::sendRequest: $e");
+      lastConnectionErrorTime.value = DateTime.now().millisecondsSinceEpoch;
       return {};
     }
   }

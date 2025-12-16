@@ -183,6 +183,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "Restore_Success": MessageLookupByLibrary.simpleMessage(
       "Data successfully restored",
     ),
+    "Retry": MessageLookupByLibrary.simpleMessage("Retry"),
     "Save": MessageLookupByLibrary.simpleMessage("Save"),
     "Saved": MessageLookupByLibrary.simpleMessage("Saved"),
     "Search_Gyawun": MessageLookupByLibrary.simpleMessage("Search Gyawun"),
