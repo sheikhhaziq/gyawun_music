@@ -67,9 +67,7 @@ class DownloadScreen extends StatelessWidget {
             child: ValueListenableBuilder(
                 valueListenable: GetIt.I<DownloadManager>().downloaded,
                 builder: (context, Map allPlaylists, snapshot) {
-                  final Map<String, Map> playlists = Map.from(allPlaylists);
-                  List<MapEntry<String, dynamic>> sortedEntries =
-                      playlists.entries.toList();
+                  List<MapEntry> sortedEntries = allPlaylists.entries.toList();
                   sortedEntries.sort((a, b) {
                     if (a.key == DownloadManager.songsPlaylistId) {
                       return -1;

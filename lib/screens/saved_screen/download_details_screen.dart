@@ -65,8 +65,8 @@ class _DownloadDetailsScreenState extends State<DownloadDetailsScreen> {
     return ValueListenableBuilder(
         valueListenable: GetIt.I<DownloadManager>().downloaded,
         builder: (context, allPlaylists, child) {
-          final Map<String, Map> playlists = Map.from(allPlaylists);
-          Map playlist = playlists[widget.playlistId] ?? {};
+          final Map playlist = allPlaylists[widget.playlistId] ?? {};
+          final List songs = playlist['songs'] ?? [];
           return AdaptiveScaffold(
             appBar: AdaptiveAppBar(
               title: playlist.isNotEmpty ? Text(playlist['title']) : null,
@@ -77,52 +77,58 @@ class _DownloadDetailsScreenState extends State<DownloadDetailsScreen> {
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8),
                       constraints: const BoxConstraints(maxWidth: 1000),
-                      child: ListView(
-                        children: [
-                          MyPlayistHeader(
-                            playlist: playlist,
-                            imageType: playlist['type'],
+                      child: CustomScrollView(
+                        slivers: [
+                          SliverToBoxAdapter(
+                            child: Column(
+                              children: [
+                                MyPlayistHeader(
+                                  playlist: playlist,
+                                  imageType: playlist['type'],
+                                ),
+                                const SizedBox(height: 8),
+                              ],
+                            ),
                           ),
-                          const SizedBox(height: 8),
-                          ListView.builder(
-                              shrinkWrap: true,
-                              primary: false,
-                              itemCount: playlist['songs']?.length ?? 0,
-                              itemBuilder: (context, index) {
-                                Map song = playlist['songs'][index];
+                          SliverList(
+                            delegate: SliverChildBuilderDelegate(
+                              (context, index) {
+                                Map song = songs[index];
                                 return SwipeActionCell(
                                   backgroundColor: Colors.transparent,
                                   key: ObjectKey(song['videoId']),
                                   trailingActions: <SwipeAction>[
                                     SwipeAction(
-                                        title: S.of(context).Remove,
-                                        onTap:
-                                            (CompletionHandler handler) async {
-                                          Modals.showConfirmBottomModal(
-                                            context,
-                                            message:
-                                                S.of(context).Remove_Message,
-                                            isDanger: true,
-                                          ).then((bool confirm) {
-                                            if (confirm) {
-                                              GetIt.I<DownloadManager>()
-                                                  .deleteSong(
-                                                    key: song['videoId'],
-                                                    path: song['path'],
-                                                    playlistId:
-                                                        widget.playlistId,
-                                                  )
-                                                  .then((message) =>
-                                                      BottomMessage.showText(
-                                                          context, message));
-                                            }
-                                          });
-                                        },
-                                        color: Colors.red),
+                                      title: S.of(context).Remove,
+                                      onTap: (CompletionHandler handler) async {
+                                        Modals.showConfirmBottomModal(
+                                          context,
+                                          message: S.of(context).Remove_Message,
+                                          isDanger: true,
+                                        ).then((bool confirm) {
+                                          if (confirm) {
+                                            GetIt.I<DownloadManager>()
+                                                .deleteSong(
+                                                  key: song['videoId'],
+                                                  path: song['path'],
+                                                  playlistId: widget.playlistId,
+                                                )
+                                                .then((message) =>
+                                                    BottomMessage.showText(
+                                                        context, message));
+                                          }
+                                        });
+                                      },
+                                      color: Colors.red,
+                                    ),
                                   ],
                                   child: DownloadedSongTile(song: song),
                                 );
-                              })
+                              },
+                              childCount: songs.length,
+                            ),
+                          ),
+                          const SliverToBoxAdapter(child: SizedBox(height: 20)),
                         ],
                       ),
                     ),
