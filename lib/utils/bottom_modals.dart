@@ -6,9 +6,9 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
-import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:get_it/get_it.dart';
 import 'package:go_router/go_router.dart';
+import 'package:gyawun/utils/playlist_thumbnail.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -513,69 +513,35 @@ BottomModalLayout _addToPlaylist(BuildContext context, Map item) {
                   : AdaptiveListTile(
                       dense: true,
                       title: Text(playlist['title']),
-                      leading: playlist['isPredefined'] == true ||
-                              (playlist['songs'] != null &&
-                                  playlist['songs']?.length > 0)
+                      leading: playlist['isPredefined'] == true
                           ? ClipRRect(
                               borderRadius: BorderRadius.circular(
                                   playlist['type'] == 'ARTIST' ? 50 : 3),
-                              child: playlist['isPredefined'] == true
-                                  ? CachedNetworkImage(
-                                      imageUrl: playlist['thumbnails']
-                                          .first['url']
-                                          .replaceAll('w540-h225', 'w60-h60'),
-                                      height: 50,
-                                      width: 50,
-                                    )
-                                  : SizedBox(
-                                      height: 50,
-                                      width: 50,
-                                      child: StaggeredGrid.count(
-                                        crossAxisCount:
-                                            playlist['songs'].length > 1
-                                                ? 2
-                                                : 1,
-                                        children: (playlist['songs'] as List)
-                                            .sublist(
-                                                0,
-                                                min(playlist['songs'].length,
-                                                    4))
-                                            .indexed
-                                            .map((ind) {
-                                          int index = ind.$1;
-                                          Map song = ind.$2;
-                                          return CachedNetworkImage(
-                                            imageUrl: song['thumbnails']
-                                                .first['url']
-                                                .replaceAll(
-                                                    'w540-h225', 'w60-h60'),
-                                            height: (playlist['songs'].length <=
-                                                        2 ||
-                                                    (playlist['songs'].length ==
-                                                            3 &&
-                                                        index == 0))
-                                                ? 50
-                                                : null,
-                                            fit: BoxFit.cover,
-                                          );
-                                        }).toList(),
-                                      ),
-                                    ),
-                            )
-                          : Container(
-                              height: 50,
-                              width: 50,
-                              decoration: BoxDecoration(
-                                color: greyColor,
-                                borderRadius: BorderRadius.circular(3),
-                              ),
-                              child: Icon(
-                                CupertinoIcons.music_note_list,
-                                color: context.isDarkMode
-                                    ? Colors.white
-                                    : Colors.black,
-                              ),
-                            ),
+                              child: CachedNetworkImage(
+                                imageUrl: playlist['thumbnails']
+                                    .first['url']
+                                    .replaceAll('w540-h225', 'w60-h60'),
+                                height: 50,
+                                width: 50,
+                              ))
+                          : (playlist['songs'] != null &&
+                                  playlist['songs']?.length > 0)
+                              ? PlaylistThumbnail(
+                                  playslist: playlist['songs'], size: 50)
+                              : Container(
+                                  height: 50,
+                                  width: 50,
+                                  decoration: BoxDecoration(
+                                    color: greyColor,
+                                    borderRadius: BorderRadius.circular(3),
+                                  ),
+                                  child: Icon(
+                                    CupertinoIcons.music_note_list,
+                                    color: context.isDarkMode
+                                        ? Colors.white
+                                        : Colors.black,
+                                  ),
+                                ),
                       onTap: () async {
                         await context
                             .read<LibraryService>()
