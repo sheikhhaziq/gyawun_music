@@ -230,7 +230,7 @@ class MyPlayistHeader extends StatelessWidget {
                 color: greyColor,
                 padding: const EdgeInsets.all(14),
                 onPressed: () {
-                  Modals.showDownloadDetailsModal(context, playlist);
+                  Modals.showDownloadDetailsBottomModal(context, playlist);
                 },
                 child: Icon(
                   AdaptiveIcons.more_vertical,

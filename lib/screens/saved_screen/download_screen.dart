@@ -24,39 +24,15 @@ class DownloadScreen extends StatelessWidget {
         title: Text(S.of(context).Downloads),
         centerTitle: true,
         actions: [
-          AdaptiveButton(
-              child: Icon(AdaptiveIcons.delete),
-              onPressed: () async {
-                bool shouldDelete = await Modals.showConfirmBottomModal(context,
-                    message:
-                        'Are you sure you want to delete all downloaded songs.',
-                    isDanger: true,
-                    doneText: S.of(context).Yes,
-                    cancelText: S.of(context).No);
-
-                if (shouldDelete) {
-                  Modals.showCenterLoadingModal(context);
-                  List songs = Hive.box('DOWNLOADS').values.toList();
-                  for (var song in songs) {
-                    await Hive.box('DOWNLOADS').delete(song['videoId']);
-                    if (song.containsKey('path')) {
-                      String path = song['path'];
-                      try {
-                        File(path).delete();
-                      } catch (e) {
-                        pprint(e);
-                      }
-                    }
-                  }
-                  Navigator.pop(context);
-                }
-              }),
-          const SizedBox(width: 8),
-          AdaptiveButton(
-              child: Icon(AdaptiveIcons.download),
-              onPressed: () {
-                context.push('/saved/downloads/downloading');
-              })
+          AdaptiveIconButton(
+            onPressed: () {
+              Modals.showDownloadBottomModal(context);
+            },
+            icon: Icon(
+              AdaptiveIcons.more_vertical,
+              size: 25,
+            ),
+          ),
         ],
       ),
       body: SingleChildScrollView(
@@ -120,10 +96,12 @@ class DownloadScreen extends StatelessWidget {
                             );
                           },
                           onSecondaryTap: () {
-                            Modals.showDownloadDetailsModal(context, playlist);
+                            Modals.showDownloadDetailsBottomModal(
+                                context, playlist);
                           },
                           onLongPress: () {
-                            Modals.showDownloadDetailsModal(context, playlist);
+                            Modals.showDownloadDetailsBottomModal(
+                                context, playlist);
                           },
                         );
                       }),

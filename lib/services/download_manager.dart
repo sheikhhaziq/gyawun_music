@@ -68,6 +68,19 @@ class DownloadManager {
     }
   }
 
+  Future<void> restoreDownloads({List? songs}) async {
+    final songsToRestore = songs ?? downloads.value;
+    for (var song in songsToRestore) {
+      if (_box.get(song['videoId']) != null) {
+        if (song['path'] == null ||
+            !(await File(song['path']).exists()) ||
+            song['status'] != 'DOWNLOADED') {
+          _downloadSong(song);
+        }
+      }
+    }
+  }
+
   Future<void> downloadSong(Map song) async {
     final Map? downloadSong = _box.get(song['videoId']);
     if (downloadSong != null) {

@@ -120,14 +120,26 @@ class Modals {
     );
   }
 
-  static void showDownloadDetailsModal(BuildContext context, Map playlist) {
+  static void showDownloadBottomModal(BuildContext context) {
     showModalBottomSheet(
       useRootNavigator: false,
       backgroundColor: Colors.transparent,
       useSafeArea: true,
       isScrollControlled: true,
       context: context,
-      builder: (context) => _downloadDetailsModalBottomModal(context, playlist),
+      builder: (context) => _downloadBottomModal(context),
+    );
+  }
+
+  static void showDownloadDetailsBottomModal(
+      BuildContext context, Map playlist) {
+    showModalBottomSheet(
+      useRootNavigator: false,
+      backgroundColor: Colors.transparent,
+      useSafeArea: true,
+      isScrollControlled: true,
+      context: context,
+      builder: (context) => _downloadDetailsBottomModal(context, playlist),
     );
   }
 
@@ -1196,7 +1208,83 @@ BottomModalLayout _playlistBottomModal(BuildContext context, Map playlist) {
   );
 }
 
-BottomModalLayout _downloadDetailsModalBottomModal(
+BottomModalLayout _downloadBottomModal(BuildContext context) {
+  return BottomModalLayout(
+    title: AdaptiveListTile(
+      contentPadding: EdgeInsets.zero,
+      title: Text(S.of(context).Downloads,
+          maxLines: 1, overflow: TextOverflow.ellipsis),
+      leading: Container(
+        height: 50,
+        width: 50,
+        decoration: BoxDecoration(
+          color: greyColor,
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Icon(
+          AdaptiveIcons.download,
+          color: context.isDarkMode ? Colors.white : Colors.black,
+        ),
+      ),
+    ),
+    child: SingleChildScrollView(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          AdaptiveListTile(
+            dense: true,
+            title: Text("Show Downloading Songs"),
+            leading: Icon(AdaptiveIcons.download),
+            onTap: () async {
+              context.push('/saved/downloads/downloading');
+              Navigator.pop(context);
+            },
+          ),
+          AdaptiveListTile(
+            dense: true,
+            title: Text("Restore Missing Songs"),
+            leading: Icon(Icons.restore),
+            onTap: () async {
+              GetIt.I<DownloadManager>().restoreDownloads();
+              Navigator.pop(context);
+            },
+          ),
+          AdaptiveListTile(
+            dense: true,
+            title: Text("Delete All Songs"),
+            leading: Icon(AdaptiveIcons.delete),
+            onTap: () async {
+              bool shouldDelete = await Modals.showConfirmBottomModal(context,
+                  message:
+                      'Are you sure you want to delete all downloaded songs.',
+                  isDanger: true,
+                  doneText: S.of(context).Yes,
+                  cancelText: S.of(context).No);
+              if (shouldDelete) {
+                Modals.showCenterLoadingModal(context);
+                List songs = Hive.box('DOWNLOADS').values.toList();
+                for (var song in songs) {
+                  await Hive.box('DOWNLOADS').delete(song['videoId']);
+                  if (song.containsKey('path')) {
+                    String path = song['path'];
+                    try {
+                      File(path).delete();
+                    } catch (e) {
+                      debugPrint(e.toString());
+                    }
+                  }
+                }
+                Navigator.pop(context);
+              }
+            },
+          ),
+        ],
+      ),
+    ),
+  );
+}
+
+BottomModalLayout _downloadDetailsBottomModal(
     BuildContext context, Map playlist) {
   return BottomModalLayout(
     title: AdaptiveListTile(
@@ -1247,6 +1335,16 @@ BottomModalLayout _downloadDetailsModalBottomModal(
             onTap: () async {
               Navigator.pop(context);
               await GetIt.I<MediaPlayer>().addToQueue(Map.from(playlist));
+            },
+          ),
+          AdaptiveListTile(
+            dense: true,
+            title: Text("Restore Missing Songs"),
+            leading: Icon(Icons.restore),
+            onTap: () async {
+              GetIt.I<DownloadManager>()
+                  .restoreDownloads(songs: playlist['songs']);
+              Navigator.pop(context);
             },
           ),
           AdaptiveListTile(
