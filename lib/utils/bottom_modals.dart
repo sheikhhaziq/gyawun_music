@@ -1254,14 +1254,24 @@ BottomModalLayout _downloadDetailsModalBottomModal(
             title: Text("Delete All Songs"),
             leading: Icon(AdaptiveIcons.delete),
             onTap: () async {
-              Navigator.pop(context);
-              for (var song in playlist['songs']) {
-                await GetIt.I<DownloadManager>().deleteSong(
-                  key: song['videoId'],
-                  path: song['path'],
-                  playlistId: playlist['id'],
-                );
-              }
+              Modals.showConfirmBottomModal(
+                context,
+                message: S.of(context).Remove_Message,
+                isDanger: true,
+              ).then(
+                (bool confirm) async {
+                  if (confirm) {
+                    Navigator.pop(context);
+                    for (var song in playlist['songs']) {
+                      await GetIt.I<DownloadManager>().deleteSong(
+                        key: song['videoId'],
+                        path: song['path'],
+                        playlistId: playlist['id'],
+                      );
+                    }
+                  }
+                },
+              );
             },
           ),
         ],
