@@ -15,7 +15,7 @@ class DownloadingScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return AdaptiveScaffold(
       appBar: AdaptiveAppBar(
-        title: Text(S.of(context).Downloads),
+        title: Text(S.of(context).Downloading),
         centerTitle: true,
       ),
       body: SingleChildScrollView(

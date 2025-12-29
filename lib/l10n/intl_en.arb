@@ -245,5 +245,21 @@
   "Go_To_Downloads": "Go to Downloads",
   "@Go_To_Downloads": {},
   "Retry": "Retry",
-  "@Retry": {}
+  "@Retry": {},
+  "Playlist_Not_Available": "Playlist not available",
+  "@Playlist_Not_Available": {},
+  "Confirm_Delete_All_Message": "Are you sure you want to delete all downloaded songs.",
+  "@Confirm_Delete_All_Message": {},
+  "Downloading": "Downloading",
+  "@Downloading": {},
+  "Restore_Missing_Songs": "Restore Missing Songs",
+  "@Restore_Missing_Songs": {},
+  "Delete_All_Songs": "Delete All Songs",
+  "@Delete_All_Songs": {},
+  "Download_Started": "Download started...",
+  "@Download_Started": {},
+  "Restoring_Missing_Songs": "Restoring Missing Songs...",
+  "@Restoring_Missing_Songs": {},
+  "Deleting_Songs": "Deleting Songs...",
+  "@Deleting_Songs": {}
 }

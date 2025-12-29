@@ -135,7 +135,7 @@ class _DownloadDetailsScreenState extends State<DownloadDetailsScreen> {
                   )
                 : Center(
                     child: Text(
-                      'Playlist not available',
+                      S.of(context).Playlist_Not_Available,
                       style: TextStyle(
                         fontSize: 18,
                       ),

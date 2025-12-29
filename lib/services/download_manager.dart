@@ -178,7 +178,7 @@ class DownloadManager {
       }
       _stopTrackingProgress(song['videoId']);
     } catch (e) {
-      debugPrint("Errore in _downloadSong: $e");
+      debugPrint("Error in _downloadSong: $e");
       await _updateSongMetadata(song['videoId'], {
         'status': 'DELETED',
         'playlists': song['playlists'] ?? {songsPlaylistId: 'Songs'},

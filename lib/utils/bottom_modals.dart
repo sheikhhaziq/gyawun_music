@@ -969,6 +969,7 @@ BottomModalLayout _songBottomModal(BuildContext context, Map song) {
               leading: Icon(AdaptiveIcons.download),
               onTap: () {
                 Navigator.pop(context);
+                BottomMessage.showText(context, S.of(context).Download_Started);
                 GetIt.I<DownloadManager>().downloadSong(song);
               },
             ),
@@ -1103,6 +1104,7 @@ BottomModalLayout _playlistBottomModal(BuildContext context, Map playlist) {
             leading: Icon(AdaptiveIcons.download),
             onTap: () async {
               Navigator.pop(context);
+              BottomMessage.showText(context, S.of(context).Download_Started);
               GetIt.I<DownloadManager>().downloadPlaylist(playlist);
             },
           ),
@@ -1232,8 +1234,8 @@ BottomModalLayout _downloadBottomModal(BuildContext context) {
         children: [
           AdaptiveListTile(
             dense: true,
-            title: Text("Show Downloading Songs"),
-            leading: Icon(AdaptiveIcons.download),
+            title: Text(S.of(context).Downloading),
+            leading: Icon(AdaptiveIcons.downloading),
             onTap: () async {
               context.push('/saved/downloads/downloading');
               Navigator.pop(context);
@@ -1241,25 +1243,28 @@ BottomModalLayout _downloadBottomModal(BuildContext context) {
           ),
           AdaptiveListTile(
             dense: true,
-            title: Text("Restore Missing Songs"),
-            leading: Icon(Icons.restore),
+            title: Text(S.of(context).Restore_Missing_Songs),
+            leading: Icon(AdaptiveIcons.sync),
             onTap: () async {
-              GetIt.I<DownloadManager>().restoreDownloads();
               Navigator.pop(context);
+              BottomMessage.showText(
+                  context, S.of(context).Restoring_Missing_Songs);
+              GetIt.I<DownloadManager>().restoreDownloads();
             },
           ),
           AdaptiveListTile(
             dense: true,
-            title: Text("Delete All Songs"),
+            title: Text(S.of(context).Delete_All_Songs),
             leading: Icon(AdaptiveIcons.delete),
             onTap: () async {
               bool shouldDelete = await Modals.showConfirmBottomModal(context,
-                  message:
-                      'Are you sure you want to delete all downloaded songs.',
+                  message: S.of(context).Confirm_Delete_All_Message,
                   isDanger: true,
                   doneText: S.of(context).Yes,
                   cancelText: S.of(context).No);
               if (shouldDelete) {
+                Navigator.pop(context);
+                BottomMessage.showText(context, S.of(context).Deleting_Songs);
                 Modals.showCenterLoadingModal(context);
                 List songs = Hive.box('DOWNLOADS').values.toList();
                 for (var song in songs) {
@@ -1338,17 +1343,19 @@ BottomModalLayout _downloadDetailsBottomModal(
           ),
           AdaptiveListTile(
             dense: true,
-            title: Text("Restore Missing Songs"),
+            title: Text(S.of(context).Restore_Missing_Songs),
             leading: Icon(Icons.restore),
             onTap: () async {
+              Navigator.pop(context);
+              BottomMessage.showText(
+                  context, S.of(context).Restoring_Missing_Songs);
               GetIt.I<DownloadManager>()
                   .restoreDownloads(songs: playlist['songs']);
-              Navigator.pop(context);
             },
           ),
           AdaptiveListTile(
             dense: true,
-            title: Text("Delete All Songs"),
+            title: Text(S.of(context).Delete_All_Songs),
             leading: Icon(AdaptiveIcons.delete),
             onTap: () async {
               Modals.showConfirmBottomModal(
@@ -1359,6 +1366,8 @@ BottomModalLayout _downloadDetailsBottomModal(
                 (bool confirm) async {
                   if (confirm) {
                     Navigator.pop(context);
+                    BottomMessage.showText(
+                        context, S.of(context).Deleting_Songs);
                     for (var song in playlist['songs']) {
                       await GetIt.I<DownloadManager>().deleteSong(
                         key: song['videoId'],

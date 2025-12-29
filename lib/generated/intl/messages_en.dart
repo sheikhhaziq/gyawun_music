@@ -66,6 +66,9 @@ class MessageLookup extends MessageLookupByLibrary {
       "Check for Update",
     ),
     "Confirm": MessageLookupByLibrary.simpleMessage("Confirm"),
+    "Confirm_Delete_All_Message": MessageLookupByLibrary.simpleMessage(
+      "Are you sure you want to delete all downloaded songs.",
+    ),
     "Content": MessageLookupByLibrary.simpleMessage("Content"),
     "Contributors": MessageLookupByLibrary.simpleMessage("Contributors"),
     "Copied_To_Clipboard": MessageLookupByLibrary.simpleMessage(
@@ -76,6 +79,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "Create_Playlist": MessageLookupByLibrary.simpleMessage("Create Playlist"),
     "DOwnload_Quality": MessageLookupByLibrary.simpleMessage(
       "Download Quality",
+    ),
+    "Delete_All_Songs": MessageLookupByLibrary.simpleMessage(
+      "Delete All Songs",
     ),
     "Delete_Item_Message": MessageLookupByLibrary.simpleMessage(
       "Are you sure you want to delete this item?",
@@ -94,6 +100,7 @@ class MessageLookup extends MessageLookupByLibrary {
         MessageLookupByLibrary.simpleMessage(
           "Are you sure you want to delete Search History.",
         ),
+    "Deleting_Songs": MessageLookupByLibrary.simpleMessage("Deleting Songs..."),
     "Developer": MessageLookupByLibrary.simpleMessage("Developer"),
     "Donate": MessageLookupByLibrary.simpleMessage("Donate"),
     "Donate_Message": MessageLookupByLibrary.simpleMessage(
@@ -101,6 +108,10 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "Done": MessageLookupByLibrary.simpleMessage("Done"),
     "Download": MessageLookupByLibrary.simpleMessage("Download"),
+    "Download_Started": MessageLookupByLibrary.simpleMessage(
+      "Download started...",
+    ),
+    "Downloading": MessageLookupByLibrary.simpleMessage("Downloading"),
     "Downloads": MessageLookupByLibrary.simpleMessage("Downloads"),
     "Dynamic_Colors": MessageLookupByLibrary.simpleMessage("Dynamic Colors"),
     "Enable_Equalizer": MessageLookupByLibrary.simpleMessage(
@@ -153,6 +164,9 @@ class MessageLookup extends MessageLookupByLibrary {
       "Playback History Deleted",
     ),
     "Playlist_Name": MessageLookupByLibrary.simpleMessage("Playlist Name"),
+    "Playlist_Not_Available": MessageLookupByLibrary.simpleMessage(
+      "Playlist not available",
+    ),
     "Playlists": MessageLookupByLibrary.simpleMessage("Playlists"),
     "Progress": MessageLookupByLibrary.simpleMessage("Progress"),
     "Remove": MessageLookupByLibrary.simpleMessage("Remove"),
@@ -180,8 +194,14 @@ class MessageLookup extends MessageLookupByLibrary {
     "Restore_Failed": MessageLookupByLibrary.simpleMessage(
       "Failed to restore Data",
     ),
+    "Restore_Missing_Songs": MessageLookupByLibrary.simpleMessage(
+      "Restore Missing Songs",
+    ),
     "Restore_Success": MessageLookupByLibrary.simpleMessage(
       "Data successfully restored",
+    ),
+    "Restoring_Missing_Songs": MessageLookupByLibrary.simpleMessage(
+      "Restoring Missing Songs...",
     ),
     "Retry": MessageLookupByLibrary.simpleMessage("Retry"),
     "Save": MessageLookupByLibrary.simpleMessage("Save"),

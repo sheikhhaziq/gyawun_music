@@ -971,6 +971,81 @@ class S {
   String get Retry {
     return Intl.message('Retry', name: 'Retry', desc: '', args: []);
   }
+
+  /// `Playlist not available`
+  String get Playlist_Not_Available {
+    return Intl.message(
+      'Playlist not available',
+      name: 'Playlist_Not_Available',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Are you sure you want to delete all downloaded songs.`
+  String get Confirm_Delete_All_Message {
+    return Intl.message(
+      'Are you sure you want to delete all downloaded songs.',
+      name: 'Confirm_Delete_All_Message',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Downloading`
+  String get Downloading {
+    return Intl.message('Downloading', name: 'Downloading', desc: '', args: []);
+  }
+
+  /// `Restore Missing Songs`
+  String get Restore_Missing_Songs {
+    return Intl.message(
+      'Restore Missing Songs',
+      name: 'Restore_Missing_Songs',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Delete All Songs`
+  String get Delete_All_Songs {
+    return Intl.message(
+      'Delete All Songs',
+      name: 'Delete_All_Songs',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Download started...`
+  String get Download_Started {
+    return Intl.message(
+      'Download started...',
+      name: 'Download_Started',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Restoring Missing Songs...`
+  String get Restoring_Missing_Songs {
+    return Intl.message(
+      'Restoring Missing Songs...',
+      name: 'Restoring_Missing_Songs',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Deleting Songs...`
+  String get Deleting_Songs {
+    return Intl.message(
+      'Deleting Songs...',
+      name: 'Deleting_Songs',
+      desc: '',
+      args: [],
+    );
+  }
 }
 
 class AppLocalizationDelegate extends LocalizationsDelegate<S> {
