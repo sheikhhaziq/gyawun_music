@@ -179,10 +179,10 @@ class DownloadManager {
       _stopTrackingProgress(song['videoId']);
     } catch (e) {
       debugPrint("Errore in _downloadSong: $e");
-      await deleteSong(
-        key: song['videoId'],
-        playlistId: song['playlists']?.keys.first ?? songsPlaylistId,
-      );
+      await _updateSongMetadata(song['videoId'], {
+        'status': 'DELETED',
+        'playlists': song['playlists'] ?? {songsPlaylistId: 'Songs'},
+      });
       _stopTrackingProgress(song['videoId']);
     }
   }
