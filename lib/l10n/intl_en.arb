@@ -261,5 +261,9 @@
   "Restoring_Missing_Songs": "Restoring Missing Songs...",
   "@Restoring_Missing_Songs": {},
   "Deleting_Songs": "Deleting Songs...",
-  "@Deleting_Songs": {}
+  "@Deleting_Songs": {},
+  "In_Progress": "In Progress",
+  "@In_Progress": {},
+  "Queued": "Queued ({count})",
+  "@Queued": {}
 }

@@ -20,7 +20,9 @@ typedef String MessageIfAbsent(String messageStr, List<dynamic> args);
 class MessageLookup extends MessageLookupByLibrary {
   String get localeName => 'en';
 
-  static String m0(count) =>
+  static String m0(count) => "Queued (${count})";
+
+  static String m1(count) =>
       "${Intl.plural(count, zero: 'No Songs', one: '1 Song', other: '${count} Songs')}";
 
   final messages = _notInlinedMessages(_notInlinedMessages);
@@ -137,6 +139,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "Home": MessageLookupByLibrary.simpleMessage("Home"),
     "Import": MessageLookupByLibrary.simpleMessage("Import"),
     "Import_Playlist": MessageLookupByLibrary.simpleMessage("Import Playlist"),
+    "In_Progress": MessageLookupByLibrary.simpleMessage("In Progress"),
     "Jhelum_Corp": MessageLookupByLibrary.simpleMessage("Jhelum Corp"),
     "Language": MessageLookupByLibrary.simpleMessage("Language"),
     "Loudness_And_Equalizer": MessageLookupByLibrary.simpleMessage(
@@ -169,6 +172,7 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "Playlists": MessageLookupByLibrary.simpleMessage("Playlists"),
     "Progress": MessageLookupByLibrary.simpleMessage("Progress"),
+    "Queued": m0,
     "Remove": MessageLookupByLibrary.simpleMessage("Remove"),
     "Remove_All_History_Message": MessageLookupByLibrary.simpleMessage(
       "Are you sure you want to clear all history?",
@@ -243,6 +247,6 @@ class MessageLookup extends MessageLookupByLibrary {
     "Window_Effect": MessageLookupByLibrary.simpleMessage("Window Effect"),
     "YTMusic": MessageLookupByLibrary.simpleMessage("YTMusic"),
     "Yes": MessageLookupByLibrary.simpleMessage("Yes"),
-    "nSongs": m0,
+    "nSongs": m1,
   };
 }

@@ -1046,6 +1046,21 @@ class S {
       args: [],
     );
   }
+
+  /// `In Progress`
+  String get In_Progress {
+    return Intl.message('In Progress', name: 'In_Progress', desc: '', args: []);
+  }
+
+  /// `Queued ({count})`
+  String Queued(Object count) {
+    return Intl.message(
+      'Queued ($count)',
+      name: 'Queued',
+      desc: '',
+      args: [count],
+    );
+  }
 }
 
 class AppLocalizationDelegate extends LocalizationsDelegate<S> {

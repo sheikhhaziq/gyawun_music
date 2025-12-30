@@ -70,6 +70,10 @@ class DownloadManager {
     }
   }
 
+  List<Map> getDownloadQueue() {
+    return _downloadQueue.toList();
+  }
+
   ValueNotifier<double>? getProgressNotifier(String videoId) {
     return _activeDownloadProgress[videoId];
   }

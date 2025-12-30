@@ -20,7 +20,7 @@ typedef String MessageIfAbsent(String messageStr, List<dynamic> args);
 class MessageLookup extends MessageLookupByLibrary {
   String get localeName => 'it';
 
-  static String m0(count) =>
+  static String m1(count) =>
       "${Intl.plural(count, zero: 'Nessun brano', one: '1 brano', other: '${count} brani')}";
 
   final messages = _notInlinedMessages(_notInlinedMessages);
@@ -235,6 +235,6 @@ class MessageLookup extends MessageLookupByLibrary {
     "Window_Effect": MessageLookupByLibrary.simpleMessage("Effetto finestra"),
     "YTMusic": MessageLookupByLibrary.simpleMessage("YTMusic"),
     "Yes": MessageLookupByLibrary.simpleMessage("Sì"),
-    "nSongs": m0,
+    "nSongs": m1,
   };
 }
