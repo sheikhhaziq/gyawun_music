@@ -1,6 +1,7 @@
 import 'dart:collection';
 import 'package:collection/collection.dart';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
@@ -158,18 +159,20 @@ class DownloadManager {
               GetIt.I<SettingsManager>().downloadQuality.name.toLowerCase());
 
       int total = audioSource.size.totalBytes;
-      List<int> received = [];
+      BytesBuilder received = BytesBuilder();
 
       Stream<List<int>> stream =
           AudioStreamClient().getAudioStream(audioSource, start: 0, end: total);
 
       await for (var data in stream) {
-        received.addAll(data);
+        received.add(data);
         _activeDownloadProgress[song['videoId']]?.value =
             (received.length / total);
       }
-
-      File? file = await GetIt.I<FileStorage>().saveMusic(received, song);
+      File? file = await GetIt.I<FileStorage>().saveMusic(
+        received.takeBytes(),
+        song,
+      );
       if (file != null) {
         await _updateSongMetadata(song['videoId'], {
           'status': 'DOWNLOADED',
