@@ -30,9 +30,21 @@ class DownloadManager {
 
   DownloadManager() {
     _refreshData();
+    _cleanupDownloads();
     _box.listenable().addListener(() {
       _refreshData();
     });
+  }
+
+  void _cleanupDownloads() async {
+    for (Map song in downloads.value) {
+      if (['DOWNLOADING'].contains(song['status']) &&
+          !_activeDownloads.contains(song['videoId'])) {
+        await _updateSongMetadata(song['videoId'], {
+          'status': 'DELETED',
+        });
+      }
+    }
   }
 
   void _refreshData() {
