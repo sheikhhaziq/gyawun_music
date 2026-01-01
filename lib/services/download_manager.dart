@@ -20,7 +20,7 @@ YoutubeExplode ytExplode = YoutubeExplode();
 class DownloadManager {
   Client client = Client();
   ValueNotifier<List<Map>> downloads = ValueNotifier([]);
-  ValueNotifier<Map<String, Map>> downloaded = ValueNotifier({});
+  ValueNotifier<Map<String, Map>> downloadsByPlaylist = ValueNotifier({});
   final Map<String, ValueNotifier<double>> _activeDownloadProgress = {};
   static const String songsPlaylistId = 'songs';
   final int maxConcurrentDownloads = 3; // Limit concurrent downloads
@@ -51,13 +51,10 @@ class DownloadManager {
     downloads.value = _box.values.toList().cast<Map>();
     Map<String, Map> playlists = {};
     for (Map song in downloads.value) {
-      if (!['DOWNLOADED', 'DELETED'].contains(song['status'])) {
-        continue;
-      }
       final Map songPlaylists = song["playlists"];
       for (MapEntry entry in songPlaylists.entries) {
         String id = entry.key;
-        String title = entry.value;
+        String title = entry.value["title"];
         playlists
             .putIfAbsent(
                 id,
@@ -76,10 +73,13 @@ class DownloadManager {
     }
     for (var playlist in playlists.values) {
       playlist['songs'].sort((a, b) =>
-          (a['timestamp'] ?? 0).compareTo(b['timestamp'] ?? 0) as int);
+          (a["playlists"][playlist['id']]['timestamp'] ?? 0)
+                  .compareTo(b["playlists"][playlist['id']]['timestamp'] ?? 0)
+              as int);
     }
-    if (!DeepCollectionEquality().equals(downloaded.value, playlists)) {
-      downloaded.value = playlists;
+    if (!DeepCollectionEquality()
+        .equals(downloadsByPlaylist.value, playlists)) {
+      downloadsByPlaylist.value = playlists;
     }
   }
 
@@ -116,7 +116,19 @@ class DownloadManager {
     }
   }
 
-  Future<void> downloadSong(Map song) async {
+  Future<void> downloadSong(Map songToDownaload) async {
+    // Added "songs" playlist if needed
+    final Map song = {
+      ...songToDownaload,
+      'playlists': songToDownaload['playlists'] ??
+          {
+            songsPlaylistId: {
+              'title': 'Songs',
+              'timestamp': DateTime.now().millisecondsSinceEpoch
+            }
+          }
+    };
+    // Check downloaded songs
     final Map? downloadSong = _box.get(song['videoId']);
     if (downloadSong != null) {
       if (_activeDownloads.contains(song['videoId'])) {
@@ -124,7 +136,6 @@ class DownloadManager {
         await _updateSongMetadata(song['videoId'], {
           ...song,
           'status': downloadSong['status'],
-          'playlists': song['playlists'] ?? {songsPlaylistId: 'Songs'},
         });
         _downloadNext();
         return;
@@ -139,7 +150,6 @@ class DownloadManager {
               ...song,
               'status': 'DOWNLOADED',
               'path': file.path,
-              'playlists': song['playlists'] ?? {songsPlaylistId: 'Songs'},
             });
             _downloadNext();
             return;
@@ -147,6 +157,7 @@ class DownloadManager {
         }
       }
     }
+    // Execute download process
     if (!_downloadStart(song)) return;
     await _downloadSong(song);
     _downloadEnd(song);
@@ -158,7 +169,6 @@ class DownloadManager {
       await _updateSongMetadata(song['videoId'], {
         ...song,
         'status': 'DOWNLOADING',
-        'playlists': song['playlists'] ?? {songsPlaylistId: 'Songs'},
       });
       _startTrackingProgress(song['videoId']);
 
@@ -189,8 +199,6 @@ class DownloadManager {
         await _updateSongMetadata(song['videoId'], {
           'status': 'DOWNLOADED',
           'path': file.path,
-          'playlists': song['playlists'] ?? {songsPlaylistId: 'Songs'},
-          'timestamp': DateTime.now().millisecondsSinceEpoch
         });
       } else {
         throw Exception("File saving failed");
@@ -200,7 +208,6 @@ class DownloadManager {
       debugPrint("Error in _downloadSong: $e");
       await _updateSongMetadata(song['videoId'], {
         'status': 'DELETED',
-        'playlists': song['playlists'] ?? {songsPlaylistId: 'Songs'},
       });
       _stopTrackingProgress(song['videoId']);
     }
@@ -210,10 +217,16 @@ class DownloadManager {
     Map? song = _box.get(key);
     if (song != null) {
       if (newMetadata.containsKey('playlists')) {
-        song['playlists'] = {
-          ...song['playlists'] ?? {},
-          ...newMetadata['playlists'] as Map,
-        };
+        Map<String, dynamic> mergedPlaylists = {};
+        if (song['playlists'] != null) {
+          (song['playlists'] as Map).forEach((k, v) {
+            mergedPlaylists[k] = Map<String, dynamic>.from(v);
+          });
+        }
+        (newMetadata['playlists'] as Map).forEach((k, v) {
+          mergedPlaylists[k] = Map<String, dynamic>.from(v);
+        });
+        song['playlists'] = mergedPlaylists;
         newMetadata.remove('playlists');
       }
       await _box.put(key, {
@@ -282,11 +295,15 @@ class DownloadManager {
             ? await GetIt.I<YTMusic>()
                 .getNextSongList(playlistId: playlist['playlistId'])
             : await GetIt.I<YTMusic>().getPlaylistSongs(playlist['playlistId']);
+    int timestamp = DateTime.now().millisecondsSinceEpoch;
     for (Map song in songs) {
       downloadSong({
         ...song,
         'playlists': {
-          playlist['playlistId']: playlist['title'],
+          playlist['playlistId']: {
+            'title': playlist['title'],
+            'timestamp': timestamp++,
+          },
         },
       }); // Queue each song download
     }

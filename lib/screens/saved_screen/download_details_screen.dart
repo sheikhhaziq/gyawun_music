@@ -39,7 +39,7 @@ class _DownloadDetailsScreenState extends State<DownloadDetailsScreen> {
 
   Future<void> _verifyPlaylistIntegrity() async {
     final manager = GetIt.I<DownloadManager>();
-    final allPlaylists = manager.downloaded.value;
+    final allPlaylists = manager.downloadsByPlaylist.value;
     final playlistsMap = Map<String, dynamic>.from(allPlaylists);
     final playlist = playlistsMap[widget.playlistId];
 
@@ -63,7 +63,7 @@ class _DownloadDetailsScreenState extends State<DownloadDetailsScreen> {
   @override
   Widget build(BuildContext context) {
     return ValueListenableBuilder(
-        valueListenable: GetIt.I<DownloadManager>().downloaded,
+        valueListenable: GetIt.I<DownloadManager>().downloadsByPlaylist,
         builder: (context, allPlaylists, child) {
           final Map playlist = allPlaylists[widget.playlistId] ?? {};
           final List songs = playlist['songs'] ?? [];
@@ -324,7 +324,9 @@ class DownloadedSongTile extends StatelessWidget {
         style: TextStyle(
           color: song['status'] == 'DELETED'
               ? Colors.red
-              : Colors.grey.withAlpha(250),
+              : song['status'] == 'DOWNLOADING'
+                  ? Theme.of(context).colorScheme.primary
+                  : Colors.grey.withAlpha(250),
         ),
         overflow: TextOverflow.ellipsis,
       ),

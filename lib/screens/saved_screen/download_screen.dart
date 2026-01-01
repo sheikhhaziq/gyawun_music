@@ -37,7 +37,7 @@ class DownloadScreen extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 8),
             constraints: const BoxConstraints(maxWidth: 1000),
             child: ValueListenableBuilder(
-                valueListenable: GetIt.I<DownloadManager>().downloaded,
+                valueListenable: GetIt.I<DownloadManager>().downloadsByPlaylist,
                 builder: (context, Map allPlaylists, snapshot) {
                   List<MapEntry> sortedEntries = allPlaylists.entries.toList();
                   sortedEntries.sort((a, b) {
