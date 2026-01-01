@@ -264,6 +264,10 @@
   "@Deleting_Songs": {},
   "In_Progress": "In Progress",
   "@In_Progress": {},
-  "Queued": "Queued ({count})",
-  "@Queued": {}
+  "Queued": "Queued",
+  "@Queued": {},
+  "QueuedCount": "Queued ({count})",
+  "@QueuedCount": {},
+  "FileNotFound": "File not found",
+  "@FileNotFound": {}
 }

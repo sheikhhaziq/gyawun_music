@@ -131,6 +131,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "Equalizer": MessageLookupByLibrary.simpleMessage("Equalizer"),
     "Favourites": MessageLookupByLibrary.simpleMessage("Favourites"),
     "Feature_Request": MessageLookupByLibrary.simpleMessage("Feature Request"),
+    "FileNotFound": MessageLookupByLibrary.simpleMessage("File not found"),
     "Go_To_Downloads": MessageLookupByLibrary.simpleMessage("Go to Downloads"),
     "Google_Account": MessageLookupByLibrary.simpleMessage("Google Account"),
     "Gyawun": MessageLookupByLibrary.simpleMessage("Gyawun"),
@@ -172,7 +173,8 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "Playlists": MessageLookupByLibrary.simpleMessage("Playlists"),
     "Progress": MessageLookupByLibrary.simpleMessage("Progress"),
-    "Queued": m0,
+    "Queued": MessageLookupByLibrary.simpleMessage("Queued"),
+    "QueuedCount": m0,
     "Remove": MessageLookupByLibrary.simpleMessage("Remove"),
     "Remove_All_History_Message": MessageLookupByLibrary.simpleMessage(
       "Are you sure you want to clear all history?",

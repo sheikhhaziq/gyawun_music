@@ -316,11 +316,11 @@ class DownloadedSongTile extends StatelessWidget {
       ),
       subtitle: Text(
         song['status'] == 'DELETED'
-            ? 'File not found'
+            ? S.of(context).FileNotFound
             : song['status'] == 'DOWNLOADING'
-                ? 'Downloading'
+                ? S.of(context).Downloading
                 : song['status'] == 'QUEUED'
-                    ? 'Queued'
+                    ? S.of(context).Queued
                     : _buildSubtitle(song),
         maxLines: 1,
         style: TextStyle(

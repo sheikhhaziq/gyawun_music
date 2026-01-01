@@ -1052,13 +1052,28 @@ class S {
     return Intl.message('In Progress', name: 'In_Progress', desc: '', args: []);
   }
 
+  /// `Queued`
+  String get Queued {
+    return Intl.message('Queued', name: 'Queued', desc: '', args: []);
+  }
+
   /// `Queued ({count})`
-  String Queued(Object count) {
+  String QueuedCount(Object count) {
     return Intl.message(
       'Queued ($count)',
-      name: 'Queued',
+      name: 'QueuedCount',
       desc: '',
       args: [count],
+    );
+  }
+
+  /// `File not found`
+  String get FileNotFound {
+    return Intl.message(
+      'File not found',
+      name: 'FileNotFound',
+      desc: '',
+      args: [],
     );
   }
 }

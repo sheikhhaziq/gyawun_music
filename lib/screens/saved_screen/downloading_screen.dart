@@ -41,7 +41,8 @@ class DownloadingScreen extends StatelessWidget {
                 if (queuedSongs.isNotEmpty) ...[
                   SliverToBoxAdapter(
                       child: SectionTitle(
-                          title: S.of(context).Queued(queuedSongs.length))),
+                          title:
+                              S.of(context).QueuedCount(queuedSongs.length))),
                   SliverList(
                     delegate: SliverChildBuilderDelegate(
                       (context, index) =>
