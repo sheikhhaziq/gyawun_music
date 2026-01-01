@@ -42,7 +42,8 @@ class QueueList extends StatelessWidget {
                         children: [
                           for (int i = 0; i < sequence.length; i++)
                             QueueTile(
-                              key: Key(sequence[i].tag?.id ?? '$i'),
+                              key:
+                                  Key('${sequence[i].tag?.id ?? "unknown"}_$i'),
                               index: i,
                               isCurrent: i == currentIndex,
                               source: sequence[i],
