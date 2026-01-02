@@ -280,15 +280,15 @@ BottomModalLayout _playlistRenameBottomModal(BuildContext context,
         AdaptiveFilledButton(
           onPressed: () async {
             String text = controller.text;
-            controller.dispose();
-            Navigator.pop(context);
             context
                 .read<LibraryService>()
                 .renamePlaylist(
                     playlistId: playlistId,
                     title: text.trim().isNotEmpty ? text : null)
-                .then((String message) =>
-                    BottomMessage.showText(context, message));
+                .then((String message) {
+              Navigator.pop(context);
+              BottomMessage.showText(context, message);
+            });
           },
           child: Text(S.of(context).Rename),
         )
