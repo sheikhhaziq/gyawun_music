@@ -30,7 +30,8 @@ dependencies:
   go_router: ^17.0.0
   google_fonts: ^6.3.2
   gyawun_shared:
-    path: ../gyawun_shared
+    git:
+      url: https://github.com/sheikhhaziq/gyawun_shared.git
   http: ^1.5.0
   hydrated_bloc: ^10.1.1
   image: ^4.5.4
@@ -42,7 +43,8 @@ dependencies:
   just_audio_background: ^0.0.1-beta.17
   just_audio_media_kit: ^2.1.0
   library_manager:
-    path: ../library_manager
+    git:
+      url: https://github.com/sheikhhaziq/library-manager.git
   lottie: ^3.3.2
   m3e_design: ^0.2.1
   media_kit_libs_linux: any

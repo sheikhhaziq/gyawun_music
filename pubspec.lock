@@ -520,9 +520,11 @@ packages:
   gyawun_shared:
     dependency: "direct main"
     description:
-      path: "../gyawun_shared"
-      relative: true
-    source: path
+      path: "."
+      ref: HEAD
+      resolved-ref: "8ccdaf8c0b8a8b148e1d4977b215ef10f88874bf"
+      url: "https://github.com/sheikhhaziq/gyawun_shared.git"
+    source: git
     version: "1.0.0"
   hive_ce:
     dependency: transitive
@@ -726,9 +728,11 @@ packages:
   library_manager:
     dependency: "direct main"
     description:
-      path: "../library_manager"
-      relative: true
-    source: path
+      path: "."
+      ref: HEAD
+      resolved-ref: "51351e6e3261c294a5c255a2bbd82eab2129cb98"
+      url: "https://github.com/sheikhhaziq/library-manager.git"
+    source: git
     version: "1.0.0"
   lints:
     dependency: transitive
@@ -830,10 +834,10 @@ packages:
     dependency: transitive
     description:
       name: native_toolchain_c
-      sha256: "932ba84084915969879a044ab24342dde5f687a5c24208590c487f1af2317d21"
+      sha256: "89e83885ba09da5fdf2cdacc8002a712ca238c28b7f717910b34bcd27b0d03ac"
       url: "https://pub.dev"
     source: hosted
-    version: "0.17.3"
+    version: "0.17.4"
   navigation_bar_m3e:
     dependency: "direct main"
     description:
@@ -1299,10 +1303,10 @@ packages:
     dependency: transitive
     description:
       name: sqlite3
-      sha256: "4fd811bd46d2191ff06fed74d7f1ab8be94944ff75dcb5486c052d1769118476"
+      sha256: "0374add4094d34fcf9d22068b6ddb4056782353ad4a5449bc5b71c5f2175f0ec"
       url: "https://pub.dev"
     source: hosted
-    version: "3.0.1"
+    version: "3.1.1"
   stack_trace:
     dependency: transitive
     description:
