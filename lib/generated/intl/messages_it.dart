@@ -20,7 +20,9 @@ typedef String MessageIfAbsent(String messageStr, List<dynamic> args);
 class MessageLookup extends MessageLookupByLibrary {
   String get localeName => 'it';
 
-  static String m0(count) =>
+  static String m0(count) => "In coda (${count})";
+
+  static String m1(count) =>
       "${Intl.plural(count, zero: 'Nessun brano', one: '1 brano', other: '${count} brani')}";
 
   final messages = _notInlinedMessages(_notInlinedMessages);
@@ -70,6 +72,9 @@ class MessageLookup extends MessageLookupByLibrary {
       "Verifica aggiornamenti",
     ),
     "Confirm": MessageLookupByLibrary.simpleMessage("Conferma"),
+    "Confirm_Delete_All_Message": MessageLookupByLibrary.simpleMessage(
+      "Sei sicuro di volerli eliminare?",
+    ),
     "Content": MessageLookupByLibrary.simpleMessage("Contenuti"),
     "Contributors": MessageLookupByLibrary.simpleMessage("Collaboratori"),
     "Copied_To_Clipboard": MessageLookupByLibrary.simpleMessage(
@@ -80,6 +85,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "Create_Playlist": MessageLookupByLibrary.simpleMessage("Crea playlist"),
     "DOwnload_Quality": MessageLookupByLibrary.simpleMessage(
       "Qualità download",
+    ),
+    "Delete_All_Songs": MessageLookupByLibrary.simpleMessage(
+      "Elimina tutti i brani",
     ),
     "Delete_Item_Message": MessageLookupByLibrary.simpleMessage(
       "Sei sicuro di voler eliminare questo elemento?",
@@ -98,6 +106,9 @@ class MessageLookup extends MessageLookupByLibrary {
         MessageLookupByLibrary.simpleMessage(
           "Sei sicuro di voler eliminare la cronologia di ricerca?",
         ),
+    "Deleting_Songs": MessageLookupByLibrary.simpleMessage(
+      "Eliminazione brani...",
+    ),
     "Developer": MessageLookupByLibrary.simpleMessage("Sviluppatore"),
     "Donate": MessageLookupByLibrary.simpleMessage("Dona"),
     "Donate_Message": MessageLookupByLibrary.simpleMessage(
@@ -105,6 +116,10 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "Done": MessageLookupByLibrary.simpleMessage("Fatto"),
     "Download": MessageLookupByLibrary.simpleMessage("Download"),
+    "Download_Started": MessageLookupByLibrary.simpleMessage(
+      "Download avviato...",
+    ),
+    "Downloading": MessageLookupByLibrary.simpleMessage("In download"),
     "Downloads": MessageLookupByLibrary.simpleMessage("Download"),
     "Dynamic_Colors": MessageLookupByLibrary.simpleMessage("Colori dinamici"),
     "Enable_Equalizer": MessageLookupByLibrary.simpleMessage(
@@ -132,6 +147,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "Home": MessageLookupByLibrary.simpleMessage("Home"),
     "Import": MessageLookupByLibrary.simpleMessage("Importa"),
     "Import_Playlist": MessageLookupByLibrary.simpleMessage("Importa playlist"),
+    "In_Progress": MessageLookupByLibrary.simpleMessage("In corso"),
     "Jhelum_Corp": MessageLookupByLibrary.simpleMessage("Jhelum Corp"),
     "Language": MessageLookupByLibrary.simpleMessage("Lingua"),
     "Loudness_And_Equalizer": MessageLookupByLibrary.simpleMessage(
@@ -163,8 +179,13 @@ class MessageLookup extends MessageLookupByLibrary {
       "Cronologia di riproduzione eliminata",
     ),
     "Playlist_Name": MessageLookupByLibrary.simpleMessage("Nome playlist"),
+    "Playlist_Not_Available": MessageLookupByLibrary.simpleMessage(
+      "Playlist non disponibile",
+    ),
     "Playlists": MessageLookupByLibrary.simpleMessage("Playlist"),
     "Progress": MessageLookupByLibrary.simpleMessage("Avanzamento"),
+    "Queued": MessageLookupByLibrary.simpleMessage("In coda"),
+    "QueuedCount": m0,
     "Remove": MessageLookupByLibrary.simpleMessage("Rimuovi"),
     "Remove_All_History_Message": MessageLookupByLibrary.simpleMessage(
       "Sei sicuro di voler cancellare tutta la cronologia?",
@@ -191,6 +212,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "Restore": MessageLookupByLibrary.simpleMessage("Ripristina"),
     "Restore_Failed": MessageLookupByLibrary.simpleMessage(
       "Ripristino dati non riuscito",
+    ),
+    "Restore_Missing_Songs": MessageLookupByLibrary.simpleMessage(
+      "Ripristina brani mancanti",
     ),
     "Restore_Success": MessageLookupByLibrary.simpleMessage(
       "Ripristino dati riuscito",
@@ -235,6 +259,6 @@ class MessageLookup extends MessageLookupByLibrary {
     "Window_Effect": MessageLookupByLibrary.simpleMessage("Effetto finestra"),
     "YTMusic": MessageLookupByLibrary.simpleMessage("YTMusic"),
     "Yes": MessageLookupByLibrary.simpleMessage("Sì"),
-    "nSongs": m0,
+    "nSongs": m1,
   };
 }

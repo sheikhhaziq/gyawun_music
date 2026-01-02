@@ -17,44 +17,44 @@ class HistoryScreen extends StatelessWidget {
         title: Text(S.of(context).History),
         centerTitle: true,
       ),
-      body: SingleChildScrollView(
-        child: Center(
-          child: Container(
-            constraints: const BoxConstraints(maxWidth: 1000),
-            padding: const EdgeInsets.symmetric(horizontal: 8),
-            child: ValueListenableBuilder(
-              valueListenable: Hive.box('SONG_HISTORY').listenable(),
-              builder: (context, box, child) {
-                List songs = box.values.toList();
-                songs.sort((a, b) =>
-                    (b['updatedAt'] ?? 0).compareTo((a['updatedAt'] ?? 0)));
-                return Column(
-                  children: songs.map((song) {
-                    return SwipeActionCell(
-                      backgroundColor: Colors.transparent,
-                      key: ObjectKey(song['videoId']),
-                      trailingActions: <SwipeAction>[
-                        SwipeAction(
-                            title: S.of(context).Remove,
-                            onTap: (CompletionHandler handler) async {
-                              Modals.showConfirmBottomModal(
-                                context,
-                                message: S.of(context).Remove_Message,
-                                isDanger: true,
-                              ).then((bool confirm) async {
-                                if (confirm) {
-                                  await box.delete(song['videoId']);
-                                }
-                              });
-                            },
-                            color: Colors.red),
-                      ],
-                      child: SongTile(song: song),
-                    );
-                  }).toList(),
-                );
-              },
-            ),
+      body: Center(
+        child: Container(
+          constraints: const BoxConstraints(maxWidth: 1000),
+          padding: const EdgeInsets.symmetric(horizontal: 8),
+          child: ValueListenableBuilder(
+            valueListenable: Hive.box('SONG_HISTORY').listenable(),
+            builder: (context, box, child) {
+              List songs = box.values.toList();
+              songs.sort((a, b) =>
+                  (b['updatedAt'] ?? 0).compareTo((a['updatedAt'] ?? 0)));
+              return ListView.builder(
+                itemCount: songs.length,
+                itemBuilder: (context, index) {
+                  final song = songs[index];
+                  return SwipeActionCell(
+                    backgroundColor: Colors.transparent,
+                    key: ObjectKey(song['videoId']),
+                    trailingActions: <SwipeAction>[
+                      SwipeAction(
+                          title: S.of(context).Remove,
+                          onTap: (CompletionHandler handler) async {
+                            Modals.showConfirmBottomModal(
+                              context,
+                              message: S.of(context).Remove_Message,
+                              isDanger: true,
+                            ).then((bool confirm) async {
+                              if (confirm) {
+                                await box.delete(song['videoId']);
+                              }
+                            });
+                          },
+                          color: Colors.red),
+                    ],
+                    child: SongTile(song: song),
+                  );
+                },
+              );
+            },
           ),
         ),
       ),

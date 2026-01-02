@@ -336,10 +336,10 @@ class MediaPlayer extends ChangeNotifier {
     await _player.play();
   }
 
-  Future<void> playNext(Map<String, dynamic> song) async {
+  Future<void> playNext(Map<String, dynamic> mediaItem) async {
     // Case 1: A single video/song
-    if (song['videoId'] != null) {
-      final audioSource = await _getAudioSource(song);
+    if (mediaItem['videoId'] != null) {
+      final audioSource = await _getAudioSource(mediaItem);
 
       // Determine insertion position
       final currentIndex = _player.currentIndex ?? -1;

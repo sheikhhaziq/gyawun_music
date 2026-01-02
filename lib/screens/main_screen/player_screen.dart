@@ -574,21 +574,27 @@ class NameAndControls extends StatelessWidget {
                 if (song != null)
                   RepaintBoundary(
                     child: ValueListenableBuilder(
-                      valueListenable: GetIt.I<DownloadManager>().downloads,
-                      builder: (context, value, child) {
-                        List<Map> elements = value
-                            .where((item) => item['videoId'] == song!.id)
-                            .toList();
-                        Map? item = elements.isNotEmpty ? elements.first : null;
+                      valueListenable:
+                          Hive.box('DOWNLOADS').listenable(keys: [song!.id]),
+                      builder: (context, box, child) {
+                        final Map? item = box.get(song!.id);
                         if (item != null) {
-                          if (item['status'] == 'PROCESSING' ||
-                              item['status'] == 'DOWNLOADING') {
-                            return AdaptiveProgressRing(
-                              value: item['status'] == 'DOWNLOADING'
-                                  ? item['progress'] / 100
-                                  : null,
-                              color: Colors.white,
-                              backgroundColor: Colors.black,
+                          if (item['status'] == 'DOWNLOADING') {
+                            final notifier = GetIt.I<DownloadManager>()
+                                    .getProgressNotifier(song!.id) ??
+                                ValueNotifier(0.0);
+                            return ValueListenableBuilder(
+                              valueListenable: notifier,
+                              builder: (context, double progress, child) {
+                                return AdaptiveProgressRing(
+                                  value: item['status'] == 'DOWNLOADING' &&
+                                          progress > 0.0
+                                      ? progress
+                                      : null,
+                                  color: Colors.white,
+                                  backgroundColor: Colors.black,
+                                );
+                              },
                             );
                           } else if (item['status'] == 'DOWNLOADED') {
                             return const Icon(Icons.download_done_outlined);

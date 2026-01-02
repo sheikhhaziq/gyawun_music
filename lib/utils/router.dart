@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/cupertino.dart';
 import 'package:go_router/go_router.dart';
+import 'package:gyawun/screens/saved_screen/download_details_screen.dart';
 import 'package:gyawun/screens/saved_screen/download_screen.dart';
 import 'package:gyawun/screens/saved_screen/downloading_screen.dart';
 import 'package:gyawun/screens/saved_screen/favourite_details_screen.dart';
@@ -120,6 +121,15 @@ List<StatefulShellBranch> branches = [
           path: 'downloads',
           builder: (context, state) => const DownloadScreen(),
           routes: [
+            GoRoute(
+              path: 'download_details',
+              builder: (context, state) {
+                final args = state.extra as Map<String, dynamic>;
+                return DownloadDetailsScreen(
+                  playlistId: args['playlistId'] as String,
+                );
+              },
+            ),
             GoRoute(
               path: 'downloading',
               builder: (context, state) => const DownloadingScreen(),
