@@ -354,17 +354,12 @@ class MediaPlayer extends ChangeNotifier {
         await _player.setAudioSource(audioSource);
       }
 
-      // Case 2: Custom or Downloaded Playlist
-    } else if (mediaItem['songs'] != null) {
-      List songs = mediaItem['songs'];
-      await _addSongListToQueue(songs, isNext: true);
-
-      // Case 3: Online Playlist
-    } else if (mediaItem['playlistId'] != null) {
-      List songs = mediaItem['type'] == 'ARTIST'
+      // Case 2: Playlist
+    } else if (song['playlistId'] != null) {
+      List songs = song['type'] == 'ARTIST'
           ? await GetIt.I<YTMusic>()
-              .getNextSongList(playlistId: mediaItem['playlistId'])
-          : await GetIt.I<YTMusic>().getPlaylistSongs(mediaItem['playlistId']);
+              .getNextSongList(playlistId: song['playlistId'])
+          : await GetIt.I<YTMusic>().getPlaylistSongs(song['playlistId']);
       await _addSongListToQueue(songs, isNext: true);
     }
   }
@@ -384,22 +379,14 @@ class MediaPlayer extends ChangeNotifier {
     if (!_player.playing) await _player.play();
   }
 
-  Future<void> addToQueue(Map<String, dynamic> mediaItem) async {
-    // Case 1: A single video/song
-    if (mediaItem['videoId'] != null) {
-      await _player.addAudioSource(await _getAudioSource(mediaItem));
-
-      // Case 2: Custom or Downloaded Playlist
-    } else if (mediaItem['songs'] != null) {
-      List songs = mediaItem['songs'];
-      await _addSongListToQueue(songs, isNext: false);
-
-      // Case 3: Online Playlist
-    } else if (mediaItem['playlistId'] != null) {
-      List songs = mediaItem['type'] == 'ARTIST'
+  Future<void> addToQueue(Map<String, dynamic> song) async {
+    if (song['videoId'] != null) {
+      await _player.addAudioSource(await _getAudioSource(song));
+    } else if (song['playlistId'] != null) {
+      List songs = song['type'] == 'ARTIST'
           ? await GetIt.I<YTMusic>()
-              .getNextSongList(playlistId: mediaItem['playlistId'])
-          : await GetIt.I<YTMusic>().getPlaylistSongs(mediaItem['playlistId']);
+              .getNextSongList(playlistId: song['playlistId'])
+          : await GetIt.I<YTMusic>().getPlaylistSongs(song['playlistId']);
       await _addSongListToQueue(songs, isNext: false);
     }
   }

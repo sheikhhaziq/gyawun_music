@@ -3,7 +3,9 @@ import 'package:get_it/get_it.dart';
 import 'package:go_router/go_router.dart';
 import 'package:gyawun/themes/colors.dart';
 import 'package:gyawun/utils/extensions.dart';
-import 'package:gyawun/utils/playlist_thumbnail.dart';
+import 'package:gyawun/utils/pprint.dart';
+import 'package:gyawun/utils/song_thumbnail.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 
 import '../../generated/l10n.dart';
 import '../../services/download_manager.dart';
@@ -110,5 +112,91 @@ class DownloadScreen extends StatelessWidget {
         ),
       ),
     );
+  }
+}
+
+class DownloadedSongTile extends StatelessWidget {
+  const DownloadedSongTile(
+      {required this.songs, required this.index, this.playlistId, super.key});
+  final String? playlistId;
+  final List songs;
+  final int index;
+  @override
+  Widget build(BuildContext context) {
+    Map song = songs[index];
+    List thumbnails = song['thumbnails'];
+    double height =
+        (song['aspectRatio'] != null ? 50 / song['aspectRatio'] : 50)
+            .toDouble();
+    return AdaptiveListTile(
+      onTap: () async {
+        if (song['status'] == 'DOWNLOADING') return;
+        await GetIt.I<MediaPlayer>().playAll(List.from(songs), index: index);
+      },
+      onSecondaryTap: () {
+        if (song['videoId'] != null && song['status'] != 'DOWNLOADING') {
+          Modals.showSongBottomModal(context, song);
+        }
+      },
+      onLongPress: () {
+        if (song['videoId'] != null && song['status'] != 'DOWNLOADING') {
+          Modals.showSongBottomModal(context, song);
+        }
+      },
+      title: Text(song['title'] ?? "", maxLines: 1),
+      leading: ClipRRect(
+        borderRadius: BorderRadius.circular(3),
+        child: SongThumbnail(
+          song: song,
+          height: height,
+          width: 50,
+          fit: BoxFit.cover,
+        ),
+      ),
+      subtitle: Text(
+        song['status'] == 'DELETED'
+            ? 'File not found'
+            : song['status'] == 'DOWNLOADING'
+                ? 'Downloading'
+                : _buildSubtitle(song),
+        maxLines: 1,
+        style: TextStyle(
+          color: song['status'] == 'DELETED'
+              ? Colors.red
+              : Colors.grey.withAlpha(250),
+        ),
+        overflow: TextOverflow.ellipsis,
+      ),
+      trailing: song['status'] == 'DELETED'
+          ? IconButton(
+              onPressed: () async {
+                await GetIt.I<DownloadManager>().downloadSong(song);
+              },
+              icon: const Icon(Icons.refresh))
+          : null,
+      description: song['type'] == 'EPISODE' && song['description'] != null
+          ? ExpandableText(
+              song['description'].split('\n')?[0] ?? '',
+              expandText: S.of(context).Show_More,
+              collapseText: S.of(context).Show_Less,
+              maxLines: 3,
+              style: TextStyle(color: context.subtitleColor),
+            )
+          : null,
+    );
+  }
+
+  String _buildSubtitle(Map item) {
+    List sub = [];
+    if (sub.isEmpty && item['artists'] != null) {
+      for (Map artist in item['artists']) {
+        sub.add(artist['name']);
+      }
+    }
+    if (sub.isEmpty && item['album'] != null) {
+      sub.add(item['album']['name']);
+    }
+    String s = sub.join(' · ');
+    return item['subtitle'] ?? s;
   }
 }

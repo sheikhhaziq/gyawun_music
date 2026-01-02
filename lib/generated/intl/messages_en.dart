@@ -131,7 +131,6 @@ class MessageLookup extends MessageLookupByLibrary {
     "Equalizer": MessageLookupByLibrary.simpleMessage("Equalizer"),
     "Favourites": MessageLookupByLibrary.simpleMessage("Favourites"),
     "Feature_Request": MessageLookupByLibrary.simpleMessage("Feature Request"),
-    "FileNotFound": MessageLookupByLibrary.simpleMessage("File not found"),
     "Go_To_Downloads": MessageLookupByLibrary.simpleMessage("Go to Downloads"),
     "Google_Account": MessageLookupByLibrary.simpleMessage("Google Account"),
     "Gyawun": MessageLookupByLibrary.simpleMessage("Gyawun"),
@@ -205,9 +204,6 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "Restore_Success": MessageLookupByLibrary.simpleMessage(
       "Data successfully restored",
-    ),
-    "Restoring_Missing_Songs": MessageLookupByLibrary.simpleMessage(
-      "Restoring Missing Songs...",
     ),
     "Retry": MessageLookupByLibrary.simpleMessage("Retry"),
     "Save": MessageLookupByLibrary.simpleMessage("Save"),

@@ -139,7 +139,6 @@ class MessageLookup extends MessageLookupByLibrary {
     "Feature_Request": MessageLookupByLibrary.simpleMessage(
       "Richiesta funzionalità",
     ),
-    "FileNotFound": MessageLookupByLibrary.simpleMessage("File non trovato"),
     "Go_To_Downloads": MessageLookupByLibrary.simpleMessage("Vai a Download"),
     "Google_Account": MessageLookupByLibrary.simpleMessage("Account Google"),
     "Gyawun": MessageLookupByLibrary.simpleMessage("Gyawun"),
@@ -219,9 +218,6 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "Restore_Success": MessageLookupByLibrary.simpleMessage(
       "Ripristino dati riuscito",
-    ),
-    "Restoring_Missing_Songs": MessageLookupByLibrary.simpleMessage(
-      "Ripristino brani mancanti...",
     ),
     "Retry": MessageLookupByLibrary.simpleMessage("Riprova"),
     "Save": MessageLookupByLibrary.simpleMessage("Salva"),
