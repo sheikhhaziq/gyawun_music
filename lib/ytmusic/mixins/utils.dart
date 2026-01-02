@@ -48,6 +48,13 @@ Map<String, dynamic> handlePageHeader(Map<String, dynamic> header,
           'text'
         ]),
     'playlistId': nav(header, [
+      'playButton',
+      'buttonRenderer',
+      'navigationEndpoint',
+      'watchEndpoint',
+      'playlistId'
+    ])?.replaceAll('RDAMPL', ''),
+    'playlistRadioId': nav(header, [
       'startRadioButton',
       'buttonRenderer',
       'navigationEndpoint',
@@ -114,7 +121,7 @@ Map<String, dynamic> handlePageHeader(Map<String, dynamic> header,
           'playlistId'
         ]);
       } else if (iconType == 'MIX') {
-        result['playlistId'] ??= nav(run, [
+        result['playlistRadioId'] ??= nav(run, [
           'menuNavigationItemRenderer',
           'navigationEndpoint',
           'watchPlaylistEndpoint',
@@ -229,7 +236,7 @@ Map<String, dynamic> checkRuns(List? runs) {
       ]);
     } else if (nav(run, ['menuNavigationItemRenderer', 'icon', 'iconType']) ==
         'MIX') {
-      runResult['playlistId'] ??= nav(run, [
+      runResult['playlistRadioId'] ??= nav(run, [
         'menuNavigationItemRenderer',
         'navigationEndpoint',
         'watchPlaylistEndpoint',
@@ -328,10 +335,11 @@ Map<String, dynamic> handleMusicPlaylistShelfRenderer(Map item) {
     section['playlistId'] = nav(item, ['playlistId']);
     section['viewType'] = 'COLUMN';
   }
-  String? cont = nav(item,
-              ['continuations', 0, 'nextContinuationData', 'continuation']);
-  String? continuationparams =cont !=null ?  getContinuationString(cont):null;
-    section['continuation'] = continuationparams;
+  String? cont =
+      nav(item, ['continuations', 0, 'nextContinuationData', 'continuation']);
+  String? continuationparams =
+      cont != null ? getContinuationString(cont) : null;
+  section['continuation'] = continuationparams;
 
   List? contents = nav(item, ['contents']);
   if (contents != null) {

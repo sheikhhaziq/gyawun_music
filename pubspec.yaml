@@ -66,6 +66,7 @@ dependencies:
   translator: ^1.0.4+1
   language_detector: ^1.0.1
   wakelock_plus: ^1.4.0
+  internet_connection_checker_plus: ^2.9.1
 
 dev_dependencies:
   flutter_test:

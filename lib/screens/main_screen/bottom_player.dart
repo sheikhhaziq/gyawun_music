@@ -1,14 +1,11 @@
-import 'dart:io';
-
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:go_router/go_router.dart';
+import 'package:gyawun/utils/song_thumbnail.dart';
 import 'package:provider/provider.dart';
 
 import '../../services/media_player.dart';
 import '../../utils/adaptive_widgets/adaptive_widgets.dart';
-import '../../utils/enhanced_image.dart';
 
 class BottomPlayer extends StatelessWidget {
   const BottomPlayer({super.key});
@@ -57,37 +54,13 @@ class BottomPlayer extends StatelessWidget {
                           horizontal: 8, vertical: 8),
                       leading: ClipRRect(
                         borderRadius: BorderRadius.circular(8),
-                        child: currentSong.extras?['offline'] == true &&
-                                !currentSong.artUri
-                                    .toString()
-                                    .startsWith('https')
-                            ? Image.file(
-                                File.fromUri(currentSong.artUri!),
-                                height: 50,
-                                width: 50,
-                                fit: BoxFit.fill,
-                              )
-                            : CachedNetworkImage(
-                                imageUrl: getEnhancedImage(
-                                    currentSong
-                                        .extras!['thumbnails'].first['url'],
-                                    dp: MediaQuery.of(context).devicePixelRatio,
-                                    width: 50),
-                                height: 50,
-                                width: 50,
-                                fit: BoxFit.fill,
-                                errorWidget: (context, url, error) {
-                                  return CachedNetworkImage(
-                                    imageUrl: getEnhancedImage(
-                                      currentSong
-                                          .extras!['thumbnails'].first['url'],
-                                      dp: MediaQuery.of(context)
-                                          .devicePixelRatio,
-                                      width: 50,
-                                    ),
-                                  );
-                                },
-                              ),
+                        child: SongThumbnail(
+                          song: currentSong.extras!,
+                          dp: MediaQuery.of(context).devicePixelRatio,
+                          height: 50,
+                          width: 50,
+                          fit: BoxFit.fill,
+                        ),
                       ),
                       title: Text(
                         currentSong.title,

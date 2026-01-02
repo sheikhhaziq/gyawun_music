@@ -31,7 +31,7 @@ mixin SearchMixin on YTClient {
             })
         .toList();
     var response = await sendRequest(endpoint, body);
-    var contents = response['contents'];
+    var contents = response['contents'] ?? [];
     for (Map content in contents) {
       List? searchSuggestionsSectionRendererContents =
           nav(content, ['searchSuggestionsSectionRenderer', 'contents']);
@@ -108,60 +108,62 @@ mixin SearchMixin on YTClient {
     final response =
         (await sendRequest("search", data, additionalParams: additionalParams));
     Map<String, dynamic> result = {};
-    List contents = nav(response, [
-          'contents',
-          'tabbedSearchResultsRenderer',
-          'tabs',
-          0,
-          'tabRenderer',
-          'content',
-          'sectionListRenderer',
-          'contents'
-        ]) ??
-        nav(response,
-            ['continuationContents', 'musicShelfContinuation', 'contents']);
-    String? cont = nav(contents, [
-          0,
-          'musicShelfRenderer',
-          'continuations',
-          0,
-          'nextContinuationData',
-          'continuation'
-        ]) ??
-        nav(response, [
-          'continuationContents',
-          'musicShelfContinuation',
-          'continuations',
-          0,
-          'nextContinuationData',
-          'continuation'
-        ]);
-    String? continuationparams;
-    if (endpoint != null && cont != null) {
-      continuationparams = getContinuationString(cont);
-      result['continuation'] = continuationparams;
-    } else {
-      result['continuation'] = null;
-    }
-    List<Map<String, dynamic>> resultContents = [];
-
-    Map? continuationContents = response['continuationContents'];
-    for (Map content in contents) {
-      Map? musicCardShelfRenderer = content['musicCardShelfRenderer'];
-      Map? musicShelfRenderer = content['musicShelfRenderer'];
-      if (musicCardShelfRenderer != null) {
-        resultContents
-            .add(_handleMusicCardShelfRenderer(musicCardShelfRenderer));
-      } else if (musicShelfRenderer != null) {
-        resultContents.add(handleMusicShelfRenderer(musicShelfRenderer));
+    if (response.isNotEmpty) {
+      List contents = nav(response, [
+            'contents',
+            'tabbedSearchResultsRenderer',
+            'tabs',
+            0,
+            'tabRenderer',
+            'content',
+            'sectionListRenderer',
+            'contents'
+          ]) ??
+          nav(response,
+              ['continuationContents', 'musicShelfContinuation', 'contents']);
+      String? cont = nav(contents, [
+            0,
+            'musicShelfRenderer',
+            'continuations',
+            0,
+            'nextContinuationData',
+            'continuation'
+          ]) ??
+          nav(response, [
+            'continuationContents',
+            'musicShelfContinuation',
+            'continuations',
+            0,
+            'nextContinuationData',
+            'continuation'
+          ]);
+      String? continuationparams;
+      if (endpoint != null && cont != null) {
+        continuationparams = getContinuationString(cont);
+        result['continuation'] = continuationparams;
+      } else {
+        result['continuation'] = null;
       }
-    }
-    if (continuationContents != null) {
-      resultContents.add(handleContinuationContents(
-          continuationContents['musicShelfContinuation']));
-    }
+      List<Map<String, dynamic>> resultContents = [];
 
-    result['sections'] = resultContents;
+      Map? continuationContents = response['continuationContents'];
+      for (Map content in contents) {
+        Map? musicCardShelfRenderer = content['musicCardShelfRenderer'];
+        Map? musicShelfRenderer = content['musicShelfRenderer'];
+        if (musicCardShelfRenderer != null) {
+          resultContents
+              .add(_handleMusicCardShelfRenderer(musicCardShelfRenderer));
+        } else if (musicShelfRenderer != null) {
+          resultContents.add(handleMusicShelfRenderer(musicShelfRenderer));
+        }
+      }
+      if (continuationContents != null) {
+        resultContents.add(handleContinuationContents(
+            continuationContents['musicShelfContinuation']));
+      }
+
+      result['sections'] = resultContents;
+    }
     return result;
   }
 
@@ -232,6 +234,23 @@ mixin SearchMixin on YTClient {
     };
     if (subtitle != null) {
       top.addAll(checkRuns(subtitle));
+    }
+    List? buttons = nav(item, ['buttons']);
+    if (buttons != null) {
+      for (Map button in buttons) {
+        String? iconType = nav(button, ['buttonRenderer', 'icon', 'iconType']);
+        String? playlistId = nav(button, [
+          'buttonRenderer',
+          'command',
+          'watchPlaylistEndpoint',
+          'playlistId'
+        ]);
+        if (iconType == 'MUSIC_SHUFFLE') {
+          top['playlistId'] ??= playlistId;
+        } else if (iconType == 'MIX') {
+          top['playlistRadioId'] ??= playlistId?.replaceAll('RDAMPL', '');
+        }
+      }
     }
     top.removeWhere((key, val) => val == null || val.isEmpty);
     return top;

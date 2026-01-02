@@ -52,4 +52,5 @@ abstract final class AdaptiveIcons {
   static IconData equalizer = Icons.equalizer;
   static IconData timer = Icons.timer;
   static IconData share = Icons.share;
+  static IconData wifi_off_rounded = Icons.wifi_off_rounded;
 }

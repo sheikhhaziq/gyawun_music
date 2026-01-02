@@ -4,6 +4,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:expandable_text/expandable_text.dart';
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
+import 'package:gyawun/utils/internet_guard.dart';
 import 'package:provider/provider.dart';
 
 import '../../generated/l10n.dart';
@@ -100,46 +101,50 @@ class _BrowseScreenState extends State<BrowseScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return AdaptiveScaffold(
-      appBar: AdaptiveAppBar(
-        title: header['title'] != null ? Text(header['title']) : null,
-        centerTitle: true,
-      ),
-      body: initialLoading
-          ? const Center(child: AdaptiveProgressRing())
-          : SingleChildScrollView(
-              controller: _scrollController,
-              child: Center(
-                child: Container(
-                  padding: const EdgeInsets.only(left: 8, right: 8, bottom: 8),
-                  constraints: const BoxConstraints(maxWidth: 1000),
-                  child: Column(
-                    children: [
-                      if (header['thumbnails'] != null)
-                        HeaderWidget(
-                          header: {'endpoint': widget.endpoint, ...header},
-                        ),
-                      const SizedBox(height: 8),
-                      ...sections.indexed.map((sec) {
-                        return SectionItem(
-                            section: sec.$2,
-                            isMore: widget.isMore ||
-                                sections.length == 1 ||
-                                sec.$1 == 0);
-                      }),
-                      if (!nextLoading && continuation != null)
-                        const SizedBox(height: 64),
-                      if (nextLoading)
-                        const Center(
-                          child: Padding(
-                              padding: EdgeInsets.all(8.0),
-                              child: AdaptiveProgressRing()),
-                        ),
-                    ],
+    return InternetGuard(
+      onInternetRestored: fetchData,
+      child: AdaptiveScaffold(
+        appBar: AdaptiveAppBar(
+          title: header['title'] != null ? Text(header['title']) : null,
+          centerTitle: true,
+        ),
+        body: initialLoading
+            ? const Center(child: AdaptiveProgressRing())
+            : SingleChildScrollView(
+                controller: _scrollController,
+                child: Center(
+                  child: Container(
+                    padding:
+                        const EdgeInsets.only(left: 8, right: 8, bottom: 8),
+                    constraints: const BoxConstraints(maxWidth: 1000),
+                    child: Column(
+                      children: [
+                        if (header['thumbnails'] != null)
+                          HeaderWidget(
+                            header: {'endpoint': widget.endpoint, ...header},
+                          ),
+                        const SizedBox(height: 8),
+                        ...sections.indexed.map((sec) {
+                          return SectionItem(
+                              section: sec.$2,
+                              isMore: widget.isMore ||
+                                  sections.length == 1 ||
+                                  sec.$1 == 0);
+                        }),
+                        if (!nextLoading && continuation != null)
+                          const SizedBox(height: 64),
+                        if (nextLoading)
+                          const Center(
+                            child: Padding(
+                                padding: EdgeInsets.all(8.0),
+                                child: AdaptiveProgressRing()),
+                          ),
+                      ],
+                    ),
                   ),
                 ),
               ),
-            ),
+      ),
     );
   }
 }
@@ -187,7 +192,8 @@ class _HeaderWidgetState extends State<HeaderWidget> {
           );
   }
 
-  Padding _buildContent(Map header, BuildContext context, {bool isRow = false}) {
+  Padding _buildContent(Map header, BuildContext context,
+      {bool isRow = false}) {
     if (widget.header['playlistId'] != null) {
       isAddedToLibrary = context
               .watch<LibraryService>()
