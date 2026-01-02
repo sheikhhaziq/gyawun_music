@@ -22,10 +22,12 @@ class LibraryService extends ChangeNotifier {
 
   Future<String> createPlaylist(String title, {Map? item}) async {
     if (title.trim().isEmpty) {
-      return "Playlist name can't be empty";
+      "Playlist name can't be empty";
+    } else if (_box.get(title.toLowerCase()) != null) {
+      "Playlist is already created";
     }
     await _box.put(
-      "CSTMPL${DateTime.now().millisecondsSinceEpoch}",
+      title.toLowerCase(),
       {
         'title': title,
         'isPredefined': false,
@@ -67,7 +69,7 @@ class LibraryService extends ChangeNotifier {
         return 'Added to Library';
       }
     } catch (e) {
-      return "Error importing playlist";
+      return e.toString();
     }
   }
 

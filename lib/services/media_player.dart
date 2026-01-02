@@ -336,10 +336,10 @@ class MediaPlayer extends ChangeNotifier {
     await _player.play();
   }
 
-  Future<void> playNext(Map<String, dynamic> mediaItem) async {
+  Future<void> playNext(Map<String, dynamic> song) async {
     // Case 1: A single video/song
-    if (mediaItem['videoId'] != null) {
-      final audioSource = await _getAudioSource(mediaItem);
+    if (song['videoId'] != null) {
+      final audioSource = await _getAudioSource(song);
 
       // Determine insertion position
       final currentIndex = _player.currentIndex ?? -1;
@@ -356,10 +356,8 @@ class MediaPlayer extends ChangeNotifier {
 
       // Case 2: Playlist
     } else if (song['playlistId'] != null) {
-      List songs = song['type'] == 'ARTIST'
-          ? await GetIt.I<YTMusic>()
-              .getNextSongList(playlistId: song['playlistId'])
-          : await GetIt.I<YTMusic>().getPlaylistSongs(song['playlistId']);
+      final songs =
+          await GetIt.I<YTMusic>().getPlaylistSongs(song['playlistId']);
       await _addSongListToQueue(songs, isNext: true);
     }
   }
@@ -383,10 +381,8 @@ class MediaPlayer extends ChangeNotifier {
     if (song['videoId'] != null) {
       await _player.addAudioSource(await _getAudioSource(song));
     } else if (song['playlistId'] != null) {
-      List songs = song['type'] == 'ARTIST'
-          ? await GetIt.I<YTMusic>()
-              .getNextSongList(playlistId: song['playlistId'])
-          : await GetIt.I<YTMusic>().getPlaylistSongs(song['playlistId']);
+      List songs =
+          await GetIt.I<YTMusic>().getPlaylistSongs(song['playlistId']);
       await _addSongListToQueue(songs, isNext: false);
     }
   }
@@ -399,7 +395,7 @@ class MediaPlayer extends ChangeNotifier {
     }
     List songs = await GetIt.I<YTMusic>().getNextSongList(
         videoId: song['videoId'],
-        playlistId: song['playlistRadioId'],
+        playlistId: song['playlistId'],
         radio: radio,
         shuffle: shuffle);
     if (songs.isNotEmpty) songs.removeAt(0);

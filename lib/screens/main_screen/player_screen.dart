@@ -2,11 +2,12 @@ import 'dart:io';
 import 'dart:math';
 import 'dart:ui';
 import 'package:audio_video_progress_bar/audio_video_progress_bar.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get_it/get_it.dart';
 import 'package:go_router/go_router.dart';
-import 'package:gyawun/utils/song_thumbnail.dart';
+import 'package:gyawun/utils/extensions.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:just_audio_background/just_audio_background.dart';
@@ -22,6 +23,7 @@ import '../../themes/dark.dart';
 import '../../themes/text_styles.dart';
 import '../../utils/adaptive_widgets/adaptive_widgets.dart';
 import '../../utils/bottom_modals.dart';
+import '../../utils/enhanced_image.dart';
 import '../../ytmusic/ytmusic.dart';
 import 'lyrics_box.dart';
 import 'play_button.dart';
@@ -38,8 +40,8 @@ class PlayerScreen extends StatefulWidget {
 class _PlayerScreenState extends State<PlayerScreen> {
   late PanelController panelController;
   final GlobalKey<ScaffoldState> _key = GlobalKey();
-  Color? color;
-  ImageProvider? image;
+  List? colors = [];
+  String? image;
   bool canPop = false;
   bool showLyrics = false;
   bool fetchedSong = false;
@@ -60,6 +62,7 @@ class _PlayerScreenState extends State<PlayerScreen> {
       });
     }
     currentSong = GetIt.I<MediaPlayer>().currentSongNotifier.value;
+    _fetchImage();
     GetIt.I<MediaPlayer>().currentSongNotifier.addListener(songListener);
   }
 
@@ -76,6 +79,7 @@ class _PlayerScreenState extends State<PlayerScreen> {
           currentSong = GetIt.I<MediaPlayer>().currentSongNotifier.value;
         });
       }
+      _fetchImage();
     }
   }
 
@@ -87,15 +91,73 @@ class _PlayerScreenState extends State<PlayerScreen> {
     }
   }
 
-  Future<void> updateBackgroundColor(ImageProvider image) async {
-    final c = await ColorScheme.fromImageProvider(
-      provider: image,
-    );
-    if (mounted) {
-      setState(() {
-        color = c.primary;
-      });
+  void _fetchImage() {
+    if (!mounted) return;
+    if (currentSong?.extras?['thumbnails'] != null &&
+        currentSong?.extras?['thumbnails'].isNotEmpty &&
+        image !=
+            getEnhancedImage(
+                currentSong?.extras?['thumbnails']?.first['url'])) {
+      if (mounted) {
+        setState(() {
+          image = getEnhancedImage(
+            currentSong?.extras?['thumbnails']?.first['url'],
+          );
+        });
+      }
     }
+  }
+
+  Future<Color?> getColor(String? image, bool isDark) async {
+    if (image == null) return Theme.of(context).scaffoldBackgroundColor;
+    final c = await ColorScheme.fromImageProvider(
+      provider: CachedNetworkImageProvider(
+        image,
+        errorListener: (p0) {
+          if (mounted) {
+            setState(() {
+              image = getEnhancedImage(image!,
+                  dp: MediaQuery.of(context).devicePixelRatio,
+                  quality: 'medium');
+            });
+          }
+        },
+      ),
+    );
+    return c.primary;
+    // PaletteGenerator paletteGenerator =
+    //     await PaletteGenerator.fromImageProvider(
+    //   CachedNetworkImageProvider(
+    //     image,
+    //     errorListener: (p0) {
+    //       if (mounted) {
+    //         setState(() {
+    //           image = getEnhancedImage(image!,
+    //               dp: MediaQuery.of(context).devicePixelRatio,
+    //               quality: 'medium');
+    //         });
+    //       }
+    //     },
+    //   ),
+    // );
+
+    // if (mounted) {
+    //   if (isDark) {
+    //     return paletteGenerator.darkVibrantColor?.color ??
+    //         paletteGenerator.dominantColor?.color ??
+    //         paletteGenerator.darkMutedColor?.color ??
+    //         paletteGenerator.lightVibrantColor?.color ??
+    //         paletteGenerator.lightMutedColor?.color;
+    //   } else {
+    //     return paletteGenerator.lightMutedColor?.color ??
+    //         paletteGenerator.darkVibrantColor?.color ??
+    //         paletteGenerator.dominantColor?.color ??
+    //         paletteGenerator.darkMutedColor?.color ??
+    //         paletteGenerator.lightVibrantColor?.color;
+    //   }
+    // } else {
+    //   return Colors.transparent;
+    // }
   }
 
   MaterialColor primaryWhite = const MaterialColor(
@@ -144,226 +206,243 @@ class _PlayerScreenState extends State<PlayerScreen> {
                   statusBarIconBrightness: Brightness.light,
                   systemNavigationBarColor: Colors.transparent,
                 ),
-                child: Container(
-                  color: Colors.black,
-                  child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 300),
-                    curve: Curves.easeIn,
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [
-                          (color ??
-                                  Theme.of(context)
-                                      .colorScheme
-                                      .surfaceContainerLow)
-                              .withAlpha(200),
-                          (color ??
-                                  Theme.of(context)
-                                      .colorScheme
-                                      .surfaceContainerLow)
-                              .withAlpha(80),
-                        ],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
-                    ),
-                    child: Scaffold(
-                      appBar: PreferredSize(
-                        preferredSize: AppBar().preferredSize,
-                        child: AppBar(
-                          backgroundColor: Colors.transparent,
-                          surfaceTintColor: Colors.transparent,
-                          elevation: 0,
-                          iconTheme: const IconThemeData(color: Colors.white),
-                          leading: AdaptiveIconButton(
-                            onPressed: () {
-                              context.pop();
-                            },
-                            icon: Icon(AdaptiveIcons.chevron_down),
-                          ),
-                          actions: [
-                            AdaptiveIconButton(
-                              onPressed: () {
-                                setState(() {
-                                  showLyrics = !showLyrics;
-                                });
-                              },
-                              icon: Icon(AdaptiveIcons.lyrics),
+                child: FutureBuilder<Color?>(
+                    future: getColor(image, context.isDarkMode),
+                    builder: (context, snapshot) {
+                      if (!mounted) return Container();
+                      // pprint(snapshot.data?.toString());
+                      return Container(
+                        color: Colors.black,
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 300),
+                          curve: Curves.easeIn,
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [
+                                snapshot.hasData && snapshot.data != null
+                                    ? snapshot.data!.withAlpha(200)
+                                    : Colors.transparent,
+                                snapshot.hasData && snapshot.data != null
+                                    ? snapshot.data!.withAlpha(80)
+                                    : Colors.transparent
+                              ],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
                             ),
-                            if (MediaQuery.of(context).size.width >
-                                    MediaQuery.of(context).size.height ||
-                                Platform.isWindows)
-                              AdaptiveIconButton(
-                                onPressed: () {
-                                  _key.currentState?.openEndDrawer();
-                                },
-                                icon: Icon(AdaptiveIcons.queue),
-                              ),
-                          ],
-                        ),
-                      ),
-                      key: _key,
-                      backgroundColor: Colors.transparent,
-                      endDrawer: MediaQuery.of(context).size.width >
-                                  MediaQuery.of(context).size.height ||
-                              Platform.isWindows
-                          ? SizedBox(
-                              width:
-                                  min(400, MediaQuery.of(context).size.width) -
-                                      50,
-                              child: const QueueList(),
-                            )
-                          : null,
-                      body: SizedBox(
-                        width: double.maxFinite,
-                        child: LayoutBuilder(
-                          builder: (context, constraints) {
-                            EdgeInsets padding = MediaQuery.of(context).padding;
-                            double maxWidth = constraints.maxWidth -
-                                padding.left -
-                                padding.right;
-                            double maxHeight = constraints.maxHeight -
-                                padding.top -
-                                padding.bottom;
-                            if (maxWidth > maxHeight) {
-                              return Row(
-                                crossAxisAlignment: CrossAxisAlignment.center,
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceEvenly,
-                                children: [
-                                  Artwork(
-                                    setShowLyrics: setShowLyrics,
-                                    showLyrics: showLyrics,
-                                    width: maxWidth / 2.3,
-                                    song: currentSong,
-                                    onImageReady: updateBackgroundColor,
-                                  ),
-                                  NameAndControls(
-                                    song: currentSong,
-                                    width: maxWidth - (maxWidth / 2.3),
-                                    height: maxHeight,
-                                    isRow: true,
-                                  )
-                                ],
-                              );
-                            }
-                            return Stack(
-                              children: [
-                                Column(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceAround,
-                                  crossAxisAlignment: CrossAxisAlignment.center,
-                                  children: [
-                                    Artwork(
-                                      setShowLyrics: setShowLyrics,
-                                      showLyrics: showLyrics,
-                                      width:
-                                          min(maxWidth, maxHeight / 2.2) - 24,
-                                      song: currentSong,
-                                      onImageReady: updateBackgroundColor,
-                                    ),
-                                    NameAndControls(
-                                      song: currentSong,
-                                      width: maxWidth,
-                                      height: maxHeight -
-                                          min(maxWidth, maxHeight / 2.2) -
-                                          24,
-                                    )
-                                  ],
+                          ),
+                          child: Scaffold(
+                            appBar: PreferredSize(
+                              preferredSize: AppBar().preferredSize,
+                              child: AppBar(
+                                backgroundColor: Colors.transparent,
+                                surfaceTintColor: Colors.transparent,
+                                elevation: 0,
+                                iconTheme:
+                                    const IconThemeData(color: Colors.white),
+                                leading: AdaptiveIconButton(
+                                  onPressed: () {
+                                    context.pop();
+                                  },
+                                  icon: Icon(AdaptiveIcons.chevron_down),
                                 ),
-                                SlidingUpPanel(
-                                  controller: panelController,
-                                  color: Colors.transparent,
-                                  padding: EdgeInsets.zero,
-                                  margin: EdgeInsets.zero,
-                                  borderRadius: const BorderRadius.only(
-                                    topLeft: Radius.circular(20),
-                                    topRight: Radius.circular(20),
+                                actions: [
+                                  AdaptiveIconButton(
+                                    onPressed: () {
+                                      setState(() {
+                                        showLyrics = !showLyrics;
+                                      });
+                                    },
+                                    icon: Icon(AdaptiveIcons.lyrics),
                                   ),
-                                  boxShadow: const [],
-                                  minHeight: 50 +
-                                      MediaQuery.of(context).padding.bottom,
-                                  panel: ClipRRect(
-                                    borderRadius: const BorderRadius.only(
-                                        topLeft: Radius.circular(20),
-                                        topRight: Radius.circular(20)),
-                                    child: Container(
-                                      width: constraints.maxWidth,
-                                      alignment: Alignment.center,
-                                      decoration: const BoxDecoration(
-                                        borderRadius: BorderRadius.only(
-                                            topLeft: Radius.circular(20),
-                                            topRight: Radius.circular(20)),
-                                      ),
-                                      child: Column(
+                                  if (MediaQuery.of(context).size.width >
+                                          MediaQuery.of(context).size.height ||
+                                      Platform.isWindows)
+                                    AdaptiveIconButton(
+                                      onPressed: () {
+                                        _key.currentState?.openEndDrawer();
+                                      },
+                                      icon: Icon(AdaptiveIcons.queue),
+                                    ),
+                                ],
+                              ),
+                            ),
+                            key: _key,
+                            backgroundColor: Colors.transparent,
+                            endDrawer: MediaQuery.of(context).size.width >
+                                        MediaQuery.of(context).size.height ||
+                                    Platform.isWindows
+                                ? SizedBox(
+                                    width: min(400,
+                                            MediaQuery.of(context).size.width) -
+                                        50,
+                                    child: const QueueList(),
+                                  )
+                                : null,
+                            body: SizedBox(
+                              width: double.maxFinite,
+                              child: LayoutBuilder(
+                                builder: (context, constraints) {
+                                  EdgeInsets padding =
+                                      MediaQuery.of(context).padding;
+                                  double maxWidth = constraints.maxWidth -
+                                      padding.left -
+                                      padding.right;
+                                  double maxHeight = constraints.maxHeight -
+                                      padding.top -
+                                      padding.bottom;
+                                  if (maxWidth > maxHeight) {
+                                    return Row(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.center,
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceEvenly,
+                                      children: [
+                                        Artwork(
+                                          setShowLyrics: setShowLyrics,
+                                          showLyrics: showLyrics,
+                                          width: maxWidth / 2.3,
+                                          song: currentSong,
+                                        ),
+                                        NameAndControls(
+                                          song: currentSong,
+                                          width: maxWidth - (maxWidth / 2.3),
+                                          height: maxHeight,
+                                          isRow: true,
+                                        )
+                                      ],
+                                    );
+                                  }
+                                  return Stack(
+                                    children: [
+                                      Column(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceAround,
                                         crossAxisAlignment:
                                             CrossAxisAlignment.center,
-                                        mainAxisSize: MainAxisSize.max,
                                         children: [
-                                          ClipRRect(
-                                            child: BackdropFilter(
-                                              filter: ImageFilter.blur(
-                                                  sigmaX: 3, sigmaY: 3),
-                                              child: Container(
-                                                height: 50 +
-                                                    MediaQuery.of(context)
-                                                        .padding
-                                                        .bottom,
-                                                width: double.maxFinite,
-                                                decoration: BoxDecoration(
-                                                  color: Theme.of(context)
-                                                      .scaffoldBackgroundColor
-                                                      .withAlpha(70),
-                                                  borderRadius:
-                                                      const BorderRadius.only(
-                                                          topLeft:
-                                                              Radius.circular(
-                                                                  20),
-                                                          topRight:
-                                                              Radius.circular(
-                                                                  20)),
-                                                ),
-                                                child: Column(
-                                                  mainAxisSize:
-                                                      MainAxisSize.max,
-                                                  mainAxisAlignment:
-                                                      MainAxisAlignment.center,
-                                                  children: [
-                                                    Container(
-                                                      height: 5,
-                                                      width: 50,
-                                                      decoration: BoxDecoration(
-                                                        color: greyColor,
-                                                        borderRadius:
-                                                            BorderRadius
-                                                                .circular(20),
-                                                      ),
-                                                    ),
-                                                    const SizedBox(height: 8),
-                                                    Text(
-                                                      S.of(context).Next_Up,
-                                                      style: textStyle(context,
-                                                          bold: true),
-                                                    ),
-                                                  ],
-                                                ),
-                                              ),
-                                            ),
+                                          Artwork(
+                                            setShowLyrics: setShowLyrics,
+                                            showLyrics: showLyrics,
+                                            width:
+                                                min(maxWidth, maxHeight / 2.2) -
+                                                    24,
+                                            song: currentSong,
                                           ),
-                                          const Expanded(child: QueueList())
+                                          NameAndControls(
+                                            song: currentSong,
+                                            width: maxWidth,
+                                            height: maxHeight -
+                                                min(maxWidth, maxHeight / 2.2) -
+                                                24,
+                                          )
                                         ],
                                       ),
-                                    ),
-                                  ),
-                                )
-                              ],
-                            );
-                          },
+                                      SlidingUpPanel(
+                                        controller: panelController,
+                                        color: Colors.transparent,
+                                        padding: EdgeInsets.zero,
+                                        margin: EdgeInsets.zero,
+                                        borderRadius: const BorderRadius.only(
+                                          topLeft: Radius.circular(20),
+                                          topRight: Radius.circular(20),
+                                        ),
+                                        boxShadow: const [],
+                                        minHeight: 50 +
+                                            MediaQuery.of(context)
+                                                .padding
+                                                .bottom,
+                                        panel: ClipRRect(
+                                          borderRadius: const BorderRadius.only(
+                                              topLeft: Radius.circular(20),
+                                              topRight: Radius.circular(20)),
+                                          child: Container(
+                                            width: constraints.maxWidth,
+                                            alignment: Alignment.center,
+                                            decoration: const BoxDecoration(
+                                              borderRadius: BorderRadius.only(
+                                                  topLeft: Radius.circular(20),
+                                                  topRight:
+                                                      Radius.circular(20)),
+                                            ),
+                                            child: Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.center,
+                                              mainAxisSize: MainAxisSize.max,
+                                              children: [
+                                                ClipRRect(
+                                                  child: BackdropFilter(
+                                                    filter: ImageFilter.blur(
+                                                        sigmaX: 3, sigmaY: 3),
+                                                    child: Container(
+                                                      height: 50 +
+                                                          MediaQuery.of(context)
+                                                              .padding
+                                                              .bottom,
+                                                      width: double.maxFinite,
+                                                      decoration: BoxDecoration(
+                                                        color: Theme.of(context)
+                                                            .scaffoldBackgroundColor
+                                                            .withAlpha(70),
+                                                        borderRadius:
+                                                            const BorderRadius
+                                                                .only(
+                                                                topLeft: Radius
+                                                                    .circular(
+                                                                        20),
+                                                                topRight: Radius
+                                                                    .circular(
+                                                                        20)),
+                                                      ),
+                                                      child: Column(
+                                                        mainAxisSize:
+                                                            MainAxisSize.max,
+                                                        mainAxisAlignment:
+                                                            MainAxisAlignment
+                                                                .center,
+                                                        children: [
+                                                          Container(
+                                                            height: 5,
+                                                            width: 50,
+                                                            decoration:
+                                                                BoxDecoration(
+                                                              color: greyColor,
+                                                              borderRadius:
+                                                                  BorderRadius
+                                                                      .circular(
+                                                                          20),
+                                                            ),
+                                                          ),
+                                                          const SizedBox(
+                                                              height: 8),
+                                                          Text(
+                                                            S
+                                                                .of(context)
+                                                                .Next_Up,
+                                                            style: textStyle(
+                                                                context,
+                                                                bold: true),
+                                                          ),
+                                                        ],
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ),
+                                                const Expanded(
+                                                    child: QueueList())
+                                              ],
+                                            ),
+                                          ),
+                                        ),
+                                      )
+                                    ],
+                                  );
+                                },
+                              ),
+                            ),
+                          ),
                         ),
-                      ),
-                    ),
-                  ),
-                ),
+                      );
+                    }),
               ),
             ),
     );
@@ -376,13 +455,11 @@ class Artwork extends StatelessWidget {
       required this.width,
       required this.showLyrics,
       required this.setShowLyrics,
-      this.onImageReady,
       super.key});
   final double width;
   final MediaItem? song;
   final bool showLyrics;
   final Function setShowLyrics;
-  final void Function(ImageProvider)? onImageReady;
 
   @override
   Widget build(BuildContext context) {
@@ -420,10 +497,29 @@ class Artwork extends StatelessWidget {
                               ),
                               child: ClipRRect(
                                 borderRadius: BorderRadius.circular(8),
-                                child: SongThumbnail(
-                                  song: song!.extras!,
-                                  onImageReady: onImageReady,
-                                ),
+                                child: song?.extras?['offline'] == true &&
+                                        !song!.artUri
+                                            .toString()
+                                            .startsWith('https')
+                                    ? Image.file(
+                                        File.fromUri(song!.artUri!),
+                                      )
+                                    : CachedNetworkImage(
+                                        filterQuality: FilterQuality.high,
+                                        imageUrl: getEnhancedImage(
+                                          song!.extras!['thumbnails']
+                                              .first['url'],
+                                        ),
+                                        errorWidget: (context, url, error) {
+                                          return CachedNetworkImage(
+                                            imageUrl: getEnhancedImage(
+                                              song!.extras!['thumbnails']
+                                                  .first['url'],
+                                              quality: 'medium',
+                                            ),
+                                          );
+                                        },
+                                      ),
                               ),
                             ),
                     ),
@@ -574,27 +670,21 @@ class NameAndControls extends StatelessWidget {
                 if (song != null)
                   RepaintBoundary(
                     child: ValueListenableBuilder(
-                      valueListenable:
-                          Hive.box('DOWNLOADS').listenable(keys: [song!.id]),
-                      builder: (context, box, child) {
-                        final Map? item = box.get(song!.id);
+                      valueListenable: GetIt.I<DownloadManager>().downloads,
+                      builder: (context, value, child) {
+                        List<Map> elements = value
+                            .where((item) => item['videoId'] == song!.id)
+                            .toList();
+                        Map? item = elements.isNotEmpty ? elements.first : null;
                         if (item != null) {
-                          if (item['status'] == 'DOWNLOADING') {
-                            final notifier = GetIt.I<DownloadManager>()
-                                    .getProgressNotifier(song!.id) ??
-                                ValueNotifier(0.0);
-                            return ValueListenableBuilder(
-                              valueListenable: notifier,
-                              builder: (context, double progress, child) {
-                                return AdaptiveProgressRing(
-                                  value: item['status'] == 'DOWNLOADING' &&
-                                          progress > 0.0
-                                      ? progress
-                                      : null,
-                                  color: Colors.white,
-                                  backgroundColor: Colors.black,
-                                );
-                              },
+                          if (item['status'] == 'PROCESSING' ||
+                              item['status'] == 'DOWNLOADING') {
+                            return AdaptiveProgressRing(
+                              value: item['status'] == 'DOWNLOADING'
+                                  ? item['progress'] / 100
+                                  : null,
+                              color: Colors.white,
+                              backgroundColor: Colors.black,
                             );
                           } else if (item['status'] == 'DOWNLOADED') {
                             return const Icon(Icons.download_done_outlined);

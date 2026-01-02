@@ -15,60 +15,50 @@ class DownloadingScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return AdaptiveScaffold(
       appBar: AdaptiveAppBar(
-        title: Text(S.of(context).Downloading),
+        title: Text(S.of(context).Downloads),
         centerTitle: true,
       ),
-      body: ValueListenableBuilder(
-          valueListenable: GetIt.I<DownloadManager>().downloads,
-          builder: (context, allSongs, snapshot) {
-            List downloadingSongs = allSongs
-                .where((song) => ['DOWNLOADING'].contains(song['status']))
-                .toList();
-            List queuedSongs = GetIt.I<DownloadManager>().getDownloadQueue();
-            return CustomScrollView(
-              slivers: [
-                if (downloadingSongs.isNotEmpty) ...[
-                  SliverToBoxAdapter(
-                      child: SectionTitle(title: S.of(context).In_Progress)),
-                  SliverList(
-                    delegate: SliverChildBuilderDelegate(
-                      (context, index) =>
-                          DownloadingSongTile(song: downloadingSongs[index]),
-                      childCount: downloadingSongs.length,
-                    ),
-                  ),
-                ],
-                if (queuedSongs.isNotEmpty) ...[
-                  SliverToBoxAdapter(
-                      child: SectionTitle(
-                          title:
-                              S.of(context).QueuedCount(queuedSongs.length))),
-                  SliverList(
-                    delegate: SliverChildBuilderDelegate(
-                      (context, index) =>
-                          DownloadingSongTile(song: queuedSongs[index]),
-                      childCount: queuedSongs.length,
-                    ),
-                  ),
-                ],
-              ],
-            );
-          }),
+      body: SingleChildScrollView(
+        child: Center(
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8),
+            constraints: const BoxConstraints(maxWidth: 1000),
+            child: ValueListenableBuilder(
+                valueListenable: GetIt.I<DownloadManager>().downloads,
+                builder: (context, allSongs, snapshot) {
+                  List songs = allSongs
+                      .where((song) => ['DOWNLOADING'].contains(song['status']))
+                      .toList();
+                  return Column(
+                    children: [
+                      ...songs.indexed.map<Widget>((indexedSong) {
+                        int index = indexedSong.$1;
+                        return DownloadingSongTile(songs: songs, index: index);
+                      })
+                    ],
+                  );
+                }),
+          ),
+        ),
+      ),
     );
   }
 }
 
 class DownloadingSongTile extends StatelessWidget {
-  const DownloadingSongTile({required this.song, super.key});
-  final Map song;
+  const DownloadingSongTile(
+      {required this.songs, required this.index, this.playlistId, super.key});
+  final String? playlistId;
+  final List songs;
+  final int index;
   @override
   Widget build(BuildContext context) {
+    Map song = songs[index];
     List thumbnails = song['thumbnails'];
     double height =
         (song['aspectRatio'] != null ? 50 / song['aspectRatio'] : 50)
             .toDouble();
-    final notifier =
-        GetIt.I<DownloadManager>().getProgressNotifier(song['videoId']);
+
     return AdaptiveListTile(
       title: Text(song['title'] ?? "", maxLines: 1),
       leading: ClipRRect(
@@ -81,26 +71,19 @@ class DownloadingSongTile extends StatelessWidget {
           fit: BoxFit.cover,
         ),
       ),
-      subtitle: (notifier != null)
-          ? ValueListenableBuilder(
-              valueListenable: notifier,
-              builder: (context, progress, child) => LinearProgressIndicator(
-                value: progress,
-                color: Theme.of(context).primaryColor,
-                backgroundColor: Theme.of(context)
-                    .colorScheme
-                    .onSurface
-                    .withValues(alpha: 0.3),
-              ),
-            )
-          : LinearProgressIndicator(
-              value: 0.0,
-              color: Theme.of(context).primaryColor,
-              backgroundColor: Theme.of(context)
-                  .colorScheme
-                  .onSurface
-                  .withValues(alpha: 0.3),
-            ),
+      subtitle: LinearProgressIndicator(
+        value: (song['progress'] ?? 0) / 100,
+        color: Theme.of(context).primaryColor,
+        backgroundColor:
+            Theme.of(context).colorScheme.onSurface.withOpacity(0.3),
+      ),
+      trailing: song['status'] == 'DELETED'
+          ? IconButton(
+              onPressed: () async {
+                await GetIt.I<DownloadManager>().downloadSong(song);
+              },
+              icon: const Icon(Icons.refresh))
+          : null,
       description: song['type'] == 'EPISODE' && song['description'] != null
           ? ExpandableText(
               song['description'].split('\n')?[0] ?? '',
@@ -110,25 +93,6 @@ class DownloadingSongTile extends StatelessWidget {
               style: TextStyle(color: context.subtitleColor),
             )
           : null,
-    );
-  }
-}
-
-class SectionTitle extends StatelessWidget {
-  const SectionTitle({super.key, required this.title});
-  final String title;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(top: 20, left: 20, right: 20, bottom: 8),
-      child: Text(
-        title,
-        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              fontWeight: FontWeight.bold,
-              color: Theme.of(context).colorScheme.primary,
-            ),
-      ),
     );
   }
 }

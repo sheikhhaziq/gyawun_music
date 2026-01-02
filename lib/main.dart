@@ -29,14 +29,13 @@ void main() async {
     await JustAudioBackground.init(
       androidNotificationChannelId: 'com.jhelum.gyawun.audio',
       androidNotificationChannelName: 'Audio playback',
-      androidNotificationOngoing: true,
+      androidShowNotificationBadge: true,
+      androidStopForegroundOnPause: false,
     );
   }
   await initialiseHive();
   if (Platform.isWindows || Platform.isLinux) {
-    JustAudioMediaKit.ensureInitialized(
-        // libmpv: Platform.isLinux ? '/app/lib/libmpv.so' : null,
-        );
+    JustAudioMediaKit.ensureInitialized();
     JustAudioMediaKit.bufferSize = 8 * 1024 * 1024;
     JustAudioMediaKit.title = 'Gyawun Music';
     JustAudioMediaKit.prefetchPlaylist = true;
@@ -128,33 +127,6 @@ class Gyawun extends StatelessWidget {
                 : context.watch<SettingsManager>().accentColor,
             isPureBlack: context.watch<SettingsManager>().amoledBlack,
           ),
-          // theme: lightTheme(
-          //   colorScheme: context.watch<SettingsManager>().dynamicColors &&
-          //           lightScheme != null
-          //       ? lightScheme
-          //       : ColorScheme.fromSeed(
-          //           seedColor: context.watch<SettingsManager>().accentColor ??
-          //               Colors.black,
-          //           primary: context.watch<SettingsManager>().accentColor ??
-          //               Colors.black,
-          //           brightness: Brightness.light,
-          //         ),
-          // ),
-          // darkTheme: darkTheme(
-          //   colorScheme: context.watch<SettingsManager>().dynamicColors &&
-          //           darkScheme != null
-          //       ? darkScheme
-          //       : ColorScheme.fromSeed(
-          //           seedColor: context.watch<SettingsManager>().accentColor ??
-          //               primaryWhite,
-          //           primary: context.watch<SettingsManager>().accentColor ??
-          //               primaryWhite,
-          //           brightness: Brightness.dark,
-          //           surface: context.watch<SettingsManager>().amoledBlack
-          //               ? Colors.black
-          //               : null,
-          //         ),
-          // ),
         ),
       );
     });

@@ -20,9 +20,7 @@ typedef String MessageIfAbsent(String messageStr, List<dynamic> args);
 class MessageLookup extends MessageLookupByLibrary {
   String get localeName => 'en';
 
-  static String m0(count) => "Queued (${count})";
-
-  static String m1(count) =>
+  static String m0(count) =>
       "${Intl.plural(count, zero: 'No Songs', one: '1 Song', other: '${count} Songs')}";
 
   final messages = _notInlinedMessages(_notInlinedMessages);
@@ -68,9 +66,6 @@ class MessageLookup extends MessageLookupByLibrary {
       "Check for Update",
     ),
     "Confirm": MessageLookupByLibrary.simpleMessage("Confirm"),
-    "Confirm_Delete_All_Message": MessageLookupByLibrary.simpleMessage(
-      "Are you sure you want to delete them?",
-    ),
     "Content": MessageLookupByLibrary.simpleMessage("Content"),
     "Contributors": MessageLookupByLibrary.simpleMessage("Contributors"),
     "Copied_To_Clipboard": MessageLookupByLibrary.simpleMessage(
@@ -81,9 +76,6 @@ class MessageLookup extends MessageLookupByLibrary {
     "Create_Playlist": MessageLookupByLibrary.simpleMessage("Create Playlist"),
     "DOwnload_Quality": MessageLookupByLibrary.simpleMessage(
       "Download Quality",
-    ),
-    "Delete_All_Songs": MessageLookupByLibrary.simpleMessage(
-      "Delete All Songs",
     ),
     "Delete_Item_Message": MessageLookupByLibrary.simpleMessage(
       "Are you sure you want to delete this item?",
@@ -102,7 +94,6 @@ class MessageLookup extends MessageLookupByLibrary {
         MessageLookupByLibrary.simpleMessage(
           "Are you sure you want to delete Search History.",
         ),
-    "Deleting_Songs": MessageLookupByLibrary.simpleMessage("Deleting Songs..."),
     "Developer": MessageLookupByLibrary.simpleMessage("Developer"),
     "Donate": MessageLookupByLibrary.simpleMessage("Donate"),
     "Donate_Message": MessageLookupByLibrary.simpleMessage(
@@ -110,10 +101,6 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "Done": MessageLookupByLibrary.simpleMessage("Done"),
     "Download": MessageLookupByLibrary.simpleMessage("Download"),
-    "Download_Started": MessageLookupByLibrary.simpleMessage(
-      "Download started...",
-    ),
-    "Downloading": MessageLookupByLibrary.simpleMessage("Downloading"),
     "Downloads": MessageLookupByLibrary.simpleMessage("Downloads"),
     "Dynamic_Colors": MessageLookupByLibrary.simpleMessage("Dynamic Colors"),
     "Enable_Equalizer": MessageLookupByLibrary.simpleMessage(
@@ -131,7 +118,6 @@ class MessageLookup extends MessageLookupByLibrary {
     "Equalizer": MessageLookupByLibrary.simpleMessage("Equalizer"),
     "Favourites": MessageLookupByLibrary.simpleMessage("Favourites"),
     "Feature_Request": MessageLookupByLibrary.simpleMessage("Feature Request"),
-    "Go_To_Downloads": MessageLookupByLibrary.simpleMessage("Go to Downloads"),
     "Google_Account": MessageLookupByLibrary.simpleMessage("Google Account"),
     "Gyawun": MessageLookupByLibrary.simpleMessage("Gyawun"),
     "High": MessageLookupByLibrary.simpleMessage("High"),
@@ -139,7 +125,6 @@ class MessageLookup extends MessageLookupByLibrary {
     "Home": MessageLookupByLibrary.simpleMessage("Home"),
     "Import": MessageLookupByLibrary.simpleMessage("Import"),
     "Import_Playlist": MessageLookupByLibrary.simpleMessage("Import Playlist"),
-    "In_Progress": MessageLookupByLibrary.simpleMessage("In Progress"),
     "Jhelum_Corp": MessageLookupByLibrary.simpleMessage("Jhelum Corp"),
     "Language": MessageLookupByLibrary.simpleMessage("Language"),
     "Loudness_And_Equalizer": MessageLookupByLibrary.simpleMessage(
@@ -153,9 +138,6 @@ class MessageLookup extends MessageLookupByLibrary {
     "Name": MessageLookupByLibrary.simpleMessage("Name"),
     "Next_Up": MessageLookupByLibrary.simpleMessage("Next Up"),
     "No": MessageLookupByLibrary.simpleMessage("No"),
-    "No_Internet_Connection": MessageLookupByLibrary.simpleMessage(
-      "No Internet Connection",
-    ),
     "Organisation": MessageLookupByLibrary.simpleMessage("Organisation"),
     "Pay_With_UPI": MessageLookupByLibrary.simpleMessage("Pay with UPI"),
     "Payment_Methods": MessageLookupByLibrary.simpleMessage("Payment Methods"),
@@ -167,13 +149,8 @@ class MessageLookup extends MessageLookupByLibrary {
       "Playback History Deleted",
     ),
     "Playlist_Name": MessageLookupByLibrary.simpleMessage("Playlist Name"),
-    "Playlist_Not_Available": MessageLookupByLibrary.simpleMessage(
-      "Playlist not available",
-    ),
     "Playlists": MessageLookupByLibrary.simpleMessage("Playlists"),
     "Progress": MessageLookupByLibrary.simpleMessage("Progress"),
-    "Queued": MessageLookupByLibrary.simpleMessage("Queued"),
-    "QueuedCount": m0,
     "Remove": MessageLookupByLibrary.simpleMessage("Remove"),
     "Remove_All_History_Message": MessageLookupByLibrary.simpleMessage(
       "Are you sure you want to clear all history?",
@@ -199,13 +176,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "Restore_Failed": MessageLookupByLibrary.simpleMessage(
       "Failed to restore Data",
     ),
-    "Restore_Missing_Songs": MessageLookupByLibrary.simpleMessage(
-      "Restore Missing Songs",
-    ),
     "Restore_Success": MessageLookupByLibrary.simpleMessage(
       "Data successfully restored",
     ),
-    "Retry": MessageLookupByLibrary.simpleMessage("Retry"),
     "Save": MessageLookupByLibrary.simpleMessage("Save"),
     "Saved": MessageLookupByLibrary.simpleMessage("Saved"),
     "Search_Gyawun": MessageLookupByLibrary.simpleMessage("Search Gyawun"),
@@ -245,6 +218,6 @@ class MessageLookup extends MessageLookupByLibrary {
     "Window_Effect": MessageLookupByLibrary.simpleMessage("Window Effect"),
     "YTMusic": MessageLookupByLibrary.simpleMessage("YTMusic"),
     "Yes": MessageLookupByLibrary.simpleMessage("Yes"),
-    "nSongs": m1,
+    "nSongs": m0,
   };
 }

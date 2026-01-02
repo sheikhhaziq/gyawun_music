@@ -6,9 +6,9 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
+import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:get_it/get_it.dart';
 import 'package:go_router/go_router.dart';
-import 'package:gyawun/utils/playlist_thumbnail.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -117,29 +117,6 @@ class Modals {
       isScrollControlled: true,
       context: context,
       builder: (context) => _playlistBottomModal(context, playlist),
-    );
-  }
-
-  static void showDownloadBottomModal(BuildContext context) {
-    showModalBottomSheet(
-      useRootNavigator: false,
-      backgroundColor: Colors.transparent,
-      useSafeArea: true,
-      isScrollControlled: true,
-      context: context,
-      builder: (context) => _downloadBottomModal(context),
-    );
-  }
-
-  static void showDownloadDetailsBottomModal(
-      BuildContext context, Map playlist) {
-    showModalBottomSheet(
-      useRootNavigator: false,
-      backgroundColor: Colors.transparent,
-      useSafeArea: true,
-      isScrollControlled: true,
-      context: context,
-      builder: (context) => _downloadDetailsBottomModal(context, playlist),
     );
   }
 
@@ -303,15 +280,15 @@ BottomModalLayout _playlistRenameBottomModal(BuildContext context,
         AdaptiveFilledButton(
           onPressed: () async {
             String text = controller.text;
+            controller.dispose();
+            Navigator.pop(context);
             context
                 .read<LibraryService>()
                 .renamePlaylist(
                     playlistId: playlistId,
                     title: text.trim().isNotEmpty ? text : null)
-                .then((String message) {
-              Navigator.pop(context);
-              BottomMessage.showText(context, message);
-            });
+                .then((String message) =>
+                    BottomMessage.showText(context, message));
           },
           child: Text(S.of(context).Rename),
         )
@@ -536,35 +513,69 @@ BottomModalLayout _addToPlaylist(BuildContext context, Map item) {
                   : AdaptiveListTile(
                       dense: true,
                       title: Text(playlist['title']),
-                      leading: playlist['isPredefined'] == true
+                      leading: playlist['isPredefined'] == true ||
+                              (playlist['songs'] != null &&
+                                  playlist['songs']?.length > 0)
                           ? ClipRRect(
                               borderRadius: BorderRadius.circular(
                                   playlist['type'] == 'ARTIST' ? 50 : 3),
-                              child: CachedNetworkImage(
-                                imageUrl: playlist['thumbnails']
-                                    .first['url']
-                                    .replaceAll('w540-h225', 'w60-h60'),
-                                height: 50,
-                                width: 50,
-                              ))
-                          : (playlist['songs'] != null &&
-                                  playlist['songs']?.length > 0)
-                              ? PlaylistThumbnail(
-                                  playslist: playlist['songs'], size: 50)
-                              : Container(
-                                  height: 50,
-                                  width: 50,
-                                  decoration: BoxDecoration(
-                                    color: greyColor,
-                                    borderRadius: BorderRadius.circular(3),
-                                  ),
-                                  child: Icon(
-                                    CupertinoIcons.music_note_list,
-                                    color: context.isDarkMode
-                                        ? Colors.white
-                                        : Colors.black,
-                                  ),
-                                ),
+                              child: playlist['isPredefined'] == true
+                                  ? CachedNetworkImage(
+                                      imageUrl: playlist['thumbnails']
+                                          .first['url']
+                                          .replaceAll('w540-h225', 'w60-h60'),
+                                      height: 50,
+                                      width: 50,
+                                    )
+                                  : SizedBox(
+                                      height: 50,
+                                      width: 50,
+                                      child: StaggeredGrid.count(
+                                        crossAxisCount:
+                                            playlist['songs'].length > 1
+                                                ? 2
+                                                : 1,
+                                        children: (playlist['songs'] as List)
+                                            .sublist(
+                                                0,
+                                                min(playlist['songs'].length,
+                                                    4))
+                                            .indexed
+                                            .map((ind) {
+                                          int index = ind.$1;
+                                          Map song = ind.$2;
+                                          return CachedNetworkImage(
+                                            imageUrl: song['thumbnails']
+                                                .first['url']
+                                                .replaceAll(
+                                                    'w540-h225', 'w60-h60'),
+                                            height: (playlist['songs'].length <=
+                                                        2 ||
+                                                    (playlist['songs'].length ==
+                                                            3 &&
+                                                        index == 0))
+                                                ? 50
+                                                : null,
+                                            fit: BoxFit.cover,
+                                          );
+                                        }).toList(),
+                                      ),
+                                    ),
+                            )
+                          : Container(
+                              height: 50,
+                              width: 50,
+                              decoration: BoxDecoration(
+                                color: greyColor,
+                                borderRadius: BorderRadius.circular(3),
+                              ),
+                              child: Icon(
+                                CupertinoIcons.music_note_list,
+                                color: context.isDarkMode
+                                    ? Colors.white
+                                    : Colors.black,
+                              ),
+                            ),
                       onTap: () async {
                         await context
                             .read<LibraryService>()
@@ -962,14 +973,14 @@ BottomModalLayout _songBottomModal(BuildContext context, Map song) {
               );
             },
           ),
-          if (!['DOWNLOADING', 'DOWNLOADED'].contains(song['status']))
+          if (!['PROCESSING', 'DOWNLOADING', 'DOWNLOADED']
+              .contains(song['status']))
             AdaptiveListTile(
               dense: true,
               title: Text(S.of(context).Download),
               leading: Icon(AdaptiveIcons.download),
               onTap: () {
                 Navigator.pop(context);
-                BottomMessage.showText(context, S.of(context).Download_Started);
                 GetIt.I<DownloadManager>().downloadSong(song);
               },
             ),
@@ -1104,7 +1115,6 @@ BottomModalLayout _playlistBottomModal(BuildContext context, Map playlist) {
             leading: Icon(AdaptiveIcons.download),
             onTap: () async {
               Navigator.pop(context);
-              BottomMessage.showText(context, S.of(context).Download_Started);
               GetIt.I<DownloadManager>().downloadPlaylist(playlist);
             },
           ),
@@ -1203,181 +1213,6 @@ BottomModalLayout _playlistBottomModal(BuildContext context, Map playlist) {
                 },
               ),
             ),
-        ],
-      ),
-    ),
-  );
-}
-
-BottomModalLayout _downloadBottomModal(BuildContext context) {
-  return BottomModalLayout(
-    title: AdaptiveListTile(
-      contentPadding: EdgeInsets.zero,
-      title: Text(S.of(context).Downloads,
-          maxLines: 1, overflow: TextOverflow.ellipsis),
-      leading: Container(
-        height: 50,
-        width: 50,
-        decoration: BoxDecoration(
-          color: greyColor,
-          borderRadius: BorderRadius.circular(10),
-        ),
-        child: Icon(
-          AdaptiveIcons.download,
-          color: context.isDarkMode ? Colors.white : Colors.black,
-        ),
-      ),
-    ),
-    child: SingleChildScrollView(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          AdaptiveListTile(
-            dense: true,
-            title: Text(S.of(context).Downloading),
-            leading: Icon(AdaptiveIcons.downloading),
-            onTap: () async {
-              context.push('/saved/downloads/downloading');
-              Navigator.pop(context);
-            },
-          ),
-          AdaptiveListTile(
-            dense: true,
-            title: Text(S.of(context).Restore_Missing_Songs),
-            leading: Icon(AdaptiveIcons.sync),
-            onTap: () async {
-              Navigator.pop(context);
-              BottomMessage.showText(
-                  context, S.of(context).Restoring_Missing_Songs);
-              GetIt.I<DownloadManager>().restoreDownloads();
-            },
-          ),
-          AdaptiveListTile(
-            dense: true,
-            title: Text(S.of(context).Delete_All_Songs),
-            leading: Icon(AdaptiveIcons.delete),
-            onTap: () async {
-              bool shouldDelete = await Modals.showConfirmBottomModal(context,
-                  message: S.of(context).Confirm_Delete_All_Message,
-                  isDanger: true,
-                  doneText: S.of(context).Yes,
-                  cancelText: S.of(context).No);
-              if (shouldDelete) {
-                Navigator.pop(context);
-                BottomMessage.showText(context, S.of(context).Deleting_Songs);
-                List songs = Hive.box('DOWNLOADS').values.toList();
-                for (var song in songs) {
-                  await Hive.box('DOWNLOADS').delete(song['videoId']);
-                  if (song.containsKey('path')) {
-                    String path = song['path'];
-                    try {
-                      File(path).delete();
-                    } catch (e) {
-                      debugPrint(e.toString());
-                    }
-                  }
-                }
-              }
-            },
-          ),
-        ],
-      ),
-    ),
-  );
-}
-
-BottomModalLayout _downloadDetailsBottomModal(
-    BuildContext context, Map playlist) {
-  return BottomModalLayout(
-    title: AdaptiveListTile(
-      contentPadding: EdgeInsets.zero,
-      title:
-          Text(playlist['title'], maxLines: 1, overflow: TextOverflow.ellipsis),
-      leading: (playlist['songs']?.length > 0)
-          ? (playlist['type'] == "ALBUM")
-              ? PlaylistThumbnail(
-                  playslist: [playlist['songs'][0]], size: 50, radius: 8)
-              : PlaylistThumbnail(
-                  playslist: playlist['songs'], size: 50, radius: 8)
-          : Container(
-              height: 50,
-              width: 50,
-              decoration: BoxDecoration(
-                color: greyColor,
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Icon(
-                CupertinoIcons.music_note_list,
-                color: context.isDarkMode ? Colors.white : Colors.black,
-              ),
-            ),
-      subtitle: playlist['subtitle'] != null
-          ? Text(playlist['subtitle'],
-              maxLines: 1, overflow: TextOverflow.ellipsis)
-          : null,
-    ),
-    child: SingleChildScrollView(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          AdaptiveListTile(
-            dense: true,
-            title: Text(S.of(context).Play_Next),
-            leading: Icon(AdaptiveIcons.playlist_play),
-            onTap: () async {
-              Navigator.pop(context);
-              await GetIt.I<MediaPlayer>().playNext(Map.from(playlist));
-              GetIt.I<MediaPlayer>().player.play();
-            },
-          ),
-          AdaptiveListTile(
-            dense: true,
-            title: Text(S.of(context).Add_To_Queue),
-            leading: Icon(AdaptiveIcons.queue_add),
-            onTap: () async {
-              Navigator.pop(context);
-              await GetIt.I<MediaPlayer>().addToQueue(Map.from(playlist));
-            },
-          ),
-          AdaptiveListTile(
-            dense: true,
-            title: Text(S.of(context).Restore_Missing_Songs),
-            leading: Icon(Icons.restore),
-            onTap: () async {
-              Navigator.pop(context);
-              BottomMessage.showText(
-                  context, S.of(context).Restoring_Missing_Songs);
-              GetIt.I<DownloadManager>()
-                  .restoreDownloads(songs: playlist['songs']);
-            },
-          ),
-          AdaptiveListTile(
-            dense: true,
-            title: Text(S.of(context).Delete_All_Songs),
-            leading: Icon(AdaptiveIcons.delete),
-            onTap: () async {
-              Modals.showConfirmBottomModal(
-                context,
-                message: S.of(context).Confirm_Delete_All_Message,
-                isDanger: true,
-              ).then(
-                (bool confirm) async {
-                  if (confirm) {
-                    Navigator.pop(context);
-                    BottomMessage.showText(
-                        context, S.of(context).Deleting_Songs);
-                    for (var song in playlist['songs']) {
-                      await GetIt.I<DownloadManager>().deleteSong(
-                        key: song['videoId'],
-                        path: song['path'],
-                        playlistId: playlist['id'],
-                      );
-                    }
-                  }
-                },
-              );
-            },
-          ),
         ],
       ),
     ),

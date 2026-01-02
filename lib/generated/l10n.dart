@@ -946,31 +946,6 @@ class S {
       args: [],
     );
   }
-
-  /// `No Internet Connection`
-  String get No_Internet_Connection {
-    return Intl.message(
-      'No Internet Connection',
-      name: 'No_Internet_Connection',
-      desc: '',
-      args: [],
-    );
-  }
-
-  /// `Go to Downloads`
-  String get Go_To_Downloads {
-    return Intl.message(
-      'Go to Downloads',
-      name: 'Go_To_Downloads',
-      desc: '',
-      args: [],
-    );
-  }
-
-  /// `Retry`
-  String get Retry {
-    return Intl.message('Retry', name: 'Retry', desc: '', args: []);
-  }
 }
 
 class AppLocalizationDelegate extends LocalizationsDelegate<S> {
