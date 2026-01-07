@@ -129,20 +129,37 @@ class _LyricsBoxState extends State<LyricsBox> {
                           valueListenable:
                               GetIt.I<MediaPlayer>().progressBarState,
                           builder: (context, progress, child) {
-                            return LyricsReader(
-                              padding: EdgeInsets.zero,
-                              position: progress.current.inMilliseconds,
-                              playing:
-                                  context.watch<MediaPlayer>().player.playing,
-                              lyricUi: UINetease(
-                                highlight: false,
-                                defaultSize: 19,
-                              ),
-                              model: LyricsModelBuilder.create()
-                                  .bindLyricToMain(lyrics['syncedLyrics'])
-                                  .bindLyricToExt(lyrics['transLyrics'])
-                                  .getModel(),
-                              emptyBuilder: () => SingleChildScrollView(
+                            try {
+                              return LyricsReader(
+                                padding: EdgeInsets.zero,
+                                position: progress.current.inMilliseconds,
+                                playing:
+                                    context.watch<MediaPlayer>().player.playing,
+                                lyricUi: UINetease(
+                                  highlight: false,
+                                  defaultSize: 19,
+                                ),
+                                model: LyricsModelBuilder.create()
+                                    .bindLyricToMain(lyrics['syncedLyrics'])
+                                    .bindLyricToExt(lyrics['transLyrics'])
+                                    .getModel(),
+                                emptyBuilder: () => SingleChildScrollView(
+                                  child: Center(
+                                    child: Text(
+                                      lyrics['plainLyrics'] ?? "No Lyrics",
+                                      style: UINetease(
+                                        highlight: false,
+                                        defaultSize: 19,
+                                      ).getOtherMainTextStyle(),
+                                      textAlign: TextAlign.center,
+                                    ),
+                                  ),
+                                ),
+                                size: widget.size,
+                              );
+                            } catch (e) {
+                              debugPrint("Error parsing lyrics: $e");
+                              return SingleChildScrollView(
                                 child: Center(
                                   child: Text(
                                     lyrics['plainLyrics'] ?? "No Lyrics",
@@ -153,9 +170,8 @@ class _LyricsBoxState extends State<LyricsBox> {
                                     textAlign: TextAlign.center,
                                   ),
                                 ),
-                              ),
-                              size: widget.size,
-                            );
+                              );
+                            }
                           },
                         );
                       }
