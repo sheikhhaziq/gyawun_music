@@ -54,11 +54,12 @@ app.*.map.json
 **/android/key.properties
 **/android/**/GeneratedPluginRegistrant.java
 
-
-
 /linux
 /macos
 /windows
 /ios
 /web
 .flatpak-builder
+
+# FVM Version Cache
+.fvm/

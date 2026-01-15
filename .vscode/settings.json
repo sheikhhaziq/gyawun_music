@@ -1,3 +1,4 @@
 {
-    "cmake.sourceDirectory": "/home/sheikh-haziq/Development/Jhelum/gyawun-app/linux"
+  "cmake.sourceDirectory": "/home/sheikh-haziq/Development/Jhelum/gyawun-app/linux",
+  "dart.flutterSdkPath": ".fvm/versions/3.38.7"
 }
