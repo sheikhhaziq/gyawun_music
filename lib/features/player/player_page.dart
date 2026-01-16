@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get_it/get_it.dart';
 import 'package:go_router/go_router.dart';
+import 'package:gyawun/features/player/widgets/play_pause_buton.dart';
 import 'package:gyawun/utils/song_thumbnail.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:just_audio/just_audio.dart';
@@ -23,19 +24,18 @@ import '../../themes/text_styles.dart';
 import '../../utils/adaptive_widgets/adaptive_widgets.dart';
 import '../../utils/bottom_modals.dart';
 import '../../ytmusic/ytmusic.dart';
-import 'lyrics_box.dart';
-import 'play_button.dart';
-import 'queue_list.dart';
+import 'widgets/lyrics_box.dart';
+import 'widgets/queue_list.dart';
 
-class PlayerScreen extends StatefulWidget {
-  const PlayerScreen({super.key, this.videoId});
+class PlayerPage extends StatefulWidget {
+  const PlayerPage({super.key, this.videoId});
   final String? videoId;
 
   @override
-  State<PlayerScreen> createState() => _PlayerScreenState();
+  State<PlayerPage> createState() => _PlayerPageState();
 }
 
-class _PlayerScreenState extends State<PlayerScreen> {
+class _PlayerPageState extends State<PlayerPage> {
   late PanelController panelController;
   final GlobalKey<ScaffoldState> _key = GlobalKey();
   Color? color;
@@ -535,7 +535,7 @@ class NameAndControls extends StatelessWidget {
                         size: 30,
                       ),
                     ),
-                    const PlayButton(size: 40),
+                    const PlayPauseButton(size: 40),
                     AdaptiveIconButton(
                       onPressed: () {
                         mediaPlayer.player.seekToNext();
@@ -559,7 +559,7 @@ class NameAndControls extends StatelessWidget {
                                   : AdaptiveIcons.repeat_one,
                               size: 30,
                               color: value == LoopMode.off
-                                  ? Colors.white.withOpacity(0.3)
+                                  ? Colors.white.withValues(alpha: 0.3)
                                   : null,
                             ),
                           );

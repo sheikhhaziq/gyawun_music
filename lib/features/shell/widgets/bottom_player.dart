@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:go_router/go_router.dart';
+import 'package:gyawun/services/media_player.dart';
 import 'package:gyawun/utils/song_thumbnail.dart';
+import 'package:loading_indicator_m3e/loading_indicator_m3e.dart';
 import 'package:provider/provider.dart';
-
-import '../../services/media_player.dart';
-import '../../utils/adaptive_widgets/adaptive_widgets.dart';
 
 class BottomPlayer extends StatelessWidget {
   const BottomPlayer({super.key});
@@ -49,7 +48,7 @@ class BottomPlayer extends StatelessWidget {
                       }
                       return Future.value(false);
                     },
-                    child: AdaptiveListTile(
+                    child: ListTile(
                       contentPadding: const EdgeInsets.symmetric(
                           horizontal: 8, vertical: 8),
                       leading: ClipRRect(
@@ -83,8 +82,8 @@ class BottomPlayer extends StatelessWidget {
                             valueListenable: GetIt.I<MediaPlayer>().buttonState,
                             builder: (context, buttonState, child) {
                               return (buttonState == ButtonState.loading)
-                                  ? const AdaptiveProgressRing()
-                                  : AdaptiveIconButton(
+                                  ? const ExpressiveLoadingIndicator()
+                                  : IconButton(
                                       onPressed: () {
                                         GetIt.I<MediaPlayer>().player.playing
                                             ? GetIt.I<MediaPlayer>()
@@ -96,8 +95,8 @@ class BottomPlayer extends StatelessWidget {
                                       },
                                       icon: Icon(
                                         buttonState == ButtonState.playing
-                                            ? AdaptiveIcons.pause
-                                            : AdaptiveIcons.play,
+                                            ? Icons.pause
+                                            : Icons.play_arrow,
                                         size: 30,
                                       ),
                                     );
@@ -113,14 +112,14 @@ class BottomPlayer extends StatelessWidget {
                                     .watch<MediaPlayer>()
                                     .player
                                     .hasNext) {
-                                  return AdaptiveIconButton(
+                                  return IconButton(
                                     onPressed: () {
                                       GetIt.I<MediaPlayer>()
                                           .player
                                           .seekToNext();
                                     },
                                     icon: Icon(
-                                      AdaptiveIcons.skip_next,
+                                      Icons.skip_next,
                                       size: 25,
                                     ),
                                   );

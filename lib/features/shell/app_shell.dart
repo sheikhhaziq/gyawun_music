@@ -5,26 +5,26 @@ import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:navigation_rail_m3e/navigation_rail_m3e.dart';
 import 'package:receive_sharing_intent/receive_sharing_intent.dart';
 
 import '../../generated/l10n.dart';
-import '../../themes/text_styles.dart';
 import '../../utils/bottom_modals.dart';
 import '../../utils/check_update.dart';
-import 'bottom_player.dart';
+import 'widgets/bottom_player.dart';
 
-class MainScreen extends StatefulWidget {
-  const MainScreen({
+class AppShell extends StatefulWidget {
+  const AppShell({
     Key? key,
     required this.navigationShell,
-  }) : super(key: key ?? const ValueKey('MainScreen'));
+  }) : super(key: key ?? const ValueKey('AppShell'));
   final StatefulNavigationShell navigationShell;
 
   @override
-  State<MainScreen> createState() => _MainScreenState();
+  State<AppShell> createState() => _AppShellState();
 }
 
-class _MainScreenState extends State<MainScreen> {
+class _AppShellState extends State<AppShell> {
   late StreamSubscription _intentSub;
   @override
   void initState() {
@@ -103,37 +103,35 @@ class _MainScreenState extends State<MainScreen> {
             child: Row(
               children: [
                 if (screenWidth >= 450)
-                  NavigationRail(
-                    backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-                    labelType: NavigationRailLabelType.none,
-                    selectedLabelTextStyle: smallTextStyle(context, bold: true),
-                    extended: (screenWidth > 1000),
+                  NavigationRailM3E(
+                    type: screenWidth > 1000
+                        ? NavigationRailM3EType.expanded
+                        : NavigationRailM3EType.collapsed,
+                    // backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+                    // labelType: NavigationRailLabelType.none,
+                    // selectedLabelTextStyle: smallTextStyle(context, bold: true),
                     onDestinationSelected: _goBranch,
-                    destinations: [
-                      NavigationRailDestination(
-                        selectedIcon:
-                            const Icon(CupertinoIcons.music_house_fill),
-                        icon: const Icon(CupertinoIcons.music_house),
-                        label: Text(
-                          S.of(context).Home,
-                          style: smallTextStyle(context, bold: false),
-                        ),
-                      ),
-                      NavigationRailDestination(
-                        selectedIcon: const Icon(Icons.library_music_outlined),
-                        icon: const Icon(Icons.library_music_outlined),
-                        label: Text(
-                          S.of(context).Saved,
-                          style: smallTextStyle(context, bold: false),
-                        ),
-                      ),
-                      NavigationRailDestination(
-                        selectedIcon: const Icon(CupertinoIcons.gear_alt_fill),
-                        icon: const Icon(CupertinoIcons.gear_alt),
-                        label: Text(
-                          S.of(context).Settings,
-                          style: smallTextStyle(context, bold: false),
-                        ),
+                    sections: [
+                      NavigationRailM3ESection(
+                        destinations: [
+                          NavigationRailM3EDestination(
+                            selectedIcon:
+                                const Icon(CupertinoIcons.music_house_fill),
+                            icon: const Icon(CupertinoIcons.music_house),
+                            label: S.of(context).Home,
+                          ),
+                          NavigationRailM3EDestination(
+                              selectedIcon:
+                                  const Icon(Icons.library_music_outlined),
+                              icon: const Icon(Icons.library_music_outlined),
+                              label: S.of(context).Saved),
+                          NavigationRailM3EDestination(
+                            selectedIcon:
+                                const Icon(CupertinoIcons.gear_alt_fill),
+                            icon: const Icon(CupertinoIcons.gear_alt),
+                            label: S.of(context).Settings,
+                          )
+                        ],
                       )
                     ],
                     selectedIndex: widget.navigationShell.currentIndex,

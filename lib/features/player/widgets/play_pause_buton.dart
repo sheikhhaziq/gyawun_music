@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
+import 'package:gyawun/services/media_player.dart';
+import 'package:gyawun/utils/extensions.dart';
+import 'package:loading_indicator_m3e/loading_indicator_m3e.dart';
 
-import '../../services/media_player.dart';
-import '../../utils/adaptive_widgets/adaptive_widgets.dart';
-import '../../utils/extensions.dart';
-
-class PlayButton extends StatefulWidget {
-  const PlayButton({
+class PlayPauseButton extends StatefulWidget {
+  const PlayPauseButton({
     super.key,
     this.size = 30,
   });
@@ -14,10 +13,11 @@ class PlayButton extends StatefulWidget {
   final double size;
 
   @override
-  State<PlayButton> createState() => _PlayButtonState();
+  State<PlayPauseButton> createState() => _PlayPauseButtonState();
 }
 
-class _PlayButtonState extends State<PlayButton> with TickerProviderStateMixin {
+class _PlayPauseButtonState extends State<PlayPauseButton>
+    with TickerProviderStateMixin {
   late AnimationController _animationController;
   bool playing = false;
 
@@ -65,7 +65,7 @@ class _PlayButtonState extends State<PlayButton> with TickerProviderStateMixin {
                   buttonState == ButtonState.playing ? 15 : 40),
             ),
             child: (buttonState == ButtonState.loading)
-                ? const AdaptiveProgressRing()
+                ? const ExpressiveLoadingIndicator()
                 : AnimatedIcon(
                     icon: AnimatedIcons.play_pause,
                     progress: _animationController,

@@ -74,6 +74,7 @@ dependencies:
   loading_indicator_m3e: ^0.1.1
   m3e_design: ^0.2.1
   expressive_refresh: ^0.1.2
+  navigation_rail_m3e: ^0.3.5
 
 dev_dependencies:
   flutter_test:

@@ -5,7 +5,9 @@ import 'package:go_router/go_router.dart';
 import 'package:gyawun/features/browse/browse_page.dart';
 import 'package:gyawun/features/chip/chip_page.dart';
 import 'package:gyawun/features/home/home_page.dart';
+import 'package:gyawun/features/player/player_page.dart';
 import 'package:gyawun/features/search/search_page.dart';
+import 'package:gyawun/features/shell/app_shell.dart';
 import 'package:gyawun/screens/saved_screen/download_details_screen.dart';
 import 'package:gyawun/screens/saved_screen/download_screen.dart';
 import 'package:gyawun/screens/saved_screen/downloading_screen.dart';
@@ -15,8 +17,6 @@ import 'package:gyawun/screens/saved_screen/playlist_details_screen.dart';
 import 'package:gyawun/screens/settings_screen/privacy/privacy_screen.dart';
 
 import '../screens/saved_screen/saved_screen.dart';
-import '../screens/main_screen/main_screen.dart';
-import '../screens/main_screen/player_screen.dart';
 import '../screens/settings_screen/about/about_screen.dart';
 import '../screens/settings_screen/appearence/appearence_screen.dart';
 import '../screens/settings_screen/storage/backup_storage_screen.dart';
@@ -33,7 +33,7 @@ GoRouter router = GoRouter(
       routes: [
         StatefulShellRoute(
           branches: branches,
-          builder: (context, state, navigationShell) => MainScreen(
+          builder: (context, state, navigationShell) => AppShell(
             navigationShell: navigationShell,
           ),
           navigatorContainerBuilder: (context, navigationShell, children) =>
@@ -48,7 +48,7 @@ GoRouter router = GoRouter(
             final videoId = state.extra as String?;
             return CustomTransitionPage(
               key: state.pageKey,
-              child: PlayerScreen(videoId: videoId),
+              child: PlayerPage(videoId: videoId),
               transitionsBuilder:
                   (context, animation, secondaryAnimation, child) {
                 const begin = Offset(0.0, 1.0);
