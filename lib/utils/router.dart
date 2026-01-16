@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:gyawun/features/browse/browse_page.dart';
 import 'package:gyawun/features/chip/chip_page.dart';
 import 'package:gyawun/features/home/home_page.dart';
+import 'package:gyawun/features/search/search_page.dart';
 import 'package:gyawun/screens/saved_screen/download_details_screen.dart';
 import 'package:gyawun/screens/saved_screen/download_screen.dart';
 import 'package:gyawun/screens/saved_screen/downloading_screen.dart';
@@ -13,7 +14,6 @@ import 'package:gyawun/screens/saved_screen/history_screen.dart';
 import 'package:gyawun/screens/saved_screen/playlist_details_screen.dart';
 import 'package:gyawun/screens/settings_screen/privacy/privacy_screen.dart';
 
-import '../screens/home_screen/search_screen/search_screen.dart';
 import '../screens/saved_screen/saved_screen.dart';
 import '../screens/main_screen/main_screen.dart';
 import '../screens/main_screen/player_screen.dart';
@@ -99,7 +99,7 @@ List<StatefulShellBranch> branches = [
               path: 'search',
               builder: (context, state) {
                 final args = state.extra as Map<String, dynamic>?;
-                return SearchScreen(
+                return SearchPage(
                   endpoint: args?['endpoint'] as Map<String, dynamic>?,
                   isMore: args?['isMore'] as bool? ?? false,
                 );

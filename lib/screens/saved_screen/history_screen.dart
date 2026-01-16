@@ -5,7 +5,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import '../../generated/l10n.dart';
 import '../../utils/adaptive_widgets/adaptive_widgets.dart';
 import '../../utils/bottom_modals.dart';
-import '../home_screen/section_item.dart';
+import '../../core/widgets/section_item.dart';
 
 class HistoryScreen extends StatelessWidget {
   const HistoryScreen({super.key});

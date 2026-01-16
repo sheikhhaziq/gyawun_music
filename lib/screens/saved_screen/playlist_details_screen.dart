@@ -16,7 +16,7 @@ import '../../services/media_player.dart';
 import '../../themes/colors.dart';
 import '../../utils/adaptive_widgets/adaptive_widgets.dart';
 import '../../utils/bottom_modals.dart';
-import '../home_screen/section_item.dart';
+import '../../core/widgets/section_item.dart';
 import '../../utils/extensions.dart';
 
 class PlaylistDetailsScreen extends StatelessWidget {
@@ -143,7 +143,8 @@ class MyPlayistHeader extends StatelessWidget {
           );
   }
 
-  Padding _buildContent(Map playlist, BuildContext context, {bool isRow = false}) {
+  Padding _buildContent(Map playlist, BuildContext context,
+      {bool isRow = false}) {
     return Padding(
       padding: const EdgeInsets.only(left: 8, top: 4),
       child: Column(

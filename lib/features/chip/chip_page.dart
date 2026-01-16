@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gyawun/core/utils/service_locator.dart';
 import 'package:gyawun/features/chip/cubit/chip_cubit.dart';
-import 'package:gyawun/screens/home_screen/section_item.dart';
+import 'package:gyawun/core/widgets/section_item.dart';
 import 'package:gyawun/utils/internet_guard.dart';
 import 'package:loading_indicator_m3e/loading_indicator_m3e.dart';
 
