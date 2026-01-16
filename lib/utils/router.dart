@@ -2,6 +2,8 @@ import 'dart:io';
 
 import 'package:flutter/cupertino.dart';
 import 'package:go_router/go_router.dart';
+import 'package:gyawun/features/browse/browse_page.dart';
+import 'package:gyawun/features/home/home_page.dart';
 import 'package:gyawun/screens/saved_screen/download_details_screen.dart';
 import 'package:gyawun/screens/saved_screen/download_screen.dart';
 import 'package:gyawun/screens/saved_screen/downloading_screen.dart';
@@ -11,12 +13,10 @@ import 'package:gyawun/screens/saved_screen/playlist_details_screen.dart';
 import 'package:gyawun/screens/settings_screen/privacy/privacy_screen.dart';
 
 import '../screens/home_screen/chip_screen.dart';
-import '../screens/home_screen/home_screen.dart';
 import '../screens/home_screen/search_screen/search_screen.dart';
 import '../screens/saved_screen/saved_screen.dart';
 import '../screens/main_screen/main_screen.dart';
 import '../screens/main_screen/player_screen.dart';
-import '../screens/browse_screen/browse_screen.dart';
 import '../screens/settings_screen/about/about_screen.dart';
 import '../screens/settings_screen/appearence/appearence_screen.dart';
 import '../screens/settings_screen/storage/backup_storage_screen.dart';
@@ -74,7 +74,7 @@ List<StatefulShellBranch> branches = [
     routes: [
       GoRoute(
           path: '/',
-          builder: (context, state) => const HomeScreen(),
+          builder: (context, state) => const HomePage(),
           routes: [
             GoRoute(
               path: 'chip',
@@ -89,7 +89,7 @@ List<StatefulShellBranch> branches = [
               path: 'browse',
               builder: (context, state) {
                 final args = state.extra as Map<String, dynamic>? ?? {};
-                return BrowseScreen(
+                return BrowsePage(
                   endpoint: args['endpoint'] as Map<String, dynamic>,
                   isMore: args['isMore'] as bool? ?? false,
                 );

@@ -3,8 +3,13 @@ import 'dart:io';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:expandable_text/expandable_text.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
+import 'package:gyawun/core/utils/service_locator.dart';
+import 'package:gyawun/features/browse/cubit/browse_cubit.dart';
+import 'package:gyawun/screens/home_screen/section_item.dart';
 import 'package:gyawun/utils/internet_guard.dart';
+import 'package:loading_indicator_m3e/loading_indicator_m3e.dart';
 import 'package:provider/provider.dart';
 
 import '../../generated/l10n.dart';
@@ -16,19 +21,39 @@ import '../../utils/adaptive_widgets/adaptive_widgets.dart';
 import '../../utils/bottom_modals.dart';
 import '../../utils/enhanced_image.dart';
 import '../../ytmusic/ytmusic.dart';
-import '../home_screen/section_item.dart';
 import '../../utils/extensions.dart';
 
-class BrowseScreen extends StatefulWidget {
-  const BrowseScreen({required this.endpoint, this.isMore = false, super.key});
+class BrowsePage extends StatelessWidget {
+  final Map<String, dynamic> endpoint;
+  final bool isMore;
+  const BrowsePage({
+    super.key,
+    required this.endpoint,
+    this.isMore = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocProvider(
+      create: (_) => BrowseCubit(sl(), endpoint: endpoint)..fetch(),
+      child: _BrowsePage(
+        endpoint: endpoint,
+        isMore: isMore,
+      ),
+    );
+  }
+}
+
+class _BrowsePage extends StatefulWidget {
+  const _BrowsePage({required this.endpoint, this.isMore = false});
   final Map<String, dynamic> endpoint;
   final bool isMore;
 
   @override
-  State<BrowseScreen> createState() => _BrowseScreenState();
+  State<_BrowsePage> createState() => _BrowsePageState();
 }
 
-class _BrowseScreenState extends State<BrowseScreen> {
+class _BrowsePageState extends State<_BrowsePage> {
   late ScrollController _scrollController;
   YTMusic ytMusic = GetIt.I<YTMusic>();
   bool initialLoading = false;
@@ -45,7 +70,7 @@ class _BrowseScreenState extends State<BrowseScreen> {
   }
 
   @override
-  void didUpdateWidget(covariant BrowseScreen oldWidget) {
+  void didUpdateWidget(covariant _BrowsePage oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.endpoint['browseId'] != widget.endpoint['browseId']) {
       fetchData();
@@ -103,47 +128,97 @@ class _BrowseScreenState extends State<BrowseScreen> {
   Widget build(BuildContext context) {
     return InternetGuard(
       onInternetRestored: fetchData,
-      child: AdaptiveScaffold(
-        appBar: AdaptiveAppBar(
+      child: Scaffold(
+        appBar: AppBar(
           title: header['title'] != null ? Text(header['title']) : null,
           centerTitle: true,
         ),
-        body: initialLoading
-            ? const Center(child: AdaptiveProgressRing())
-            : SingleChildScrollView(
-                controller: _scrollController,
-                child: Center(
-                  child: Container(
-                    padding:
-                        const EdgeInsets.only(left: 8, right: 8, bottom: 8),
-                    constraints: const BoxConstraints(maxWidth: 1000),
-                    child: Column(
-                      children: [
-                        if (header['thumbnails'] != null)
-                          HeaderWidget(
-                            header: {'endpoint': widget.endpoint, ...header},
-                          ),
-                        const SizedBox(height: 8),
-                        ...sections.indexed.map((sec) {
-                          return SectionItem(
-                              section: sec.$2,
-                              isMore: widget.isMore ||
-                                  sections.length == 1 ||
-                                  sec.$1 == 0);
-                        }),
-                        if (!nextLoading && continuation != null)
-                          const SizedBox(height: 64),
-                        if (nextLoading)
-                          const Center(
-                            child: Padding(
-                                padding: EdgeInsets.all(8.0),
-                                child: AdaptiveProgressRing()),
-                          ),
-                      ],
+
+        body: BlocBuilder<BrowseCubit, BrowseState>(
+          builder: (context, state) {
+            switch (state) {
+              case BrowseLoading():
+                return Center(
+                  child: LoadingIndicatorM3E(),
+                );
+              case BrowseError():
+                return Center(
+                  child: Text(state.message ?? ''),
+                );
+              case BrowseSuccess():
+                return SingleChildScrollView(
+                  controller: _scrollController,
+                  child: Center(
+                    child: Container(
+                      padding:
+                          const EdgeInsets.only(left: 8, right: 8, bottom: 8),
+                      constraints: const BoxConstraints(maxWidth: 1000),
+                      child: Column(
+                        children: [
+                          if (state.header['thumbnails'] != null)
+                            HeaderWidget(
+                              header: {'endpoint': widget.endpoint, ...header},
+                            ),
+                          const SizedBox(height: 8),
+                          ...state.sections.indexed.map((sec) {
+                            return SectionItem(
+                                section: sec.$2,
+                                isMore: widget.isMore ||
+                                    sections.length == 1 ||
+                                    sec.$1 == 0);
+                          }),
+                          if (!state.loadingMore && state.continuation != null)
+                            const SizedBox(height: 64),
+                          if (state.loadingMore)
+                            const Center(
+                              child: Padding(
+                                  padding: EdgeInsets.all(8.0),
+                                  child: ExpressiveLoadingIndicator()),
+                            ),
+                        ],
+                      ),
                     ),
                   ),
-                ),
-              ),
+                );
+            }
+          },
+        ),
+        // body: initialLoading
+        //     ? const Center(child: AdaptiveProgressRing())
+        //     : SingleChildScrollView(
+        //         controller: _scrollController,
+        //         child: Center(
+        //           child: Container(
+        //             padding:
+        //                 const EdgeInsets.only(left: 8, right: 8, bottom: 8),
+        //             constraints: const BoxConstraints(maxWidth: 1000),
+        //             child: Column(
+        //               children: [
+        //                 if (header['thumbnails'] != null)
+        //                   HeaderWidget(
+        //                     header: {'endpoint': widget.endpoint, ...header},
+        //                   ),
+        //                 const SizedBox(height: 8),
+        //                 ...sections.indexed.map((sec) {
+        //                   return SectionItem(
+        //                       section: sec.$2,
+        //                       isMore: widget.isMore ||
+        //                           sections.length == 1 ||
+        //                           sec.$1 == 0);
+        //                 }),
+        //                 if (!nextLoading && continuation != null)
+        //                   const SizedBox(height: 64),
+        //                 if (nextLoading)
+        //                   const Center(
+        //                     child: Padding(
+        //                         padding: EdgeInsets.all(8.0),
+        //                         child: AdaptiveProgressRing()),
+        //                   ),
+        //               ],
+        //             ),
+        //           ),
+        //         ),
+        //       ),
       ),
     );
   }

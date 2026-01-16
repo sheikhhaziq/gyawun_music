@@ -1,99 +1,67 @@
 import 'dart:io';
 
+import 'package:expressive_refresh/expressive_refresh.dart';
 import 'package:flutter/material.dart';
-import 'package:get_it/get_it.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:gyawun/core/utils/service_locator.dart';
+import 'package:gyawun/features/home/cubit/home_cubit.dart';
+import 'package:gyawun/screens/home_screen/section_item.dart';
 import 'package:gyawun/utils/internet_guard.dart';
+import 'package:loading_indicator_m3e/loading_indicator_m3e.dart';
 
 import '../../generated/l10n.dart';
 import '../../utils/adaptive_widgets/adaptive_widgets.dart';
-import '../../ytmusic/ytmusic.dart';
-import 'section_item.dart';
 
-class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+class HomePage extends StatelessWidget {
+  const HomePage({super.key});
 
   @override
-  State<HomeScreen> createState() => _HomeScreenState();
+  Widget build(BuildContext context) {
+    return BlocProvider(
+      create: (_) => HomeCubit(sl())..fetch(),
+      child: _HomePage(),
+    );
+  }
 }
 
-class _HomeScreenState extends State<HomeScreen> {
-  final YTMusic ytMusic = GetIt.I<YTMusic>();
+class _HomePage extends StatefulWidget {
+  const _HomePage();
+
+  @override
+  State<_HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends State<_HomePage> {
   late ScrollController _scrollController;
-  late List chips = [];
-  late List sections = [];
-  int page = 0;
-  String? continuation;
-  bool initialLoading = true;
-  bool nextLoading = false;
 
   @override
   void initState() {
     super.initState();
     _scrollController = ScrollController();
     _scrollController.addListener(_scrollListener);
-    fetchHome();
   }
 
   Future<void> _scrollListener() async {
-    if (initialLoading || nextLoading || continuation == null) {
-      return;
-    }
-
     if (_scrollController.position.pixels ==
         _scrollController.position.maxScrollExtent) {
-      await fetchNext();
+      await context.read<HomeCubit>().fetchNext();
     }
   }
 
-  Future<void> fetchHome() async {
-    setState(() {
-      initialLoading = true;
-      nextLoading = false;
-    });
-    Map<String, dynamic> home = await ytMusic.browse();
-    if (mounted) {
-      setState(() {
-        initialLoading = false;
-        nextLoading = false;
-        chips = home['chips'] ?? [];
-        sections = home['sections'];
-        continuation = home['continuation'];
-      });
-    }
-  }
-
-  Future<void> refresh() async {
-    if (initialLoading) return;
-    Map<String, dynamic> home = await ytMusic.browse();
-    if (mounted) {
-      setState(() {
-        initialLoading = false;
-        nextLoading = false;
-        chips = home['chips'] ?? [];
-        sections = home['sections'];
-        continuation = home['continuation'];
-      });
-    }
-  }
-
-  Future<void> fetchNext() async {
-    if (continuation == null) return;
-    setState(() {
-      nextLoading = true;
-    });
-    Map<String, dynamic> home =
-        await ytMusic.browseContinuation(additionalParams: continuation!);
-    List<Map<String, dynamic>> secs =
-        home['sections'].cast<Map<String, dynamic>>();
-    if (mounted) {
-      setState(() {
-        sections.addAll(secs);
-        continuation = home['continuation'];
-        nextLoading = false;
-      });
-    }
-  }
+  // Future<void> refresh() async {
+  //   if (initialLoading) return;
+  //   Map<String, dynamic> home = await ytMusic.browse();
+  //   if (mounted) {
+  //     setState(() {
+  //       initialLoading = false;
+  //       nextLoading = false;
+  //       chips = home['chips'] ?? [];
+  //       sections = home['sections'];
+  //       continuation = home['continuation'];
+  //     });
+  //   }
+  // }
 
   Widget _horizontalChipsRow(List data) {
     var list = <Widget>[const SizedBox(width: 16)];
@@ -130,7 +98,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return InternetGuard(
-      onInternetRestored: fetchHome,
+      onInternetRestored: context.read<HomeCubit>().fetch,
       child: Scaffold(
         appBar: PreferredSize(
           preferredSize: AppBar().preferredSize,
@@ -171,35 +139,50 @@ class _HomeScreenState extends State<HomeScreen> {
             centerTitle: false,
           ),
         ),
-        body: initialLoading
-            ? const Center(child: AdaptiveProgressRing())
-            : RefreshIndicator(
-                onRefresh: () => refresh(),
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.symmetric(vertical: 8),
-                  controller: _scrollController,
-                  child: SafeArea(
-                    child: Column(
+        body: ExpressiveRefreshIndicator(
+          onRefresh: context.read<HomeCubit>().refresh,
+          child: BlocBuilder<HomeCubit, HomeState>(
+            builder: (context, state) {
+              switch (state) {
+                case HomeInitial():
+                  return SizedBox.shrink();
+                case HomeLoading():
+                  return Center(
+                    child: LoadingIndicatorM3E(),
+                  );
+                case HomeError():
+                  return Center(
+                    child: Text(state.message ?? ''),
+                  );
+                case HomeSuccess():
+                  return SingleChildScrollView(
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    controller: _scrollController,
+                    child: SafeArea(
+                        child: Column(
                       children: [
-                        _horizontalChipsRow(chips),
+                        _horizontalChipsRow(state.chips),
                         Column(
                           children: [
-                            ...sections.map((section) {
+                            ...state.sections.map((section) {
                               return SectionItem(section: section);
                             }),
-                            if (!nextLoading && continuation != null)
+                            if (!state.loadingMore &&
+                                state.continuation != null)
                               const SizedBox(height: 50),
-                            if (nextLoading)
+                            if (state.loadingMore)
                               const Padding(
                                   padding: EdgeInsets.all(8.0),
-                                  child: AdaptiveProgressRing()),
+                                  child: ExpressiveLoadingIndicator()),
                           ],
-                        )
+                        ),
                       ],
-                    ),
-                  ),
-                ),
-              ),
+                    )),
+                  );
+              }
+            },
+          ),
+        ),
       ),
     );
   }
