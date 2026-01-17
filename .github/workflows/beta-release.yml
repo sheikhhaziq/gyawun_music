@@ -58,9 +58,6 @@ jobs:
       
       - name: Build Android APK (Beta - Split per ABI)
         run: flutter build apk --dart-define=FLAVOR=beta --flavor beta --release --split-per-abi
-
-      - name: Build Android App Bundle (Beta)
-        run: flutter build appbundle --dart-define=FLAVOR=beta --flavor beta --release
       
       - name: Rename build artifacts
         run: |
@@ -71,9 +68,7 @@ jobs:
           cp build/app/outputs/flutter-apk/app-armeabi-v7a-beta-release.apk releases/gyawun-beta-v${{ steps.app_version.outputs.version }}-armeabi-v7a.apk
           cp build/app/outputs/flutter-apk/app-arm64-v8a-beta-release.apk releases/gyawun-beta-v${{ steps.app_version.outputs.version }}-arm64-v8a.apk
           cp build/app/outputs/flutter-apk/app-x86_64-beta-release.apk releases/gyawun-beta-v${{ steps.app_version.outputs.version }}-x86_64.apk
-          # App Bundle
-          cp build/app/outputs/bundle/betaRelease/app-beta-release.aab releases/gyawun-beta-v${{ steps.app_version.outputs.version }}.aab
-      
+          
       - name: Create Pre-Release
         uses: softprops/action-gh-release@v1
         with:
@@ -90,8 +85,6 @@ jobs:
             
             **Available Downloads:**
             
-            📦 **App Bundle (Recommended for Play Store):**
-            - `gyawun-beta-v${{ steps.app_version.outputs.version }}.aab`
             
             📱 **Universal APK (Works on all devices):**
             - `gyawun-beta-v${{ steps.app_version.outputs.version }}-universal.apk`
@@ -112,7 +105,6 @@ jobs:
             releases/gyawun-beta-v${{ steps.app_version.outputs.version }}-arm64-v8a.apk
             releases/gyawun-beta-v${{ steps.app_version.outputs.version }}-armeabi-v7a.apk
             releases/gyawun-beta-v${{ steps.app_version.outputs.version }}-x86_64.apk
-            releases/gyawun-beta-v${{ steps.app_version.outputs.version }}.aab
           prerelease: true
           draft: false
         env:
