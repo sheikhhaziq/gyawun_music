@@ -1,0 +1,119 @@
+name: Production Release
+
+on:
+  pull_request:
+    branches:
+      - main
+    types:
+      - closed
+
+jobs:
+  validate-source:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Validate PR is from beta branch
+        run: |
+          if [ "${{ github.event.pull_request.head.ref }}" != "beta" ]; then
+            echo "Error: PRs to main must come from beta branch only"
+            exit 1
+          fi
+          echo "✅ PR is from beta branch"
+  
+  production-release:
+    needs: validate-source
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Read FVM version
+        id: fvm_version
+        run: |
+          FVM_VERSION=$(cat .fvm/fvm_config.json | grep -o '"flutterSdkVersion": "[^"]*' | cut -d'"' -f4)
+          echo "version=$FVM_VERSION" >> $GITHUB_OUTPUT
+          echo "Flutter version from FVM: $FVM_VERSION"
+      
+      - name: Read app version from pubspec.yaml
+        id: app_version
+        run: |
+          APP_VERSION=$(grep '^version:' pubspec.yaml | cut -d' ' -f2 | cut -d'+' -f1)
+          BUILD_NUMBER=$(grep '^version:' pubspec.yaml | cut -d'+' -f2)
+          echo "version=$APP_VERSION" >> $GITHUB_OUTPUT
+          echo "build=$BUILD_NUMBER" >> $GITHUB_OUTPUT
+          echo "App version: $APP_VERSION+$BUILD_NUMBER"
+      
+      - name: Setup Flutter with FVM
+        uses: kuhnroyal/flutter-fvm-config-action@v2
+      
+      - name: Install dependencies
+        run: flutter pub get
+      
+      - name: Build Android APK (Production - Universal)
+        run: flutter build apk --dart-define=FLAVOR=production --flavor production --release
+      
+      - name: Build Android APK (Production - Split per ABI)
+        run: flutter build apk --dart-define=FLAVOR=production --flavor production --release --split-per-abi
+      
+      - name: Build Android App Bundle (Production)
+        run: flutter build appbundle --dart-define=FLAVOR=production --flavor production --release
+      
+      - name: Rename build artifacts
+        run: |
+          mkdir -p releases
+          # Universal APK
+          cp build/app/outputs/flutter-apk/app-production-release.apk releases/gyawun-v${{ steps.app_version.outputs.version }}-universal.apk
+          # Split APKs
+          cp build/app/outputs/flutter-apk/app-armeabi-v7a-production-release.apk releases/gyawun-v${{ steps.app_version.outputs.version }}-armeabi-v7a.apk
+          cp build/app/outputs/flutter-apk/app-arm64-v8a-production-release.apk releases/gyawun-v${{ steps.app_version.outputs.version }}-arm64-v8a.apk
+          cp build/app/outputs/flutter-apk/app-x86_64-production-release.apk releases/gyawun-v${{ steps.app_version.outputs.version }}-x86_64.apk
+          # App Bundle
+          cp build/app/outputs/bundle/productionRelease/app-production-release.aab releases/gyawun-v${{ steps.app_version.outputs.version }}.aab
+      
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: v${{ steps.app_version.outputs.version }}
+          name: Release v${{ steps.app_version.outputs.version }}
+          body: |
+            ## Release v${{ steps.app_version.outputs.version }}
+            
+            **Build Information:**
+            - App Version: `${{ steps.app_version.outputs.version }}`
+            - Build Number: `${{ steps.app_version.outputs.build }}`
+            - Flutter Version: `${{ steps.fvm_version.outputs.version }}`
+            - Branch: `main`
+            
+            **Available Downloads:**
+            
+            📦 **App Bundle (Recommended for Play Store):**
+            - `gyawun-v${{ steps.app_version.outputs.version }}.aab`
+            
+            📱 **Universal APK (Works on all devices):**
+            - `gyawun-v${{ steps.app_version.outputs.version }}-universal.apk`
+            
+            🎯 **Architecture-Specific APKs (Smaller file size):**
+            - `gyawun-v${{ steps.app_version.outputs.version }}-arm64-v8a.apk` - For most modern devices (64-bit ARM)
+            - `gyawun-v${{ steps.app_version.outputs.version }}-armeabi-v7a.apk` - For older devices (32-bit ARM)
+            - `gyawun-v${{ steps.app_version.outputs.version }}-x86_64.apk` - For emulators and x86 devices
+            
+            **Changes:**
+            ${{ github.event.pull_request.body }}
+            
+            ---
+            
+            ✅ **Production Release** - Stable version ready for distribution.
+          files: |
+            releases/gyawun-v${{ steps.app_version.outputs.version }}-universal.apk
+            releases/gyawun-v${{ steps.app_version.outputs.version }}-arm64-v8a.apk
+            releases/gyawun-v${{ steps.app_version.outputs.version }}-armeabi-v7a.apk
+            releases/gyawun-v${{ steps.app_version.outputs.version }}-x86_64.apk
+            releases/gyawun-v${{ steps.app_version.outputs.version }}.aab
+          prerelease: false
+          draft: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

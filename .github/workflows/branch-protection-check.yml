@@ -1,0 +1,28 @@
+name: Branch Protection Check
+
+on:
+  pull_request:
+    branches:
+      - main
+      - beta
+
+jobs:
+  check-pr-source:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Check PR to main is from beta
+        if: github.base_ref == 'main'
+        run: |
+          if [ "${{ github.head_ref }}" != "beta" ]; then
+            echo "❌ Error: Pull requests to 'main' branch must come from 'beta' branch only."
+            echo "Current source: ${{ github.head_ref }}"
+            exit 1
+          fi
+          echo "✅ PR is from beta branch - validation passed"
+      
+      - name: Info for beta PRs
+        if: github.base_ref == 'beta'
+        run: |
+          echo "✅ Pull request to beta branch from: ${{ github.head_ref }}"
+          echo "This will trigger a beta pre-release on merge."

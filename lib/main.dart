@@ -128,33 +128,6 @@ class Gyawun extends StatelessWidget {
                 : context.watch<SettingsManager>().accentColor,
             isPureBlack: context.watch<SettingsManager>().amoledBlack,
           ),
-          // theme: lightTheme(
-          //   colorScheme: context.watch<SettingsManager>().dynamicColors &&
-          //           lightScheme != null
-          //       ? lightScheme
-          //       : ColorScheme.fromSeed(
-          //           seedColor: context.watch<SettingsManager>().accentColor ??
-          //               Colors.black,
-          //           primary: context.watch<SettingsManager>().accentColor ??
-          //               Colors.black,
-          //           brightness: Brightness.light,
-          //         ),
-          // ),
-          // darkTheme: darkTheme(
-          //   colorScheme: context.watch<SettingsManager>().dynamicColors &&
-          //           darkScheme != null
-          //       ? darkScheme
-          //       : ColorScheme.fromSeed(
-          //           seedColor: context.watch<SettingsManager>().accentColor ??
-          //               primaryWhite,
-          //           primary: context.watch<SettingsManager>().accentColor ??
-          //               primaryWhite,
-          //           brightness: Brightness.dark,
-          //           surface: context.watch<SettingsManager>().amoledBlack
-          //               ? Colors.black
-          //               : null,
-          //         ),
-          // ),
         ),
       );
     });

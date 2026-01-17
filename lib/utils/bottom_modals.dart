@@ -8,6 +8,7 @@ import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:get_it/get_it.dart';
 import 'package:go_router/go_router.dart';
+import 'package:gyawun/screens/settings/player/equalizer/equalizer_page.dart';
 import 'package:gyawun/utils/playlist_thumbnail.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:intl/intl.dart';
@@ -16,7 +17,6 @@ import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../generated/l10n.dart';
-import '../screens/settings_screen/player/equalizer_screen.dart';
 import '../services/bottom_message.dart';
 import '../services/download_manager.dart';
 import '../services/library.dart';
@@ -770,16 +770,16 @@ BottomModalLayout _playerOptionsModal(BuildContext context, Map song) {
             leading: Icon(AdaptiveIcons.equalizer),
             onTap: () {
               Navigator.of(context).push(MaterialPageRoute(
-                  builder: (context) => const EqualizerScreen()));
+                  builder: (context) => const EqualizerPage()));
             },
-            trailing: Icon(AdaptiveIcons.chevron_right),
+            trailing: Icon(Icons.chevron_right),
           ),
         if (song['artists'] != null)
           AdaptiveListTile(
             dense: true,
             title: Text(S.of(context).Artists),
             leading: Icon(AdaptiveIcons.people),
-            trailing: Icon(AdaptiveIcons.chevron_right),
+            trailing: Icon(Icons.chevron_right),
             onTap: () {
               Navigator.pop(context);
               Modals.showArtistsBottomModal(
@@ -796,7 +796,7 @@ BottomModalLayout _playerOptionsModal(BuildContext context, Map song) {
               title: Text(S.of(context).Album,
                   maxLines: 1, overflow: TextOverflow.ellipsis),
               leading: Icon(AdaptiveIcons.album),
-              trailing: Icon(AdaptiveIcons.chevron_right),
+              trailing: Icon(Icons.chevron_right),
               onTap: () {
                 context.go('/browse', extra: {
                   'endpoint': song['album']['endpoint'].cast<String, dynamic>(),
@@ -1237,7 +1237,7 @@ BottomModalLayout _downloadBottomModal(BuildContext context) {
             title: Text(S.of(context).Downloading),
             leading: Icon(AdaptiveIcons.downloading),
             onTap: () async {
-              context.push('/saved/downloads/downloading');
+              context.push('/saved/downloads_page/downloading_page');
               Navigator.pop(context);
             },
           ),

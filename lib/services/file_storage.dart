@@ -2,8 +2,6 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:audiotags/audiotags.dart';
 import 'package:file_picker/file_picker.dart';
-import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get_it/get_it.dart';
 import 'package:hive_flutter/hive_flutter.dart';
@@ -53,7 +51,7 @@ class FileStorage {
     _initialised = true;
   }
 
-  updateDirectories() async {
+  Future<void> updateDirectories() async {
     Directory directory = Directory("dir");
     if (Platform.isAndroid) {
       directory = Directory(Hive.box('SETTINGS')
@@ -154,7 +152,7 @@ class FileStorage {
     }
   }
 
-  Future<bool> loadBackup(BuildContext context) async {
+  Future<bool> loadBackup() async {
     if (!(await requestPermissions())) return false;
     FilePickerResult? picker = await FilePicker.platform.pickFiles(
       initialDirectory: storagePaths.backupPath,
