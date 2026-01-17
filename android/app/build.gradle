@@ -57,9 +57,11 @@ android {
         beta {
             dimension = "default"
             applicationIdSuffix = ".beta"
+            resValue "string", "app_name", "Gyawun Music Beta"
         }
         production {
             dimension = "default"
+            resValue "string", "app_name", "Gyawun Music"
         }
     }
     
