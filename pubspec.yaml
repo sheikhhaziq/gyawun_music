@@ -68,13 +68,20 @@ dependencies:
   wakelock_plus: ^1.4.0
   internet_connection_checker_plus: ^2.9.1
   collection: ^1.19.1
+  flutter_bloc: ^9.1.1
+  bloc: ^9.2.0
+  meta: ^1.17.0
+  loading_indicator_m3e: ^0.1.1
+  m3e_design: ^0.2.1
+  expressive_refresh: ^0.1.2
+  navigation_rail_m3e: ^0.3.5
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^6.0.0
   change_app_package_name: ^1.3.0
-  flutter_native_splash: ^2.4.1
+  flutter_native_splash: ^2.4.7
 flutter:
   uses-material-design: true
   generate: true

@@ -81,6 +81,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.4.5"
+  bloc:
+    dependency: "direct main"
+    description:
+      name: bloc
+      sha256: a48653a82055a900b88cd35f92429f068c5a8057ae9b136d197b3d56c57efb81
+      url: "https://pub.dev"
+    source: hosted
+    version: "9.2.0"
   boolean_selector:
     dependency: transitive
     description:
@@ -97,6 +105,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.1.1"
+  button_m3e:
+    dependency: transitive
+    description:
+      name: button_m3e
+      sha256: "6754ddeb9068ad2005bd26d5ceabc41268029465095686d7d228296c2e706909"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.1.2"
   cached_network_image:
     dependency: "direct main"
     description:
@@ -273,6 +289,22 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.3.0"
+  expressive_refresh:
+    dependency: "direct main"
+    description:
+      name: expressive_refresh
+      sha256: "99bb70ae1719ebdedbaf3b4a49031ef7b916da157f7843b8e83efbe6633b20ad"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.1.2"
+  fab_m3e:
+    dependency: transitive
+    description:
+      name: fab_m3e
+      sha256: e4f5abfa3c8c092005449d56dcac45b85e2dbe9c32789d672c5ed71428e43b59
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.1.1"
   fake_async:
     dependency: transitive
     description:
@@ -326,6 +358,14 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.0"
+  flutter_bloc:
+    dependency: "direct main"
+    description:
+      name: flutter_bloc
+      sha256: cf51747952201a455a1c840f8171d273be009b932c75093020f9af64f2123e38
+      url: "https://pub.dev"
+    source: hosted
+    version: "9.1.1"
   flutter_cache_manager:
     dependency: transitive
     description:
@@ -431,10 +471,10 @@ packages:
     dependency: "direct dev"
     description:
       name: flutter_native_splash
-      sha256: "8321a6d11a8d13977fa780c89de8d257cce3d841eecfb7a4cadffcc4f12d82dc"
+      sha256: "4fb9f4113350d3a80841ce05ebf1976a36de622af7d19aca0ca9a9911c7ff002"
       url: "https://pub.dev"
     source: hosted
-    version: "2.4.6"
+    version: "2.4.7"
   flutter_plugin_android_lifecycle:
     dependency: transitive
     description:
@@ -565,6 +605,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.0.0"
+  icon_button_m3e:
+    dependency: transitive
+    description:
+      name: icon_button_m3e
+      sha256: c4524d6141a468679821bbb635b833ac6831925d8a6ae4a4511430b0e4ab9c67
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.2.1"
   image:
     dependency: transitive
     description:
@@ -685,6 +733,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "6.0.0"
+  loading_indicator_m3e:
+    dependency: "direct main"
+    description:
+      name: loading_indicator_m3e
+      sha256: "3fe97385b4f84382c25b901abf88fcee4200e6e78fcd5ed7e037a34d7db53038"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.1.1"
   logging:
     dependency: transitive
     description:
@@ -693,6 +749,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.3.0"
+  m3e_design:
+    dependency: "direct main"
+    description:
+      name: m3e_design
+      sha256: "15ff0ef4c43553d855c5e866a9aee8231d44919fe2bb354b1259337bdfd659b4"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.2.1"
   markdown:
     dependency: transitive
     description:
@@ -717,6 +781,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.11.1"
+  material_new_shapes:
+    dependency: transitive
+    description:
+      name: material_new_shapes
+      sha256: e4bc375205e187e8fb232573387112dd8c0dd45b03af8aa2b3c79eb4b9e3e0dc
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.0"
   media_kit:
     dependency: transitive
     description:
@@ -750,7 +822,7 @@ packages:
     source: hosted
     version: "1.0.9"
   meta:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: meta
       sha256: "23f08335362185a5ea2ad3a4e597f1375e78bce8a040df5c600c8d3552ef2394"
@@ -765,6 +837,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.0.6"
+  navigation_rail_m3e:
+    dependency: "direct main"
+    description:
+      name: navigation_rail_m3e
+      sha256: "029a1f556c4ecaf8318ae7d4ad09af117bdb449e483e3d9ec04085a9e341db3d"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.3.5"
   nested:
     dependency: transitive
     description:
@@ -1381,5 +1461,5 @@ packages:
     source: git
     version: "2.4.1"
 sdks:
-  dart: ">=3.9.0 <4.0.0"
+  dart: ">=3.9.2 <4.0.0"
   flutter: ">=3.35.0"

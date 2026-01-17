@@ -2,28 +2,27 @@ import 'dart:io';
 
 import 'package:flutter/cupertino.dart';
 import 'package:go_router/go_router.dart';
-import 'package:gyawun/screens/saved_screen/download_details_screen.dart';
-import 'package:gyawun/screens/saved_screen/download_screen.dart';
-import 'package:gyawun/screens/saved_screen/downloading_screen.dart';
-import 'package:gyawun/screens/saved_screen/favourite_details_screen.dart';
-import 'package:gyawun/screens/saved_screen/history_screen.dart';
-import 'package:gyawun/screens/saved_screen/playlist_details_screen.dart';
-import 'package:gyawun/screens/settings_screen/privacy/privacy_screen.dart';
-
-import '../screens/home_screen/chip_screen.dart';
-import '../screens/home_screen/home_screen.dart';
-import '../screens/home_screen/search_screen/search_screen.dart';
-import '../screens/saved_screen/saved_screen.dart';
-import '../screens/main_screen/main_screen.dart';
-import '../screens/main_screen/player_screen.dart';
-import '../screens/browse_screen/browse_screen.dart';
-import '../screens/settings_screen/about/about_screen.dart';
-import '../screens/settings_screen/appearence/appearence_screen.dart';
-import '../screens/settings_screen/storage/backup_storage_screen.dart';
-import '../screens/settings_screen/services/ytmusic.dart';
-import '../screens/settings_screen/player/player_screen.dart';
-import '../screens/settings_screen/player/equalizer_screen.dart';
-import '../screens/settings_screen/settings_screen.dart';
+import 'package:gyawun/screens/browse/browse_page.dart';
+import 'package:gyawun/screens/chip/chip_page.dart';
+import 'package:gyawun/screens/home/home_page.dart';
+import 'package:gyawun/screens/library/downloads/downloading/downloading_page.dart';
+import 'package:gyawun/screens/library/downloads/downloads_page.dart';
+import 'package:gyawun/screens/library/downloads/playlist/download_playlist_page.dart';
+import 'package:gyawun/screens/library/favourites/favourites_page.dart';
+import 'package:gyawun/screens/library/history/history_page.dart';
+import 'package:gyawun/screens/library/library_page.dart';
+import 'package:gyawun/screens/library/playlist/playlist_details_page.dart';
+import 'package:gyawun/screens/player/player_page.dart';
+import 'package:gyawun/screens/search/search_page.dart';
+import 'package:gyawun/screens/settings/about/about_page.dart';
+import 'package:gyawun/screens/settings/appearance/appearance_page.dart';
+import 'package:gyawun/screens/settings/backup_storage/backup_storage_page.dart';
+import 'package:gyawun/screens/settings/player/equalizer/equalizer_page.dart';
+import 'package:gyawun/screens/settings/player/player_settings_page.dart';
+import 'package:gyawun/screens/settings/privacy/privacy_page.dart';
+import 'package:gyawun/screens/settings/services/yt_music/yt_music_page.dart';
+import 'package:gyawun/screens/settings/settings_page.dart';
+import 'package:gyawun/screens/shell/app_shell.dart';
 
 GoRouter router = GoRouter(
   initialLocation: '/',
@@ -33,7 +32,7 @@ GoRouter router = GoRouter(
       routes: [
         StatefulShellRoute(
           branches: branches,
-          builder: (context, state, navigationShell) => MainScreen(
+          builder: (context, state, navigationShell) => AppShell(
             navigationShell: navigationShell,
           ),
           navigatorContainerBuilder: (context, navigationShell, children) =>
@@ -48,7 +47,7 @@ GoRouter router = GoRouter(
             final videoId = state.extra as String?;
             return CustomTransitionPage(
               key: state.pageKey,
-              child: PlayerScreen(videoId: videoId),
+              child: PlayerPage(videoId: videoId),
               transitionsBuilder:
                   (context, animation, secondaryAnimation, child) {
                 const begin = Offset(0.0, 1.0);
@@ -74,13 +73,13 @@ List<StatefulShellBranch> branches = [
     routes: [
       GoRoute(
           path: '/',
-          builder: (context, state) => const HomeScreen(),
+          builder: (context, state) => const HomePage(),
           routes: [
             GoRoute(
               path: 'chip',
               builder: (context, state) {
                 Map<String, dynamic> args = state.extra as Map<String, dynamic>;
-                return ChipScreen(
+                return ChipPage(
                     title: args['title'] ?? '',
                     endpoint: args['endpoint'] ?? {});
               },
@@ -89,7 +88,7 @@ List<StatefulShellBranch> branches = [
               path: 'browse',
               builder: (context, state) {
                 final args = state.extra as Map<String, dynamic>? ?? {};
-                return BrowseScreen(
+                return BrowsePage(
                   endpoint: args['endpoint'] as Map<String, dynamic>,
                   isMore: args['isMore'] as bool? ?? false,
                 );
@@ -99,7 +98,7 @@ List<StatefulShellBranch> branches = [
               path: 'search',
               builder: (context, state) {
                 final args = state.extra as Map<String, dynamic>?;
-                return SearchScreen(
+                return SearchPage(
                   endpoint: args?['endpoint'] as Map<String, dynamic>?,
                   isMore: args?['isMore'] as bool? ?? false,
                 );
@@ -111,40 +110,40 @@ List<StatefulShellBranch> branches = [
   StatefulShellBranch(routes: [
     GoRoute(
       path: '/saved',
-      builder: (context, state) => const SavedScreen(),
+      builder: (context, state) => const LibraryPage(),
       routes: [
         GoRoute(
-          path: 'favourite_details',
-          builder: (context, state) => const FavouriteDetailsScreen(),
+          path: 'favourites_page',
+          builder: (context, state) => const FavouritesPage(),
         ),
         GoRoute(
-          path: 'downloads',
-          builder: (context, state) => const DownloadScreen(),
+          path: 'downloads_page',
+          builder: (context, state) => const DownloadsPage(),
           routes: [
             GoRoute(
-              path: 'download_details',
+              path: 'download_playlist_page',
               builder: (context, state) {
                 final args = state.extra as Map<String, dynamic>;
-                return DownloadDetailsScreen(
+                return DownloadPlaylistPage(
                   playlistId: args['playlistId'] as String,
                 );
               },
             ),
             GoRoute(
-              path: 'downloading',
-              builder: (context, state) => const DownloadingScreen(),
+              path: 'downloading_page',
+              builder: (context, state) => const DownloadingPage(),
             ),
           ],
         ),
         GoRoute(
-          path: 'history',
-          builder: (context, state) => const HistoryScreen(),
+          path: 'history_page',
+          builder: (context, state) => const HistoryPage(),
         ),
         GoRoute(
           path: 'playlist_details',
           builder: (context, state) {
             final args = state.extra as Map<String, dynamic>;
-            return PlaylistDetailsScreen(
+            return PlaylistDetailsPage(
               playlistkey: args['playlistkey'] as String,
             );
           },
@@ -152,51 +151,39 @@ List<StatefulShellBranch> branches = [
       ],
     ),
   ]),
-  // StatefulShellBranch(routes: [
-  //   GoRoute(
-  //     path: '/ytmusic',
-  //     builder: (context, state) => const YTMScreen(),
-  //   ),
-  // ]),
   StatefulShellBranch(routes: [
     GoRoute(
         path: '/settings',
-        builder: (context, state) => const SettingsScreen(),
+        builder: (context, state) => const SettingsPage(),
         routes: [
-          // GoRoute(
-          //   path: 'account',
-          //   pageBuilder: (context, state) => Platform.isWindows
-          //       ? const FluentPage(child: AccountScreen())
-          //       : const CupertinoPage(child: AccountScreen()),
-          // ),
           GoRoute(
-            path: 'appearence',
-            builder: (context, state) => const AppearenceScreen(),
-          ),
-          GoRoute(
-            path: 'ytmusic',
-            builder: (context, state) => const YtMusicScreen(),
+            path: 'appearance',
+            builder: (context, state) => const AppearancePage(),
           ),
           GoRoute(
               path: 'player',
-              builder: (context, state) => const PlayerSettingsScreen(),
+              builder: (context, state) => const PlayerSettingsPage(),
               routes: [
                 GoRoute(
                   path: 'equalizer',
-                  builder: (context, state) => const EqualizerScreen(),
+                  builder: (context, state) => const EqualizerPage(),
                 )
               ]),
           GoRoute(
+            path: 'services/ytmusic',
+            builder: (context, state) => const YTMusicPage(),
+          ),
+          GoRoute(
             path: 'backup_storage',
-            builder: (context, state) => const BackupStorageScreen(),
+            builder: (context, state) => const BackupStoragePage(),
           ),
           GoRoute(
             path: 'privacy',
-            builder: (context, state) => const PrivacyScreen(),
+            builder: (context, state) => const PrivacyPage(),
           ),
           GoRoute(
             path: 'about',
-            builder: (context, state) => const AboutScreen(),
+            builder: (context, state) => const AboutPage(),
           ),
         ]),
   ])
