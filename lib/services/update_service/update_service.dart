@@ -11,8 +11,8 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 class UpdateService {
-  static const String owner = 'YOUR_GITHUB_USERNAME';
-  static const String repo = 'YOUR_REPO_NAME';
+  static const String owner = 'sheikhhaziq';
+  static const String repo = 'gyawun_music';
 
   /* ─────────────────────────────────────────────
    * 1️⃣ PURE UPDATE CHECK (NO UI)
