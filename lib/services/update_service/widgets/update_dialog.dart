@@ -63,6 +63,7 @@ class UpdateDialog extends StatelessWidget {
         FilledButton(
           onPressed: () async {
             final uri = Uri.parse(info.downloadUrl);
+
             if (await canLaunchUrl(uri)) {
               await launchUrl(
                 uri,
