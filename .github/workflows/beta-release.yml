@@ -11,36 +11,55 @@ jobs:
   beta-release:
     if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      
+
       - name: Read FVM version
         id: fvm_version
         run: |
-          FVM_VERSION=$(cat .fvm/fvm_config.json | grep -o '"flutterSdkVersion": "[^"]*' | cut -d'"' -f4)
+          FVM_VERSION=$(jq -r '.flutterSdkVersion' .fvm/fvm_config.json)
           echo "version=$FVM_VERSION" >> $GITHUB_OUTPUT
           echo "Flutter version from FVM: $FVM_VERSION"
-      
-      - name: Read app version from pubspec.yaml
+
+      # 🔒 Ensure git uses placeholder version only
+      - name: Validate pubspec placeholder version
+        run: |
+          if ! grep -qE '^version: .+\+0$' pubspec.yaml; then
+            echo "❌ Error: pubspec.yaml must use X.Y.Z+0"
+            exit 1
+          fi
+          echo "✅ pubspec.yaml placeholder version confirmed"
+
+      # 🔑 Derive beta version (X.Y.Z-beta.N+N)
+      - name: Set beta version
         id: app_version
         run: |
-          APP_VERSION=$(grep '^version:' pubspec.yaml | cut -d' ' -f2 | cut -d'+' -f1)
-          BUILD_NUMBER=$(grep '^version:' pubspec.yaml | cut -d'+' -f2)
-          echo "version=$APP_VERSION" >> $GITHUB_OUTPUT
-          echo "build=$BUILD_NUMBER" >> $GITHUB_OUTPUT
-          echo "App version: $APP_VERSION+$BUILD_NUMBER"
-      
+          BASE_VERSION=$(grep '^version:' pubspec.yaml | awk '{print $2}' | cut -d'+' -f1)
+
+          LEGACY_BASE=100
+          BETA_SEQ=${{ github.run_number }}
+          VERSION_CODE=$((LEGACY_BASE + BETA_SEQ))
+
+          FINAL_VERSION="$BASE_VERSION-beta.$BETA_SEQ+$VERSION_CODE"
+
+          sed -i "s/^version:.*/version: $FINAL_VERSION/" pubspec.yaml
+
+          echo "version=$BASE_VERSION-beta.$BETA_SEQ" >> $GITHUB_OUTPUT
+          echo "build=$VERSION_CODE" >> $GITHUB_OUTPUT
+
+          echo "✅ Beta version set to: $FINAL_VERSION"
+
       - name: Setup Flutter with FVM
         uses: kuhnroyal/flutter-fvm-config-action/setup@v3
-      
+
       - name: Decode keystore
         run: |
           echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > android/app/keystore.jks
-      
+
       - name: Create key.properties
         run: |
           cat > android/key.properties << EOF
@@ -49,71 +68,67 @@ jobs:
           keyAlias=${{ secrets.KEY_ALIAS }}
           storeFile=keystore.jks
           EOF
-      
+
       - name: Install dependencies
         run: flutter pub get
-      
+
       - name: Build Android APK (Beta - Universal)
         run: flutter build apk --dart-define=FLAVOR=beta --flavor beta --release
       
       - name: Build Android APK (Beta - Split per ABI)
         run: flutter build apk --dart-define=FLAVOR=beta --flavor beta --release --split-per-abi
-
-      - name: Build Android App Bundle (Beta)
-        run: flutter build appbundle --dart-define=FLAVOR=beta --flavor beta --release
       
       - name: Rename build artifacts
         run: |
           mkdir -p releases
-          # Universal APK
-          cp build/app/outputs/flutter-apk/app-beta-release.apk releases/gyawun-beta-v${{ steps.app_version.outputs.version }}-universal.apk
-          # Split APKs
-          cp build/app/outputs/flutter-apk/app-armeabi-v7a-beta-release.apk releases/gyawun-beta-v${{ steps.app_version.outputs.version }}-armeabi-v7a.apk
-          cp build/app/outputs/flutter-apk/app-arm64-v8a-beta-release.apk releases/gyawun-beta-v${{ steps.app_version.outputs.version }}-arm64-v8a.apk
-          cp build/app/outputs/flutter-apk/app-x86_64-beta-release.apk releases/gyawun-beta-v${{ steps.app_version.outputs.version }}-x86_64.apk
-          # App Bundle
-          cp build/app/outputs/bundle/betaRelease/app-beta-release.aab releases/gyawun-beta-v${{ steps.app_version.outputs.version }}.aab
-      
+
+          cp build/app/outputs/flutter-apk/app-beta-release.apk \
+             releases/gyawun-beta-v${{ steps.app_version.outputs.version }}-universal.apk
+
+          cp build/app/outputs/flutter-apk/app-armeabi-v7a-beta-release.apk \
+             releases/gyawun-beta-v${{ steps.app_version.outputs.version }}-armeabi-v7a.apk
+
+          cp build/app/outputs/flutter-apk/app-arm64-v8a-beta-release.apk \
+             releases/gyawun-beta-v${{ steps.app_version.outputs.version }}-arm64-v8a.apk
+
+          cp build/app/outputs/flutter-apk/app-x86_64-beta-release.apk \
+             releases/gyawun-beta-v${{ steps.app_version.outputs.version }}-x86_64.apk
+
       - name: Create Pre-Release
         uses: softprops/action-gh-release@v1
         with:
-          tag_name: v${{ steps.app_version.outputs.version }}-beta
+          tag_name: v${{ steps.app_version.outputs.version }}
           name: Beta v${{ steps.app_version.outputs.version }}
+          prerelease: true
+          draft: false
           body: |
             ## Beta Release v${{ steps.app_version.outputs.version }}
-            
+
             **Build Information:**
             - App Version: `${{ steps.app_version.outputs.version }}`
             - Build Number: `${{ steps.app_version.outputs.build }}`
             - Flutter Version: `${{ steps.fvm_version.outputs.version }}`
             - Branch: `beta`
-            
+
             **Available Downloads:**
-            
-            📦 **App Bundle (Recommended for Play Store):**
-            - `gyawun-beta-v${{ steps.app_version.outputs.version }}.aab`
-            
-            📱 **Universal APK (Works on all devices):**
+
+            📱 **Universal APK**
             - `gyawun-beta-v${{ steps.app_version.outputs.version }}-universal.apk`
-            
-            🎯 **Architecture-Specific APKs (Smaller file size):**
-            - `gyawun-beta-v${{ steps.app_version.outputs.version }}-arm64-v8a.apk` - For most modern devices (64-bit ARM)
-            - `gyawun-beta-v${{ steps.app_version.outputs.version }}-armeabi-v7a.apk` - For older devices (32-bit ARM)
-            - `gyawun-beta-v${{ steps.app_version.outputs.version }}-x86_64.apk` - For emulators and x86 devices
-            
+
+            🎯 **Architecture-Specific APKs**
+            - `gyawun-beta-v${{ steps.app_version.outputs.version }}-arm64-v8a.apk`
+            - `gyawun-beta-v${{ steps.app_version.outputs.version }}-armeabi-v7a.apk`
+            - `gyawun-beta-v${{ steps.app_version.outputs.version }}-x86_64.apk`
+
             **Changes:**
             ${{ github.event.pull_request.body }}
-            
+
             ---
-            
-            ⚠️ **This is a beta release** - Use for testing purposes only.
+            ⚠️ **Beta release – for testing only**
           files: |
             releases/gyawun-beta-v${{ steps.app_version.outputs.version }}-universal.apk
             releases/gyawun-beta-v${{ steps.app_version.outputs.version }}-arm64-v8a.apk
             releases/gyawun-beta-v${{ steps.app_version.outputs.version }}-armeabi-v7a.apk
             releases/gyawun-beta-v${{ steps.app_version.outputs.version }}-x86_64.apk
-            releases/gyawun-beta-v${{ steps.app_version.outputs.version }}.aab
-          prerelease: true
-          draft: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
