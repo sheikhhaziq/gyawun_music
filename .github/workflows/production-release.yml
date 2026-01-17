@@ -64,13 +64,13 @@ jobs:
           EOF
       
       - name: Install dependencies
-        run: fvm flutter pub get
+        run: flutter pub get
       
       - name: Build Android APK (Production - Universal)
-        run: fvm flutter build apk --dart-define=FLAVOR=production --flavor production --release
+        run: flutter build apk --dart-define=FLAVOR=production --flavor production --release
 
       - name: Build Android APK (Production - Split per ABI)
-        run: fvm flutter build apk --dart-define=FLAVOR=production --flavor production --release --split-per-abi
+        run: flutter build apk --dart-define=FLAVOR=production --flavor production --release --split-per-abi
       
       - name: Build Android App Bundle (Production)
         run: flutter build appbundle --dart-define=FLAVOR=production --flavor production --release

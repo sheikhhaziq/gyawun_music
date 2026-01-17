@@ -51,16 +51,16 @@ jobs:
           EOF
       
       - name: Install dependencies
-        run: fvm flutter pub get
+        run: flutter pub get
       
       - name: Build Android APK (Beta - Universal)
-        run: fvm flutter build apk --dart-define=FLAVOR=beta --flavor beta --release
+        run: flutter build apk --dart-define=FLAVOR=beta --flavor beta --release
       
       - name: Build Android APK (Beta - Split per ABI)
-        run: fvm flutter build apk --dart-define=FLAVOR=beta --flavor beta --release --split-per-abi
+        run: flutter build apk --dart-define=FLAVOR=beta --flavor beta --release --split-per-abi
 
       - name: Build Android App Bundle (Beta)
-        run: fvm flutter build appbundle --dart-define=FLAVOR=beta --flavor beta --release
+        run: flutter build appbundle --dart-define=FLAVOR=beta --flavor beta --release
       
       - name: Rename build artifacts
         run: |
