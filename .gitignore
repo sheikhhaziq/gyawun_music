@@ -62,4 +62,6 @@ app.*.map.json
 .flatpak-builder
 
 # FVM Version Cache
-.fvm/
+.fvm/flutter_sdk
+.fvm/versions
+.fvm/release
