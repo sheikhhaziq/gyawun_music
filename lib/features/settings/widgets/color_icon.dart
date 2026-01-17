@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../utils/extensions.dart';
+import '../../../utils/extensions.dart';
 
 class ColorIcon extends StatelessWidget {
   const ColorIcon({

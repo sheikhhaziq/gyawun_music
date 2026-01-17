@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:go_router/go_router.dart';
 import 'package:gyawun/services/media_player.dart';
+import 'package:gyawun/utils/adaptive_widgets/buttons.dart';
+import 'package:gyawun/utils/adaptive_widgets/listtile.dart';
+import 'package:gyawun/utils/adaptive_widgets/progress_ring.dart';
 import 'package:gyawun/utils/song_thumbnail.dart';
-import 'package:loading_indicator_m3e/loading_indicator_m3e.dart';
 import 'package:provider/provider.dart';
 
 class BottomPlayer extends StatelessWidget {
@@ -48,7 +50,7 @@ class BottomPlayer extends StatelessWidget {
                       }
                       return Future.value(false);
                     },
-                    child: ListTile(
+                    child: AdaptiveListTile(
                       contentPadding: const EdgeInsets.symmetric(
                           horizontal: 8, vertical: 8),
                       leading: ClipRRect(
@@ -82,8 +84,8 @@ class BottomPlayer extends StatelessWidget {
                             valueListenable: GetIt.I<MediaPlayer>().buttonState,
                             builder: (context, buttonState, child) {
                               return (buttonState == ButtonState.loading)
-                                  ? const ExpressiveLoadingIndicator()
-                                  : IconButton(
+                                  ? const AdaptiveProgressRing()
+                                  : AdaptiveIconButton(
                                       onPressed: () {
                                         GetIt.I<MediaPlayer>().player.playing
                                             ? GetIt.I<MediaPlayer>()
@@ -112,7 +114,7 @@ class BottomPlayer extends StatelessWidget {
                                     .watch<MediaPlayer>()
                                     .player
                                     .hasNext) {
-                                  return IconButton(
+                                  return AdaptiveIconButton(
                                     onPressed: () {
                                       GetIt.I<MediaPlayer>()
                                           .player

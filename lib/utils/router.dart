@@ -14,16 +14,15 @@ import 'package:gyawun/features/library/library_page.dart';
 import 'package:gyawun/features/library/playlist/playlist_details_page.dart';
 import 'package:gyawun/features/player/player_page.dart';
 import 'package:gyawun/features/search/search_page.dart';
+import 'package:gyawun/features/settings/about/about_page.dart';
+import 'package:gyawun/features/settings/appearance/appearance_page.dart';
+import 'package:gyawun/features/settings/backup_storage/backup_storage_page.dart';
+import 'package:gyawun/features/settings/player/equalizer/equalizer_page.dart';
+import 'package:gyawun/features/settings/player/player_settings_page.dart';
+import 'package:gyawun/features/settings/privacy/privacy_page.dart';
+import 'package:gyawun/features/settings/services/yt_music/yt_music_page.dart';
+import 'package:gyawun/features/settings/settings_page.dart';
 import 'package:gyawun/features/shell/app_shell.dart';
-import 'package:gyawun/screens/settings_screen/privacy/privacy_screen.dart';
-
-import '../screens/settings_screen/about/about_screen.dart';
-import '../screens/settings_screen/appearence/appearence_screen.dart';
-import '../screens/settings_screen/storage/backup_storage_screen.dart';
-import '../screens/settings_screen/services/ytmusic.dart';
-import '../screens/settings_screen/player/player_screen.dart';
-import '../screens/settings_screen/player/equalizer_screen.dart';
-import '../screens/settings_screen/settings_screen.dart';
 
 GoRouter router = GoRouter(
   initialLocation: '/',
@@ -152,51 +151,39 @@ List<StatefulShellBranch> branches = [
       ],
     ),
   ]),
-  // StatefulShellBranch(routes: [
-  //   GoRoute(
-  //     path: '/ytmusic',
-  //     builder: (context, state) => const YTMScreen(),
-  //   ),
-  // ]),
   StatefulShellBranch(routes: [
     GoRoute(
         path: '/settings',
-        builder: (context, state) => const SettingsScreen(),
+        builder: (context, state) => const SettingsPage(),
         routes: [
-          // GoRoute(
-          //   path: 'account',
-          //   pageBuilder: (context, state) => Platform.isWindows
-          //       ? const FluentPage(child: AccountScreen())
-          //       : const CupertinoPage(child: AccountScreen()),
-          // ),
           GoRoute(
-            path: 'appearence',
-            builder: (context, state) => const AppearenceScreen(),
-          ),
-          GoRoute(
-            path: 'ytmusic',
-            builder: (context, state) => const YtMusicScreen(),
+            path: 'appearance',
+            builder: (context, state) => const AppearancePage(),
           ),
           GoRoute(
               path: 'player',
-              builder: (context, state) => const PlayerSettingsScreen(),
+              builder: (context, state) => const PlayerSettingsPage(),
               routes: [
                 GoRoute(
                   path: 'equalizer',
-                  builder: (context, state) => const EqualizerScreen(),
+                  builder: (context, state) => const EqualizerPage(),
                 )
               ]),
           GoRoute(
+            path: 'services/ytmusic',
+            builder: (context, state) => const YTMusicPage(),
+          ),
+          GoRoute(
             path: 'backup_storage',
-            builder: (context, state) => const BackupStorageScreen(),
+            builder: (context, state) => const BackupStoragePage(),
           ),
           GoRoute(
             path: 'privacy',
-            builder: (context, state) => const PrivacyScreen(),
+            builder: (context, state) => const PrivacyPage(),
           ),
           GoRoute(
             path: 'about',
-            builder: (context, state) => const AboutScreen(),
+            builder: (context, state) => const AboutPage(),
           ),
         ]),
   ])
