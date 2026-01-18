@@ -80,6 +80,7 @@ dependencies:
     git:
       url: https://github.com/sheikhhaziq/yt_music.git
   connectivity_plus: ^7.0.0
+  audio_service_mpris: ^0.2.0
 
 dev_dependencies:
   flutter_test:
