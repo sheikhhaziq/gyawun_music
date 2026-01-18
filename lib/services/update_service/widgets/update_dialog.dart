@@ -64,12 +64,10 @@ class UpdateDialog extends StatelessWidget {
           onPressed: () async {
             final uri = Uri.parse(info.downloadUrl);
 
-            if (await canLaunchUrl(uri)) {
-              await launchUrl(
+            await launchUrl(
                 uri,
                 mode: LaunchMode.externalApplication,
               );
-            }
           },
           child: const Text('Update'),
         ),
