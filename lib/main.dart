@@ -31,22 +31,23 @@ void main() async {
       androidNotificationChannelId: 'com.jhelum.gyawun.audio',
       androidNotificationChannelName: 'Audio playback',
       androidNotificationOngoing: true,
+      androidStopForegroundOnPause: false,
     );
   }
-  await initialiseHive();
+  
   if (Platform.isWindows || Platform.isLinux) {
-    JustAudioMediaKit.ensureInitialized(
-        // libmpv: Platform.isLinux ? '/app/lib/libmpv.so' : null,
-        );
+    JustAudioMediaKit.ensureInitialized();
     JustAudioMediaKit.bufferSize = 8 * 1024 * 1024;
     JustAudioMediaKit.title = 'Gyawun Music';
     JustAudioMediaKit.prefetchPlaylist = true;
     JustAudioMediaKit.pitch = true;
   }
+  await initialiseHive();
   await SystemChrome.setEnabledSystemUIMode(
     SystemUiMode.edgeToEdge,
     overlays: [SystemUiOverlay.top],
   );
+
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
@@ -57,13 +58,11 @@ void main() async {
   final ytConfig = await getYtConfig();
   YTMusic ytMusic = YTMusic(config: ytConfig!);
 
-
   final GlobalKey<NavigatorState> panelKey = GlobalKey<NavigatorState>();
-  
+
   await FileStorage.initialise();
   FileStorage fileStorage = FileStorage();
   SettingsManager settingsManager = SettingsManager();
-
 
   GetIt.I.registerSingleton<SettingsManager>(settingsManager);
   MediaPlayer mediaPlayer = MediaPlayer();
@@ -146,9 +145,8 @@ Future<void> initialiseHive() async {
   await Hive.openBox('DOWNLOADS');
 }
 
-
-Future<YTConfig?>? getYtConfig()async{
-   String? visitorData = await Hive.box('SETTINGS').get('VISITOR_ID');
+Future<YTConfig?>? getYtConfig() async {
+  String? visitorData = await Hive.box('SETTINGS').get('VISITOR_ID');
   String language =
       await Hive.box('SETTINGS').get('YT_LANGUAGE', defaultValue: 'en');
   String location =
