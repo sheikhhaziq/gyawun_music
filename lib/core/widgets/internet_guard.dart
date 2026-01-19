@@ -115,7 +115,7 @@ class _InternetGuardState extends State<InternetGuard> {
             ),
             const SizedBox(height: 20),
             AdaptiveFilledButton(
-              onPressed: () => context.go('/saved/downloads'),
+              onPressed: () => context.go('/library/downloads'),
               child: Text(S.of(context).Go_To_Downloads),
             ),
             const SizedBox(height: 20),

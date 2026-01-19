@@ -164,13 +164,13 @@ class ArtworkWidget extends StatelessWidget {
             height: 50,
             width: 50,
             fit: BoxFit.fill,
-            errorWidget: (_, __, ___) => const Icon(Icons.music_note, size: 32),
+            errorWidget: (_, _, _) => const Icon(Icons.music_note, size: 32),
           ),
           if (isCurrent)
             Container(
               height: 50,
               width: 50,
-              color: Colors.black.withOpacity(0.6),
+              color: Colors.black.withValues(alpha:0.6),
             ),
           if (isCurrent)
             const Positioned(

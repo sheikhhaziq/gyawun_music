@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:youtube_explode_dart/youtube_explode_dart.dart';
 
@@ -74,7 +75,7 @@ Future<String> createAudioStreamServer() async {
   final port = server.port;
   final url = 'http://$host:$port/audio';
 
-  print(
+  debugPrint(
       'Generic streaming server started on $url. Use ?id=...&quality=... to stream.');
 
   // You would typically return the server instance here too, if you needed
@@ -108,7 +109,7 @@ Future<void> handleAudioRequest(HttpRequest request) async {
     return;
   }
 
-  print('Processing request for video ID: $videoId (Quality: $quality)');
+  debugPrint('Processing request for video ID: $videoId (Quality: $quality)');
 
   try {
     // 2. Get the Stream Manifest and select the audio stream
@@ -191,9 +192,9 @@ Future<void> handleAudioRequest(HttpRequest request) async {
     await response.addStream(stream);
 
     await response.close();
-    print(
+    debugPrint(
         '[$videoId] Served ${isPartial ? 'partial' : 'full'} stream: bytes $start-$end');
   } catch (e) {
-    print('Error serving audio for ID $videoId: $e');
+    debugPrint('Error serving audio for ID $videoId: $e');
   }
 }

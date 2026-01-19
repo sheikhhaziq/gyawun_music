@@ -1,4 +1,4 @@
-import 'package:flutter/cupertino.dart';
+import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -37,7 +37,7 @@ class YTMusicPage extends StatelessWidget {
                     /// Country
                     SettingTile(
                       title: S.of(context).Country,
-                      leading: const Icon(Icons.location_pin),
+                      leading: const Icon(FluentIcons.location_24_filled),
                       isFirst: true,
                       trailing: DropdownButton<Map<String, String>>(
                           value: state.location,
@@ -62,7 +62,7 @@ class YTMusicPage extends StatelessWidget {
                     /// Language
                     SettingTile(
                       title: S.of(context).Language,
-                      leading: const Icon(Icons.language),
+                      leading: const Icon(FluentIcons.local_language_24_filled),
                       trailing: DropdownButton(
                         value: state.language,
                         items: cubit.languages
@@ -84,7 +84,7 @@ class YTMusicPage extends StatelessWidget {
                     /// Translate lyrics
                     SettingSwitchTile(
                       title: S.of(context).Translate_Lyrics,
-                      leading: const Icon(Icons.translate_outlined),
+                      leading: const Icon(FluentIcons.translate_24_filled),
                       value: state.translateLyrics,
                       onChanged: cubit.setTranslateLyrics,
                     ),
@@ -92,7 +92,7 @@ class YTMusicPage extends StatelessWidget {
                     /// Autofetch
                     SettingSwitchTile(
                       title: S.of(context).Autofetch_Songs,
-                      leading: const Icon(Icons.autorenew_outlined),
+                      leading: const Icon(FluentIcons.arrow_rotate_counterclockwise_24_filled),
                       isLast: true,
                       value: state.autofetchSongs,
                       onChanged: cubit.setAutofetchSongs,
@@ -103,7 +103,7 @@ class YTMusicPage extends StatelessWidget {
                     /// Streaming quality
                     SettingTile(
                       title: S.of(context).Streaming_Quality,
-                      leading: const Icon(Icons.speaker_group_rounded),
+                      leading: const Icon(Icons.spatial_audio_rounded),
                       isFirst: true,
                       trailing: DropdownButton(
                         value: state.streamingQuality,
@@ -125,7 +125,7 @@ class YTMusicPage extends StatelessWidget {
                     /// Download quality
                     SettingTile(
                       title: S.of(context).DOwnload_Quality,
-                      leading: const Icon(Icons.cloud_download_rounded),
+                      leading: const Icon(FluentIcons.cloud_arrow_down_24_filled),
                       isLast: true,
                       trailing: DropdownButton(
                         value: state.downloadQuality,
@@ -149,7 +149,7 @@ class YTMusicPage extends StatelessWidget {
                     /// Personalised content
                     SettingSwitchTile(
                       title: S.of(context).Personalised_Content,
-                      leading: const Icon(Icons.recommend_outlined),
+                      leading: const Icon(Icons.recommend_rounded),
                       isFirst: true,
                       value: state.personalisedContent,
                       onChanged: (v) async {
@@ -162,7 +162,7 @@ class YTMusicPage extends StatelessWidget {
                     /// Visitor ID
                     SettingTile(
                       title: S.of(context).Enter_Visitor_Id,
-                      leading: const Icon(Icons.edit),
+                      leading: const Icon(FluentIcons.edit_24_filled),
                       onTap: () async {
                         final text = await Modals.showTextField(
                           context,
@@ -177,7 +177,7 @@ class YTMusicPage extends StatelessWidget {
 
                     SettingTile(
                       title: S.of(context).Reset_Visitor_Id,
-                      leading: const Icon(CupertinoIcons.refresh_thick),
+                      leading: const Icon(FluentIcons.key_reset_24_filled),
                       isLast: true,
                       subtitle: state.visitorId,
                       trailing: state.visitorId.isEmpty

@@ -1,3 +1,4 @@
+import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -15,9 +16,7 @@ class AppearancePage extends StatelessWidget {
     return BlocProvider(
       create: (_) => AppearanceCubit(),
       child: Scaffold(
-        appBar: AppBar(
-          title: Text(S.of(context).Appearence),
-        ),
+        appBar: AppBar(title: Text(S.of(context).Appearence)),
         body: Center(
           child: Container(
             constraints: const BoxConstraints(maxWidth: 1000),
@@ -36,7 +35,7 @@ class AppearancePage extends StatelessWidget {
                     /// Theme mode
                     SettingTile(
                       title: S.of(context).Theme_Mode,
-                      leading: const Icon(Icons.dark_mode),
+                      leading: const Icon(FluentIcons.dark_theme_24_filled),
                       isFirst: true,
                       trailing: AdaptiveDropdownButton<ThemeMode>(
                         value: s.themeMode,
@@ -44,9 +43,7 @@ class AppearancePage extends StatelessWidget {
                             .map(
                               (e) => AdaptiveDropdownMenuItem(
                                 value: e,
-                                child: Text(
-                                  e.name.toUpperCase(),
-                                ),
+                                child: Text(e.name.toUpperCase()),
                               ),
                             )
                             .toList(),
@@ -60,7 +57,7 @@ class AppearancePage extends StatelessWidget {
                     /// Accent color
                     SettingTile(
                       title: "AccentColor",
-                      leading: const Icon(Icons.colorize_rounded),
+                      leading: const Icon(FluentIcons.color_24_filled),
                       trailing: CircleAvatar(
                         radius: 20,
                         child: ClipRRect(
@@ -85,9 +82,7 @@ class AppearancePage extends StatelessWidget {
                     /// AMOLED
                     SettingSwitchTile(
                       title: 'Amoled Black',
-                      leading: const Icon(
-                        Icons.mode_night_outlined,
-                      ),
+                      leading: const Icon(FluentIcons.drop_24_filled),
                       value: s.amoledBlack,
                       onChanged: (value) {
                         context.read<AppearanceCubit>().setAmoledBlack(value);
@@ -98,7 +93,7 @@ class AppearancePage extends StatelessWidget {
                     SettingSwitchTile(
                       title: S.of(context).Dynamic_Colors,
                       leading: const Icon(
-                        Icons.color_lens_outlined,
+                        FluentIcons.color_background_24_filled,
                       ),
                       isLast: true,
                       value: s.dynamicColors,

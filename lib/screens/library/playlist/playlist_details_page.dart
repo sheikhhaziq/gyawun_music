@@ -1,19 +1,20 @@
+import 'dart:ui';
+
+import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_swipe_action_cell/core/cell.dart';
+import 'package:get_it/get_it.dart';
+import 'package:gyawun/core/widgets/song_tile.dart';
+import 'package:gyawun/services/media_player.dart';
+import 'package:gyawun/themes/text_styles.dart';
 
 import '../../../../../generated/l10n.dart';
-import '../../../../../services/bottom_message.dart';
 import '../../../../../utils/bottom_modals.dart';
-import '../../../../../core/widgets/section_item.dart';
 import 'cubit/playlist_details_cubit.dart';
-import '../widgets/my_playlist_header.dart';
 
 class PlaylistDetailsPage extends StatelessWidget {
-  const PlaylistDetailsPage({
-    super.key,
-    required this.playlistkey,
-  });
+  const PlaylistDetailsPage({super.key, required this.playlistkey});
 
   final String playlistkey;
 
@@ -25,15 +26,15 @@ class PlaylistDetailsPage extends StatelessWidget {
         builder: (context, state) {
           return switch (state) {
             PlaylistDetailsLoading() => const Scaffold(
-                body: Center(child: CircularProgressIndicator()),
-              ),
+              body: Center(child: CircularProgressIndicator()),
+            ),
             PlaylistDetailsError() => const Scaffold(
-                body: Center(child: Text('Not available')),
-              ),
+              body: Center(child: Text('Not available')),
+            ),
             PlaylistDetailsLoaded(:final playlist) => _PlaylistView(
-                playlist: playlist,
-                playlistKey: playlistkey,
-              ),
+              playlist: playlist,
+              playlistKey: playlistkey,
+            ),
           };
         },
       ),
@@ -42,62 +43,148 @@ class PlaylistDetailsPage extends StatelessWidget {
 }
 
 class _PlaylistView extends StatelessWidget {
-  const _PlaylistView({
-    required this.playlist,
-    required this.playlistKey,
-  });
+  const _PlaylistView({required this.playlist, required this.playlistKey});
 
   final Map playlist;
   final String playlistKey;
 
   @override
   Widget build(BuildContext context) {
+
     return Scaffold(
-      appBar: AppBar(
-        title: Text(playlist['title']),
-        centerTitle: true,
-      ),
-      body: Center(
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 8),
-          constraints: const BoxConstraints(maxWidth: 1000),
-          child: ListView(
-            children: [
-              MyPlayistHeader(playlist: playlist),
-              const SizedBox(height: 8),
-              ...playlist['songs'].map<Widget>((song) {
-                return SwipeActionCell(
-                  backgroundColor: Colors.transparent,
-                  key: ObjectKey(song['videoId']),
-                  trailingActions: [
-                    SwipeAction(
-                      title: S.of(context).Remove,
-                      color: Colors.red,
-                      onTap: (handler) async {
-                        final confirm = await Modals.showConfirmBottomModal(
-                          context,
-                          message: S.of(context).Remove_Message,
-                          isDanger: true,
-                        );
+      body: NestedScrollView(
+        headerSliverBuilder: (context, innerBoxIsScrolled) {
+          return [
+            SliverAppBar(
+              pinned: true,
+              expandedHeight: 120,
+              flexibleSpace: LayoutBuilder(
+                builder: (context, constraints) {
+                  final maxHeight = 120.0;
+                  final t = (constraints.maxHeight / (maxHeight + 30)).clamp(
+                    0.0,
+                    1.0,
+                  );
+                  final paddingLeft = lerpDouble(100, 16, t)!;
 
-                        if (confirm) {
-                          final message = await context
-                              .read<PlaylistDetailsCubit>()
-                              .removeSong(song);
-
-                          BottomMessage.showText(context, message);
-                        }
+                  return FlexibleSpaceBar(
+                    titlePadding: EdgeInsets.only(left: paddingLeft, bottom: 8),
+                    title: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          playlist['title'],
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: textStyle(context).copyWith(fontSize: 16),
+                        ),
+                        SizedBox(height: 2,),
+                        Text(
+                          S.of(context).nSongs(playlist['songs'].length),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: textStyle(context).copyWith(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
+            ),
+          ];
+        },
+        body: CustomScrollView(
+          slivers: [
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
+                    FilledButton.icon(
+                      style: const ButtonStyle(
+                        padding: WidgetStatePropertyAll(
+                          .symmetric(horizontal: 24, vertical: 16),
+                        ),
+                        shape: WidgetStatePropertyAll(
+                          RoundedRectangleBorder(borderRadius: .only(
+                            topRight: .circular(8),
+                            bottomRight: .circular(8),
+                            topLeft: .circular(24),
+                            bottomLeft: .circular(24)
+                          ))
+                        ),
+                      ),
+                      onPressed: () {
+                        GetIt.I<MediaPlayer>().playAll(playlist['songs']);
                       },
+                      icon: const Icon(FluentIcons.play_24_filled),
+                      label: const Text('Play it'),
+                    ),
+                    SizedBox(width: 4),
+                    FilledButton.tonalIcon(
+                      style: const ButtonStyle(
+                        padding: WidgetStatePropertyAll(
+                          .symmetric(horizontal: 24, vertical: 16),
+                        ),
+                        shape: WidgetStatePropertyAll(
+                          RoundedRectangleBorder(borderRadius: .only(
+                            topLeft: .circular(8),
+                            bottomLeft: .circular(8),
+                            topRight: .circular(24),
+                            bottomRight: .circular(24)
+                          ))
+                        ),
+                      ),
+                      
+                      onPressed: () {
+                        final shuffled = List.from(playlist['songs']);
+                        shuffled.shuffle();
+
+                        GetIt.I<MediaPlayer>().playAll(shuffled);
+                      },
+                      icon: const Icon(FluentIcons.arrow_shuffle_24_filled),
+                      label: const Text('Shuffle'),
                     ),
                   ],
-                  child: SongTile(
-                    song: song,
-                    playlistId: playlistKey,
-                  ),
-                );
-              }).toList(),
-            ],
-          ),
+                ),
+              ),
+            ),
+            if(playlist['songs'].isNotEmpty)
+            SliverList(
+                  delegate: SliverChildBuilderDelegate((context, index) {
+                    final song = playlist['songs'][index];
+
+                    return Padding(
+                        padding: const .symmetric(horizontal: 8, vertical: 4),
+                      child: SwipeActionCell(
+                        key: ObjectKey(song['videoId']),
+                        backgroundColor: Colors.transparent,
+                        trailingActions: [
+                          SwipeAction(
+                            title: S.of(context).Remove,
+                            color: Colors.red,
+                            onTap: (handler) async {
+                              await Modals.showConfirmBottomModal(
+                                context,
+                                message: S.of(context).Remove_Message,
+                                isDanger: true,
+                              );
+                            },
+                          ),
+                        ],
+                        child: SongTile(song: song),
+                      ),
+                    );
+                  }, childCount: playlist['songs'].length),
+                ),
+
+            const SliverToBoxAdapter(child: SizedBox(height: 16)),
+          ],
         ),
       ),
     );

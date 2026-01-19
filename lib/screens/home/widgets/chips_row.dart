@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:m3e_collection/m3e_collection.dart';
 
 class ChipsRow extends StatelessWidget {
   const ChipsRow({super.key, required this.chips});
@@ -16,11 +15,9 @@ class ChipsRow extends StatelessWidget {
         children: chips.map((chip) {
           return Padding(
             padding: const EdgeInsets.symmetric(horizontal: 4),
-            child: ButtonM3E(
-              style: .tonal,
-              size: .xs,
+            child: FilledButton.tonal(
               onPressed: () => context.go('/chip', extra: chip),
-              label: Text(chip['title']),
+              child: Text(chip['title']),
             ),
           );
         }).toList(),

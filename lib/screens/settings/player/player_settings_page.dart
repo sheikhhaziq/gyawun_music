@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -35,7 +36,7 @@ class PlayerSettingsPage extends StatelessWidget {
                     /// Equalizer
                     SettingTile(
                       title: S.of(context).Loudness_And_Equalizer,
-                      leading: const Icon(Icons.equalizer_outlined),
+                      leading: const Icon(Icons.equalizer_rounded),
                       isFirst: true,
                       isLast: !Platform.isAndroid,
                       onTap: () {
@@ -50,8 +51,7 @@ class PlayerSettingsPage extends StatelessWidget {
                       SettingSwitchTile(
                         title: S.of(context).Skip_Silence,
                         leading: const Icon(
-                          Icons.fast_forward,
-                        ),
+FluentIcons.fast_forward_24_filled                        ),
                         value: s.skipSilence,
                         onChanged: (value) {
                           context

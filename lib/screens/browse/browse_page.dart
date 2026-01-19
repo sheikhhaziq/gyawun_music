@@ -1,19 +1,19 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:expandable_text/expandable_text.dart';
+import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
-import 'package:gyawun/core/network/internet_guard.dart';
+import 'package:gyawun/core/widgets/internet_guard.dart';
 import 'package:gyawun/core/utils/service_locator.dart';
 import 'package:gyawun/screens/browse/cubit/browse_cubit.dart';
 import 'package:gyawun/core/widgets/section_item.dart';
-import 'package:m3e_collection/m3e_collection.dart';
+import 'package:loading_indicator_m3e/loading_indicator_m3e.dart';
 
 import '../../generated/l10n.dart';
 import '../../services/bottom_message.dart';
 import '../../services/library.dart';
 import '../../services/media_player.dart';
-import '../../utils/adaptive_widgets/adaptive_widgets.dart';
 import '../../utils/bottom_modals.dart';
 import '../../utils/enhanced_image.dart';
 import '../../utils/extensions.dart';
@@ -60,8 +60,6 @@ class _BrowsePageState extends State<_BrowsePage> {
   //   }
   // }
 
-
-
   Future<void> _scrollListener() async {
     if (_scrollController.position.pixels ==
         _scrollController.position.maxScrollExtent) {
@@ -95,13 +93,12 @@ class _BrowsePageState extends State<_BrowsePage> {
                   actions: [
                     if (state.header['privacy'] != 'PRIVATE' &&
                         state.header['playlistId'] != 'LM')
-                      IconButtonM3E(
-                        variant: IconButtonM3EVariant.filled,
-                        size: .sm,
+                      IconButton(
                         icon: Icon(
                           isAddedToLibrary
                               ? Icons.bookmark_added
                               : Icons.bookmark_add_outlined,
+                          
                         ),
                         onPressed: () {
                           context
@@ -111,7 +108,9 @@ class _BrowsePageState extends State<_BrowsePage> {
                                 ...state.header,
                               })
                               .then((String message) {
-                                BottomMessage.showText(context, message);
+                                if (context.mounted) {
+                                  BottomMessage.showText(context, message);
+                                }
                               });
                         },
                       ),
@@ -259,14 +258,29 @@ class _HeaderWidgetState extends State<HeaderWidget> {
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 4),
               child: Wrap(
-                spacing: 8,
+                spacing: 4,
                 runSpacing: 8,
                 alignment: WrapAlignment.center,
                 runAlignment: WrapAlignment.center,
                 crossAxisAlignment: WrapCrossAlignment.center,
                 children: [
                   if (header['videoId'] != null || header['playlistId'] != null)
-                    ButtonM3E(
+                    FilledButton.icon(
+                      style: const ButtonStyle(
+                        padding: WidgetStatePropertyAll(
+                          .symmetric(horizontal: 24, vertical: 16),
+                        ),
+                        shape: WidgetStatePropertyAll(
+                          RoundedRectangleBorder(
+                            borderRadius: .only(
+                              topLeft: .circular(24),
+                              bottomLeft: .circular(24),
+                              topRight: .circular(8),
+                              bottomRight: .circular(8),
+                            ),
+                          ),
+                        ),
+                      ),
                       onPressed: () async {
                         BottomMessage.showText(
                           context,
@@ -277,14 +291,26 @@ class _HeaderWidgetState extends State<HeaderWidget> {
                         );
                       },
                       label: const Text('Play All'),
-                      icon: const Icon(Icons.play_arrow),
-                      size: ButtonM3ESize.md,
+                      icon: const Icon(FluentIcons.play_24_filled),
                     ),
 
-                  IconButtonM3E(
-                    variant: IconButtonM3EVariant.filled,
-                    size: .md,
-                    icon: const Icon(Icons.more_vert),
+                  FilledButton(
+                    style: const ButtonStyle(
+                      padding: WidgetStatePropertyAll(
+                          .symmetric(horizontal: 8, vertical: 16),
+                      ),
+                      shape: WidgetStatePropertyAll(
+                        RoundedRectangleBorder(
+                          borderRadius: .only(
+                            topLeft: .circular(8),
+                            bottomLeft: .circular(8),
+                            topRight: .circular(24),
+                            bottomRight: .circular(24),
+                          ),
+                        ),
+                      ),
+                    ),
+                    child: const Icon(Icons.more_vert,size: 20,),
                     onPressed: () {
                       Modals.showPlaylistBottomModal(context, header);
                     },
@@ -301,47 +327,40 @@ class _HeaderWidgetState extends State<HeaderWidget> {
   Widget build(BuildContext context) {
     return SizedBox(
       width: double.maxFinite,
-      child: Adaptivecard(
-        // margin: const EdgeInsets.all(16),
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            return constraints.maxWidth > 600
-                ? Row(
-                    children: [
-                      if (widget.header['thumbnails'] != null)
-                        _buildImage(
-                          context,
-                          widget.header['thumbnails'],
-                          constraints.maxWidth,
-                          isRound: widget.header['type'] == 'ARTIST',
-                        ),
-                      const SizedBox(width: 4),
-                      Expanded(
-                        child: _buildContent(
-                          widget.header,
-                          context,
-                          isRow: true,
-                        ),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          return constraints.maxWidth > 600
+              ? Row(
+                  children: [
+                    if (widget.header['thumbnails'] != null)
+                      _buildImage(
+                        context,
+                        widget.header['thumbnails'],
+                        constraints.maxWidth,
+                        isRound: widget.header['type'] == 'ARTIST',
                       ),
-                    ],
-                  )
-                : Column(
-                    children: [
-                      if (widget.header['thumbnails'] != null)
-                        _buildImage(
-                          context,
-                          widget.header['thumbnails'],
-                          constraints.maxWidth,
-                          isRound: widget.header['type'] == 'ARTIST',
-                        ),
-                      SizedBox(
-                        height: widget.header['thumbnails'] != null ? 4 : 0,
+                    const SizedBox(width: 4),
+                    Expanded(
+                      child: _buildContent(widget.header, context, isRow: true),
+                    ),
+                  ],
+                )
+              : Column(
+                  children: [
+                    if (widget.header['thumbnails'] != null)
+                      _buildImage(
+                        context,
+                        widget.header['thumbnails'],
+                        constraints.maxWidth,
+                        isRound: widget.header['type'] == 'ARTIST',
                       ),
-                      _buildContent(widget.header, context),
-                    ],
-                  );
-          },
-        ),
+                    SizedBox(
+                      height: widget.header['thumbnails'] != null ? 4 : 0,
+                    ),
+                    _buildContent(widget.header, context),
+                  ],
+                );
+        },
       ),
     );
   }

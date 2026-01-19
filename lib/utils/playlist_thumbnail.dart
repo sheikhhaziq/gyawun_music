@@ -5,13 +5,13 @@ import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:gyawun/utils/song_thumbnail.dart';
 
 class PlaylistThumbnail extends StatefulWidget {
-  final List playslist;
+  final List playlist;
   final double size;
   final double radius;
 
   const PlaylistThumbnail({
     super.key,
-    required this.playslist,
+    required this.playlist,
     required this.size,
     this.radius = 0,
   });
@@ -36,8 +36,8 @@ class _PlaylistThumbnailState extends State<PlaylistThumbnail> {
   }
 
   void _calculateItems({bool forceUpdate = false}) {
-    final int count = min(widget.playslist.length, 4);
-    final List sublist = widget.playslist.sublist(0, count);
+    final int count = min(widget.playlist.length, 4);
+    final List sublist = widget.playlist.sublist(0, count);
     final List<String> currentIds =
         sublist.map((e) => e['videoId'].toString()).toList();
     final List<String> cachedIds =
@@ -61,22 +61,25 @@ class _PlaylistThumbnailState extends State<PlaylistThumbnail> {
       child: SizedBox(
         height: widget.size,
         width: widget.size,
-        child: StaggeredGrid.count(
-          crossAxisCount: _itemsToDisplay.length > 1 ? 2 : 1,
-          children: _itemsToDisplay.indexed.map((ind) {
-            int index = ind.$1;
-            Map song = ind.$2;
-            return SongThumbnail(
-              key: ValueKey(song['videoId']),
-              song: song,
-              height: (_itemsToDisplay.length <= 2 ||
-                      (_itemsToDisplay.length == 3 && index == 0))
-                  ? widget.size
-                  : widget.size / 2,
-              width: _itemsToDisplay.length > 1 ? widget.size / 2 : widget.size,
-              fit: BoxFit.cover,
-            );
-          }).toList(),
+        child: ClipRRect(
+          borderRadius: .circular(8),
+          child: StaggeredGrid.count(
+            crossAxisCount: _itemsToDisplay.length > 1 ? 2 : 1,
+            children: _itemsToDisplay.indexed.map((ind) {
+              int index = ind.$1;
+              Map song = ind.$2;
+              return SongThumbnail(
+                key: ValueKey(song['videoId']),
+                song: song,
+                height: (_itemsToDisplay.length <= 2 ||
+                        (_itemsToDisplay.length == 3 && index == 0))
+                    ? widget.size
+                    : widget.size / 2,
+                width: _itemsToDisplay.length > 1 ? widget.size / 2 : widget.size,
+                fit: BoxFit.cover,
+              );
+            }).toList(),
+          ),
         ),
       ),
     );

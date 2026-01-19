@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'dart:io';
-import 'package:flutter/cupertino.dart';
+import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:gyawun/services/update_service/update_service.dart';
@@ -11,10 +11,8 @@ import '../../generated/l10n.dart';
 import 'widgets/bottom_player.dart';
 
 class AppShell extends StatefulWidget {
-  const AppShell({
-    Key? key,
-    required this.navigationShell,
-  }) : super(key: key ?? const ValueKey('AppShell'));
+  const AppShell({Key? key, required this.navigationShell})
+    : super(key: key ?? const ValueKey('AppShell'));
   final StatefulNavigationShell navigationShell;
 
   @override
@@ -27,8 +25,9 @@ class _AppShellState extends State<AppShell> {
   void initState() {
     super.initState();
     if (Platform.isAndroid) {
-      _intentSub =
-          ReceiveSharingIntent.instance.getMediaStream().listen((value) {
+      _intentSub = ReceiveSharingIntent.instance.getMediaStream().listen((
+        value,
+      ) {
         if (value.isNotEmpty) _handleIntent(value.first);
       });
 
@@ -90,66 +89,67 @@ class _AppShellState extends State<AppShell> {
                     type: screenWidth > 1000
                         ? NavigationRailM3EType.expanded
                         : NavigationRailM3EType.collapsed,
-                    // backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-                    // labelType: NavigationRailLabelType.none,
-                    // selectedLabelTextStyle: smallTextStyle(context, bold: true),
                     onDestinationSelected: _goBranch,
                     sections: [
                       NavigationRailM3ESection(
                         destinations: [
                           NavigationRailM3EDestination(
-                            selectedIcon:
-                                const Icon(CupertinoIcons.music_house_fill),
-                            icon: const Icon(CupertinoIcons.music_house),
+                            selectedIcon: const Icon(
+                              FluentIcons.home_24_filled,
+                            ),
+                            icon: const Icon(FluentIcons.home_24_regular),
                             label: S.of(context).Home,
                           ),
                           NavigationRailM3EDestination(
-                              selectedIcon:
-                                  const Icon(Icons.library_music_outlined),
-                              icon: const Icon(Icons.library_music_outlined),
-                              label: S.of(context).Saved),
+                            selectedIcon: const Icon(
+                              FluentIcons.library_24_filled,
+                            ),
+                            icon: const Icon(FluentIcons.library_24_regular),
+                            label: 'Library',
+                          ),
                           NavigationRailM3EDestination(
-                            selectedIcon:
-                                const Icon(CupertinoIcons.gear_alt_fill),
-                            icon: const Icon(CupertinoIcons.gear_alt),
+                            selectedIcon: const Icon(
+                              FluentIcons.settings_24_filled,
+                            ),
+                            icon: const Icon(FluentIcons.settings_24_regular),
                             label: S.of(context).Settings,
-                          )
+                          ),
                         ],
-                      )
+                      ),
                     ],
                     selectedIndex: widget.navigationShell.currentIndex,
                   ),
-                Expanded(
-                  child: widget.navigationShell,
-                ),
+                Expanded(child: widget.navigationShell),
               ],
             ),
           ),
-          const BottomPlayer()
+          const BottomPlayer(),
         ],
       ),
       bottomNavigationBar: screenWidth < 450
           ? NavigationBar(
               selectedIndex: widget.navigationShell.currentIndex,
+              labelBehavior: .onlyShowSelected,
               destinations: [
                 NavigationDestination(
-                  selectedIcon: const Icon(CupertinoIcons.music_house_fill),
-                  icon: const Icon(CupertinoIcons.music_house),
+                  selectedIcon: const Icon(FluentIcons.home_24_filled),
+                  icon: const Icon(FluentIcons.home_24_regular),
                   label: S.of(context).Home,
                 ),
                 NavigationDestination(
-                  selectedIcon: const Icon(Icons.library_music),
-                  icon: const Icon(Icons.library_music_outlined),
-                  label: S.of(context).Saved,
+                  selectedIcon: const Icon(FluentIcons.library_24_filled),
+                  icon: const Icon(FluentIcons.library_24_regular),
+                  label: 'Library',
                 ),
                 NavigationDestination(
-                  selectedIcon: const Icon(CupertinoIcons.settings_solid),
-                  icon: const Icon(CupertinoIcons.settings),
+                  selectedIcon: const Icon(FluentIcons.settings_24_filled),
+                  icon: const Icon(FluentIcons.settings_24_regular),
                   label: S.of(context).Settings,
                 ),
               ],
-              backgroundColor:
-                  Theme.of(context).colorScheme.surfaceContainerLow,
+              backgroundColor: Theme.of(
+                context,
+              ).colorScheme.surfaceContainerLow,
               // colo: Theme.of(context).colorScheme.onSurface,
               onDestinationSelected: _goBranch,
             )

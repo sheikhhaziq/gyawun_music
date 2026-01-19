@@ -5,6 +5,10 @@ sealed class SearchState {
   const SearchState();
 }
 
+final class SearchInitial extends SearchState{
+  const SearchInitial();
+}
+
 final class SearchLoading extends SearchState {
   const SearchLoading();
 }

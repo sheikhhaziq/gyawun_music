@@ -1,6 +1,6 @@
 import 'package:bloc/bloc.dart';
+import 'package:flutter/widgets.dart';
 import 'package:hive/hive.dart';
-import 'package:meta/meta.dart';
 import 'package:yt_music/ytmusic.dart';
 
 part 'search_state.dart';
@@ -8,7 +8,7 @@ part 'search_state.dart';
 class SearchCubit extends Cubit<SearchState> {
   final YTMusic _ytmusic;
   Map<String, dynamic>? endpoint;
-  SearchCubit(this._ytmusic, {this.endpoint}) : super(SearchLoading()) {
+  SearchCubit(this._ytmusic, {this.endpoint}) : super(SearchInitial()) {
     if (endpoint != null) {
       search('');
     }
@@ -27,8 +27,8 @@ class SearchCubit extends Cubit<SearchState> {
           continuation: feed['continuation'],
           loadingMore: false));
     } catch (e, st) {
-      print(e);
-      print(st);
+      debugPrint(e.toString());
+      debugPrint(st.toString());
       emit(SearchError(e.toString(), st.toString()));
     }
   }

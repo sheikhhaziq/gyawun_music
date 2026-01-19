@@ -86,44 +86,49 @@ class SettingTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 2),
-      child: ListTile(
-        onTap: onTap,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.only(
-            topLeft: Radius.circular(isFirst ? 20 : 4),
-            topRight: Radius.circular(isFirst ? 20 : 4),
-            bottomLeft: Radius.circular(isLast ? 20 : 4),
-            bottomRight: Radius.circular(isLast ? 20 : 4),
+      child: Material(
+        color: Colors.transparent,
+        shadowColor: Colors.transparent,
+        elevation: 0,
+        child: ListTile(
+          onTap: onTap,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(isFirst ? 20 : 4),
+              topRight: Radius.circular(isFirst ? 20 : 4),
+              bottomLeft: Radius.circular(isLast ? 20 : 4),
+              bottomRight: Radius.circular(isLast ? 20 : 4),
+            ),
           ),
-        ),
-        tileColor: Theme.of(context).colorScheme.surfaceContainer,
-        contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-        title: Text(
-          title,
-          style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                fontSize: 16,
-                fontWeight: FontWeight.w500,
-              ),
-        ),
-        leading: Container(
-          padding: EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: Theme.of(
-              context,
-            ).colorScheme.primaryContainer.withAlpha(150),
-            borderRadius: BorderRadius.circular(12),
+          tileColor: Theme.of(context).colorScheme.surfaceContainer,
+          contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+          title: Text(
+            title,
+            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                ),
           ),
-          child: leading,
+          leading: Container(
+            padding: EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: Theme.of(
+                context,
+              ).colorScheme.primaryContainer.withAlpha(150),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: leading,
+          ),
+          subtitle: subtitle != null
+              ? Text(
+                  subtitle!,
+                  style: Theme.of(context).textTheme.labelLarge,
+                  maxLines: subtitleLines,
+                  overflow: TextOverflow.ellipsis,
+                )
+              : null,
+          trailing: trailing,
         ),
-        subtitle: subtitle != null
-            ? Text(
-                subtitle!,
-                style: Theme.of(context).textTheme.labelLarge,
-                maxLines: subtitleLines,
-                overflow: TextOverflow.ellipsis,
-              )
-            : null,
-        trailing: trailing,
       ),
     );
   }

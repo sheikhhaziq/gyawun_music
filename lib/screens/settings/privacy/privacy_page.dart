@@ -1,3 +1,4 @@
+import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -65,7 +66,7 @@ class _PrivacyView extends StatelessWidget {
                   /// PLAYBACK HISTORY ENABLE
                   SettingSwitchTile(
                     title: S.of(context).Enable_Playback_History,
-                    leading: const Icon(Icons.manage_history_rounded),
+                    leading: const Icon(Icons.play_arrow_rounded),
                     isFirst: true,
                     value: state.playbackHistory,
                     onChanged: cubit.togglePlaybackHistory,
@@ -74,7 +75,7 @@ class _PrivacyView extends StatelessWidget {
                   /// DELETE PLAYBACK HISTORY
                   SettingTile(
                     title: S.of(context).Delete_Playback_History,
-                    leading: const Icon(Icons.playlist_remove_rounded),
+                    leading: const Icon(FluentIcons.history_dismiss_24_filled),
                     isLast: true,
                     onTap: () async {
                       final confirm = await Modals.showConfirmBottomModal(
@@ -105,7 +106,7 @@ class _PrivacyView extends StatelessWidget {
                   /// DELETE SEARCH HISTORY
                   SettingTile(
                     title: S.of(context).Delete_Search_History,
-                    leading: const Icon(Icons.highlight_remove_sharp),
+                    leading: const Icon(Icons.manage_search_rounded),
                     isLast: true,
                     onTap: () async {
                       final confirm = await Modals.showConfirmBottomModal(

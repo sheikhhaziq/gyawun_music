@@ -886,7 +886,7 @@ packages:
     source: hosted
     version: "0.1.1"
   navigation_rail_m3e:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: navigation_rail_m3e
       sha256: "029a1f556c4ecaf8318ae7d4ad09af117bdb449e483e3d9ec04085a9e341db3d"

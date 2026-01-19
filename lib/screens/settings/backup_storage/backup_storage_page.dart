@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:easy_folder_picker/FolderPicker.dart';
+import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -78,7 +79,7 @@ class _BackupStoragePage extends StatelessWidget {
                     GroupTitle(title: "Storage"),
                     SettingTile(
                       title: "App Folder",
-                      leading: const Icon(CupertinoIcons.folder),
+                      leading: const Icon(FluentIcons.folder_24_filled),
                       isFirst: true,
                       isLast: true,
                       subtitle: state.appFolder,
@@ -103,7 +104,7 @@ class _BackupStoragePage extends StatelessWidget {
                   /// BACKUP
                   SettingTile(
                     title: S.of(context).Backup,
-                    leading: const Icon(Icons.backup_outlined),
+                    leading: const Icon(Icons.backup_rounded),
                     isFirst: true,
                     onTap: () async {
                       final result = await showBackupSelector(context);
@@ -119,7 +120,7 @@ class _BackupStoragePage extends StatelessWidget {
                   /// RESTORE
                   SettingTile(
                     title: S.of(context).Restore,
-                    leading: const Icon(Icons.restore_outlined),
+                    leading: const Icon(Icons.restore_rounded),
                     isLast: true,
                     onTap: cubit.restore,
                   ),
@@ -163,7 +164,7 @@ Future<(String, List)?> showBackupSelector(BuildContext context) async {
               const Divider(),
               ValueListenableBuilder(
                 valueListenable: items,
-                builder: (_, backups, __) {
+                builder: (_, backups, _) {
                   return Column(
                     children: backups.indexed.map((el) {
                       final index = el.$1;

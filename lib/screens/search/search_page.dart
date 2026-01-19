@@ -1,12 +1,13 @@
 import 'dart:io';
 
+import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
 import 'package:get_it/get_it.dart';
 import 'package:go_router/go_router.dart';
-import 'package:gyawun/core/network/internet_guard.dart';
+import 'package:gyawun/core/widgets/internet_guard.dart';
 import 'package:gyawun/core/utils/service_locator.dart';
 import 'package:gyawun/screens/search/cubit/search_cubit.dart';
 import 'package:loading_indicator_m3e/loading_indicator_m3e.dart';
@@ -103,9 +104,7 @@ class _SearchPageState extends State<_SearchPage> {
                                   maxLines: 1,
                                   autofocus: true,
                                   textInputAction: TextInputAction.search,
-                                  fillColor: Platform.isWindows
-                                      ? null
-                                      : Colors.grey.withValues(alpha: 0.3),
+                                  fillColor: Theme.of(context).colorScheme.surfaceContainer,
                                   contentPadding: const EdgeInsets.symmetric(
                                       vertical: 2, horizontal: 8),
                                   borderRadius: BorderRadius.circular(
@@ -120,7 +119,7 @@ class _SearchPageState extends State<_SearchPage> {
                                         _textEditingController?.text = '';
                                       });
                                     },
-                                    child: const Icon(CupertinoIcons.clear),
+                                    child: const Icon(FluentIcons.dismiss_24_filled),
                                   ),
                                 );
                               },
@@ -169,6 +168,8 @@ class _SearchPageState extends State<_SearchPage> {
         body: BlocBuilder<SearchCubit, SearchState>(
           builder: (context, state) {
             switch (state) {
+              case SearchInitial():
+                return SizedBox.shrink();
               case SearchLoading():
                 return Center(
                   child: LoadingIndicatorM3E(),

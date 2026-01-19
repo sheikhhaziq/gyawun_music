@@ -13,7 +13,6 @@ import 'package:gyawun/themes/text_styles.dart';
 import 'package:gyawun/utils/adaptive_widgets/slider.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:loading_indicator_m3e/loading_indicator_m3e.dart';
-import 'package:m3e_collection/m3e_collection.dart';
 
 class EqualizerPage extends StatelessWidget {
   const EqualizerPage({super.key});

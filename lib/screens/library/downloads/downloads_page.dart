@@ -1,13 +1,14 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:gyawun/core/widgets/library_tile.dart';
 import 'package:gyawun/services/download_manager.dart';
+import 'package:gyawun/themes/text_styles.dart';
 
 import '../../../../generated/l10n.dart';
-import '../../../../themes/colors.dart';
-import '../../../../utils/adaptive_widgets/listtile.dart';
 import '../../../../utils/bottom_modals.dart';
-import '../../../../utils/extensions.dart';
 import '../../../../utils/playlist_thumbnail.dart';
 import 'cubit/downloads_cubit.dart';
 
@@ -19,26 +20,16 @@ class DownloadsPage extends StatelessWidget {
     return BlocProvider(
       create: (_) => DownloadsCubit()..load(),
       child: Scaffold(
-        appBar: AppBar(
-          title: Text(S.of(context).Downloads),
-          centerTitle: true,
-          actions: [
-            IconButton(
-              onPressed: () {
-                Modals.showDownloadBottomModal(context);
-              },
-              icon: const Icon(Icons.more_vert, size: 25),
-            ),
-          ],
-        ),
         body: BlocBuilder<DownloadsCubit, DownloadsState>(
           builder: (context, state) {
             return switch (state) {
-              DownloadsLoading() =>
-                const Center(child: CircularProgressIndicator()),
+              DownloadsLoading() => const Center(
+                child: CircularProgressIndicator(),
+              ),
               DownloadsError(:final message) => Center(child: Text(message)),
-              DownloadsLoaded(:final playlists) =>
-                _DownloadsBody(playlists: playlists),
+              DownloadsLoaded(:final playlists) => _DownloadsBody(
+                playlists: playlists,
+              ),
             };
           },
         ),
@@ -66,47 +57,69 @@ class _DownloadsBody extends StatelessWidget {
       }
     });
 
-    return SingleChildScrollView(
-      child: Center(
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 8),
-          constraints: const BoxConstraints(maxWidth: 1000),
-          child: Column(
-            children: sortedEntries.map((entry) {
-              final playlist = entry.value;
+    return NestedScrollView(
+      headerSliverBuilder: (context, innerBoxIsScrolled) {
+        return [
+          SliverAppBar(
+            pinned: true,
+            expandedHeight: 120,
+            flexibleSpace: LayoutBuilder(
+              builder: (context, constraints) {
+                final maxHeight = 120.0;
+                final t = (constraints.maxHeight / (maxHeight + 30)).clamp(
+                  0.0,
+                  1.0,
+                );
+                final paddingLeft = lerpDouble(100, 16, t)!;
 
-              return AdaptiveListTile(
-                margin: const EdgeInsets.symmetric(vertical: 4),
-                title: playlist['type'] == 'SONGS'
-                    ? Text(S.of(context).Songs)
-                    : Text(playlist['title']),
-                leading: _leading(context, playlist),
-                subtitle: Text(
-                  S.of(context).nSongs(playlist['songs'].length),
-                ),
-                trailing: const Icon(Icons.chevron_right),
-                onTap: () {
-                  context.push(
-                    '/saved/downloads_page/download_playlist_page',
-                    extra: {'playlistId': playlist['id']},
-                  );
+                return FlexibleSpaceBar(
+                  titlePadding: EdgeInsets.only(left: paddingLeft, bottom: 12),
+                  title: Text(
+                    S.of(context).Downloads,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: textStyle(context).copyWith(fontSize: 24),
+                  ),
+                );
+              },
+            ),
+            actions: [
+              IconButton(
+                onPressed: () {
+                  Modals.showDownloadBottomModal(context);
                 },
-                onSecondaryTap: () {
-                  Modals.showDownloadDetailsBottomModal(
-                    context,
-                    playlist,
-                  );
-                },
-                onLongPress: () {
-                  Modals.showDownloadDetailsBottomModal(
-                    context,
-                    playlist,
-                  );
-                },
-              );
-            }).toList(),
+                icon: const Icon(Icons.more_vert, size: 25),
+              ),
+            ],
           ),
-        ),
+        ];
+      },
+      body: ListView.builder(
+        itemCount: sortedEntries.length,
+        itemBuilder: (context, index) {
+          final playlist = sortedEntries[index].value;
+          return Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            child: LibraryTile(
+              title: playlist['type'] == 'SONGS'
+                  ? Text(S.of(context).Songs)
+                  : Text(playlist['title']),
+              leading: _leading(context, playlist),
+              subtitle: Text(S.of(context).nSongs(playlist['songs'].length)),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () {
+                context.push(
+                  '/library/downloads/download_playlist',
+                  extra: {'playlistId': playlist['id']},
+                );
+              },
+
+              onLongPress: () {
+                Modals.showDownloadDetailsBottomModal(context, playlist);
+              },
+            ),
+          );
+        },
       ),
     );
   }
@@ -114,29 +127,26 @@ class _DownloadsBody extends StatelessWidget {
   Widget _leading(BuildContext context, Map playlist) {
     if (playlist['type'] == 'SONGS') {
       return Container(
-        height: 50,
-        width: 50,
+        height: 40,
+        width: 40,
         decoration: BoxDecoration(
-          color: greyColor,
-          borderRadius: BorderRadius.circular(3),
+          color: Theme.of(context).colorScheme.primaryContainer,
+          borderRadius: BorderRadius.circular(8),
         ),
         child: Icon(
           Icons.music_note,
-          color: context.isDarkMode ? Colors.white : Colors.black,
+          color: Theme.of(context).colorScheme.onPrimaryContainer
         ),
       );
     }
 
+
     if (playlist['type'] == 'ALBUM') {
-      return PlaylistThumbnail(
-        playslist: [playlist['songs'][0]],
-        size: 50,
-      );
+      return PlaylistThumbnail(playlist: [playlist['songs'][0]], size: 40);
     }
 
-    return PlaylistThumbnail(
-      playslist: playlist['songs'],
-      size: 50,
-    );
+    return PlaylistThumbnail(playlist: playlist['songs'], size: 40);
   }
 }
+
+

@@ -63,13 +63,19 @@ class Modals {
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
       useSafeArea: true,
-      builder: (context) => _textFieldBottomModal(context,
-          title: title, hintText: hintText, doneText: doneText),
+      builder: (context) => _textFieldBottomModal(
+        context,
+        title: title,
+        hintText: hintText,
+        doneText: doneText,
+      ),
     );
   }
 
   static Future<T?> showSelection<T>(
-      BuildContext context, List<SelectionItem> items) {
+    BuildContext context,
+    List<SelectionItem> items,
+  ) {
     return showModalBottomSheet<T>(
       context: context,
       useRootNavigator: false,
@@ -91,10 +97,7 @@ class Modals {
     );
   }
 
-  static void showPlayerOptionsModal(
-    BuildContext context,
-    Map song,
-  ) {
+  static void showPlayerOptionsModal(BuildContext context, Map song) {
     showModalBottomSheet(
       useRootNavigator: false,
       backgroundColor: Colors.transparent,
@@ -128,7 +131,9 @@ class Modals {
   }
 
   static void showDownloadDetailsBottomModal(
-      BuildContext context, Map playlist) {
+    BuildContext context,
+    Map playlist,
+  ) {
     showModalBottomSheet(
       useRootNavigator: false,
       backgroundColor: Colors.transparent,
@@ -139,8 +144,12 @@ class Modals {
     );
   }
 
-  static Future showArtistsBottomModal(BuildContext context, List artists,
-      {String? leading, bool shouldPop = false}) {
+  static Future showArtistsBottomModal(
+    BuildContext context,
+    List artists, {
+    String? leading,
+    bool shouldPop = false,
+  }) {
     return showModalBottomSheet(
       useRootNavigator: false,
       backgroundColor: Colors.transparent,
@@ -176,16 +185,22 @@ class Modals {
     );
   }
 
-  static void showPlaylistRenameBottomModal(BuildContext context,
-      {required String playlistId, String? name}) {
+  static void showPlaylistRenameBottomModal(
+    BuildContext context, {
+    required String playlistId,
+    String? name,
+  }) {
     showModalBottomSheet(
       useRootNavigator: false,
       backgroundColor: Colors.transparent,
       useSafeArea: true,
       isScrollControlled: true,
       context: context,
-      builder: (context) => _playlistRenameBottomModal(context,
-          name: name, playlistId: playlistId),
+      builder: (context) => _playlistRenameBottomModal(
+        context,
+        name: name,
+        playlistId: playlistId,
+      ),
     );
   }
 
@@ -208,16 +223,19 @@ class Modals {
     String? cancelText,
   }) async {
     return await showModalBottomSheet(
-            useRootNavigator: false,
-            backgroundColor: Colors.transparent,
-            useSafeArea: true,
-            isScrollControlled: true,
-            context: context,
-            builder: (context) => _confirmBottomModal(context,
-                message: message,
-                isDanger: isDanger,
-                doneText: doneText,
-                cancelText: cancelText)) ??
+          useRootNavigator: false,
+          backgroundColor: Colors.transparent,
+          useSafeArea: true,
+          isScrollControlled: true,
+          context: context,
+          builder: (context) => _confirmBottomModal(
+            context,
+            message: message,
+            isDanger: isDanger,
+            doneText: doneText,
+            cancelText: cancelText,
+          ),
+        ) ??
         false;
   }
 
@@ -242,10 +260,7 @@ BottomModalLayout _confirmBottomModal(
 }) {
   return BottomModalLayout(
     title: Center(
-      child: Text(
-        S.of(context).Confirm,
-        style: bigTextStyle(context),
-      ),
+      child: Text(S.of(context).Confirm, style: bigTextStyle(context)),
     ),
     actions: [
       AdaptiveButton(
@@ -255,9 +270,7 @@ BottomModalLayout _confirmBottomModal(
         onPressed: () {
           Navigator.pop(context, false);
         },
-        child: Text(
-          cancelText ?? S.of(context).No,
-        ),
+        child: Text(cancelText ?? S.of(context).No),
       ),
       const SizedBox(width: 16),
       AdaptiveFilledButton(
@@ -269,130 +282,139 @@ BottomModalLayout _confirmBottomModal(
           doneText ?? S.of(context).Yes,
           style: TextStyle(color: isDanger ? Colors.white : null),
         ),
-      )
+      ),
     ],
     child: SingleChildScrollView(
       child: Center(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Text(message, textAlign: TextAlign.center),
-          ],
+          children: [Text(message, textAlign: TextAlign.center)],
         ),
       ),
     ),
   );
 }
 
-BottomModalLayout _playlistRenameBottomModal(BuildContext context,
-    {String? name, required String playlistId}) {
+BottomModalLayout _playlistRenameBottomModal(
+  BuildContext context, {
+  String? name,
+  required String playlistId,
+}) {
   TextEditingController controller = TextEditingController();
   controller.text = name ?? '';
   return BottomModalLayout(
-      title: Center(
-        child: Text(
-          S.of(context).Rename_Playlist,
-          style: mediumTextStyle(context),
-        ),
+    title: Center(
+      child: Text(
+        S.of(context).Rename_Playlist,
+        style: mediumTextStyle(context),
       ),
-      actions: [
-        AdaptiveFilledButton(
-          onPressed: () async {
-            String text = controller.text;
-            context
-                .read<LibraryService>()
-                .renamePlaylist(
-                    playlistId: playlistId,
-                    title: text.trim().isNotEmpty ? text : null)
-                .then((String message) {
-              Navigator.pop(context);
-              BottomMessage.showText(context, message);
-            });
-          },
-          child: Text(S.of(context).Rename),
-        )
-      ],
-      child: SingleChildScrollView(
-        child: Column(
-          children: [
-            Padding(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16),
-              child: Column(
-                children: [
-                  AdaptiveTextField(
-                    controller: controller,
-                    fillColor: greyColor,
-                    contentPadding:
-                        const EdgeInsets.symmetric(vertical: 2, horizontal: 16),
-                    hintText: S.of(context).Playlist_Name,
-                    prefix: const Icon(Icons.title),
+    ),
+    actions: [
+      AdaptiveFilledButton(
+        onPressed: () async {
+          String text = controller.text;
+          context
+              .read<LibraryService>()
+              .renamePlaylist(
+                playlistId: playlistId,
+                title: text.trim().isNotEmpty ? text : null,
+              )
+              .then((String message) {
+                if (context.mounted) {
+                  Navigator.pop(context);
+                  BottomMessage.showText(context, message);
+                }
+              });
+        },
+        child: Text(S.of(context).Rename),
+      ),
+    ],
+    child: SingleChildScrollView(
+      child: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16),
+            child: Column(
+              children: [
+                AdaptiveTextField(
+                  controller: controller,
+                  fillColor: greyColor,
+                  contentPadding: const EdgeInsets.symmetric(
+                    vertical: 2,
+                    horizontal: 16,
                   ),
-                ],
-              ),
-            )
-          ],
-        ),
-      ));
+                  hintText: S.of(context).Playlist_Name,
+                  prefix: const Icon(Icons.title),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    ),
+  );
 }
 
 BottomModalLayout _artistsBottomModal(
-    BuildContext context, List<dynamic> artists,
-    {bool shouldPop = false}) {
+  BuildContext context,
+  List<dynamic> artists, {
+  bool shouldPop = false,
+}) {
   return BottomModalLayout(
-      title: Center(
-        child: Text(
-          S.of(context).Artists,
-          style: mediumTextStyle(context),
-        ),
-      ),
-      child: SingleChildScrollView(
-        child: Column(
-          children: [
-            ...artists.map(
-              (artist) => AdaptiveListTile(
-                  dense: true,
-                  title: Text(
-                    artist['name'],
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  leading: Icon(AdaptiveIcons.person),
-                  trailing: Icon(AdaptiveIcons.chevron_right),
-                  onTap: () {
-                    if (shouldPop) {
-                      context.go(
-                        '/browse',
-                        extra: {
-                          'endpoint':
-                              artist['endpoint'].cast<String, dynamic>(),
-                        },
-                      );
-                    } else {
-                      Navigator.pop(context);
-                      context.push(
-                        '/browse',
-                        extra: {
-                          'endpoint':
-                              artist['endpoint'].cast<String, dynamic>(),
-                        },
-                      );
-                    }
-                  }),
+    title: Center(
+      child: Text(S.of(context).Artists, style: mediumTextStyle(context)),
+    ),
+    child: SingleChildScrollView(
+      child: Column(
+        children: [
+          ...artists.map(
+            (artist) => AdaptiveListTile(
+              dense: true,
+              title: Text(
+                artist['name'],
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+              leading: Icon(AdaptiveIcons.person),
+              trailing: Icon(AdaptiveIcons.chevron_right),
+              onTap: () {
+                if (shouldPop) {
+                  context.go(
+                    '/browse',
+                    extra: {
+                      'endpoint': artist['endpoint'].cast<String, dynamic>(),
+                    },
+                  );
+                } else {
+                  Navigator.pop(context);
+                  context.push(
+                    '/browse',
+                    extra: {
+                      'endpoint': artist['endpoint'].cast<String, dynamic>(),
+                    },
+                  );
+                }
+              },
             ),
-          ],
-        ),
-      ));
+          ),
+        ],
+      ),
+    ),
+  );
 }
 
 Widget _createPlaylistModal(
-    String title, BuildContext context, Map<dynamic, dynamic>? item) {
+  String title,
+  BuildContext context,
+  Map<dynamic, dynamic>? item,
+) {
   return BottomModalLayout(
     title: Center(
-        child: Text(
-      S.of(context).Create_Playlist,
-      style: mediumTextStyle(context),
-    )),
+      child: Text(
+        S.of(context).Create_Playlist,
+        style: mediumTextStyle(context),
+      ),
+    ),
     actions: [
       AdaptiveButton(
         onPressed: () async {
@@ -403,20 +425,22 @@ Widget _createPlaylistModal(
       AdaptiveFilledButton(
         color: Theme.of(context).colorScheme.primary,
         onPressed: () async {
-          context
-              .read<LibraryService>()
-              .createPlaylist(title, item: item)
-              .then((String message) {
-            Navigator.pop(context);
-            BottomMessage.showText(context, message);
-          });
+          context.read<LibraryService>().createPlaylist(title, item: item).then(
+            (String message) {
+              if (context.mounted) {
+                Navigator.pop(context);
+                BottomMessage.showText(context, message);
+              }
+            },
+          );
         },
         child: Text(
           S.of(context).Create,
           style: TextStyle(
-              color: context.isDarkMode ? Colors.black : Colors.white),
+            color: context.isDarkMode ? Colors.black : Colors.white,
+          ),
         ),
-      )
+      ),
     ],
     child: SingleChildScrollView(
       child: Column(
@@ -428,8 +452,10 @@ Widget _createPlaylistModal(
                 fillColor: Platform.isAndroid ? greyColor : null,
                 hintText: S.of(context).Playlist_Name,
                 prefix: Padding(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
                   child: Icon(Icons.title),
                 ),
               ),
@@ -461,8 +487,9 @@ Widget _importPlaylistModal(BuildContext context) {
         color: Theme.of(context).colorScheme.primary,
         onPressed: () async {
           Modals.showCenterLoadingModal(context);
-          String message =
-              await GetIt.I<LibraryService>().importPlaylist(title);
+          String message = await GetIt.I<LibraryService>().importPlaylist(
+            title,
+          );
           if (context.mounted) {
             Navigator.pop(context);
             Navigator.pop(context);
@@ -472,9 +499,10 @@ Widget _importPlaylistModal(BuildContext context) {
         child: Text(
           S.of(context).Import,
           style: TextStyle(
-              color: context.isDarkMode ? Colors.black : Colors.white),
+            color: context.isDarkMode ? Colors.black : Colors.white,
+          ),
         ),
-      )
+      ),
     ],
     child: SingleChildScrollView(
       child: Column(
@@ -486,13 +514,17 @@ Widget _importPlaylistModal(BuildContext context) {
                 keyboardType: TextInputType.url,
                 hintText: 'https://music.youtube.com/playlist?list=',
                 prefix: Padding(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
                   child: Icon(Icons.title),
                 ),
                 fillColor: Platform.isWindows ? null : greyColor,
-                contentPadding:
-                    const EdgeInsets.symmetric(vertical: 2, horizontal: 16),
+                contentPadding: const EdgeInsets.symmetric(
+                  vertical: 2,
+                  horizontal: 16,
+                ),
               ),
             ],
           ),
@@ -511,14 +543,12 @@ BottomModalLayout _addToPlaylist(BuildContext context, Map item) {
         style: mediumTextStyle(context),
       ),
       trailing: AdaptiveIconButton(
-          onPressed: () {
-            Navigator.pop(context);
-            Modals.showCreateplaylistModal(context, item: item);
-          },
-          icon: const Icon(
-            Icons.playlist_add,
-            size: 20,
-          )),
+        onPressed: () {
+          Navigator.pop(context);
+          Modals.showCreateplaylistModal(context, item: item);
+        },
+        icon: const Icon(Icons.playlist_add, size: 20),
+      ),
     ),
     child: SingleChildScrollView(
       child: Column(
@@ -535,40 +565,45 @@ BottomModalLayout _addToPlaylist(BuildContext context, Map item) {
                       leading: playlist['isPredefined'] == true
                           ? ClipRRect(
                               borderRadius: BorderRadius.circular(
-                                  playlist['type'] == 'ARTIST' ? 50 : 3),
+                                playlist['type'] == 'ARTIST' ? 50 : 3,
+                              ),
                               child: CachedNetworkImage(
-                                imageUrl: playlist['thumbnails']
-                                    .first['url']
+                                imageUrl: playlist['thumbnails'].first['url']
                                     .replaceAll('w540-h225', 'w60-h60'),
                                 height: 50,
                                 width: 50,
-                              ))
+                              ),
+                            )
                           : (playlist['songs'] != null &&
-                                  playlist['songs']?.length > 0)
-                              ? PlaylistThumbnail(
-                                  playslist: playlist['songs'], size: 50)
-                              : Container(
-                                  height: 50,
-                                  width: 50,
-                                  decoration: BoxDecoration(
-                                    color: greyColor,
-                                    borderRadius: BorderRadius.circular(3),
-                                  ),
-                                  child: Icon(
-                                    CupertinoIcons.music_note_list,
-                                    color: context.isDarkMode
-                                        ? Colors.white
-                                        : Colors.black,
-                                  ),
-                                ),
+                                playlist['songs']?.length > 0)
+                          ? PlaylistThumbnail(
+                              playlist: playlist['songs'],
+                              size: 50,
+                            )
+                          : Container(
+                              height: 50,
+                              width: 50,
+                              decoration: BoxDecoration(
+                                color: greyColor,
+                                borderRadius: BorderRadius.circular(3),
+                              ),
+                              child: Icon(
+                                CupertinoIcons.music_note_list,
+                                color: context.isDarkMode
+                                    ? Colors.white
+                                    : Colors.black,
+                              ),
+                            ),
                       onTap: () async {
                         await context
                             .read<LibraryService>()
                             .addToPlaylist(item: item, key: key)
                             .then((String message) {
-                          Navigator.pop(context);
-                          BottomMessage.showText(context, message);
-                        });
+                              if (context.mounted) {
+                                Navigator.pop(context);
+                                BottomMessage.showText(context, message);
+                              }
+                            });
                       },
                     ),
             );
@@ -653,17 +688,16 @@ BottomModalLayout _addToPlaylist(BuildContext context, Map item) {
 //   );
 // }
 
-BottomModalLayout _textFieldBottomModal(BuildContext context,
-    {String? title, String? hintText, String? doneText}) {
+BottomModalLayout _textFieldBottomModal(
+  BuildContext context, {
+  String? title,
+  String? hintText,
+  String? doneText,
+}) {
   String? text;
   return BottomModalLayout(
     title: (title != null)
-        ? Center(
-            child: Text(
-              title,
-              style: mediumTextStyle(context),
-            ),
-          )
+        ? Center(child: Text(title, style: mediumTextStyle(context)))
         : null,
     actions: [
       AdaptiveFilledButton(
@@ -671,7 +705,7 @@ BottomModalLayout _textFieldBottomModal(BuildContext context,
           Navigator.pop(context, text);
         },
         child: Text(doneText ?? S.of(context).Done),
-      )
+      ),
     ],
     child: SingleChildScrollView(
       child: Column(
@@ -684,8 +718,10 @@ BottomModalLayout _textFieldBottomModal(BuildContext context,
                 AdaptiveTextField(
                   onChanged: (value) => text = value,
                   fillColor: greyColor,
-                  contentPadding:
-                      const EdgeInsets.symmetric(vertical: 2, horizontal: 16),
+                  contentPadding: const EdgeInsets.symmetric(
+                    vertical: 2,
+                    horizontal: 16,
+                  ),
                   hintText: hintText,
                   prefix: const Icon(Icons.title),
                 ),
@@ -700,173 +736,188 @@ BottomModalLayout _textFieldBottomModal(BuildContext context,
 
 BottomModalLayout _playerOptionsModal(BuildContext context, Map song) {
   return BottomModalLayout(
-      child: SingleChildScrollView(
-    child: Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Column(
-          children: [
-            StreamBuilder(
-              stream: GetIt.I<MediaPlayer>().player.volumeStream,
-              builder: (context, progress) {
-                return AdaptiveListTile(
-                  dense: true,
-                  leading: Icon(
-                    AdaptiveIcons.volume(
+    child: SingleChildScrollView(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Column(
+            children: [
+              StreamBuilder(
+                stream: GetIt.I<MediaPlayer>().player.volumeStream,
+                builder: (context, progress) {
+                  return AdaptiveListTile(
+                    dense: true,
+                    leading: Icon(
+                      AdaptiveIcons.volume(
                         (progress.hasData && progress.data != null)
                             ? progress.data!
-                            : GetIt.I<MediaPlayer>().player.volume),
-                  ),
-                  title: AdaptiveSlider(
-                    label: (((progress.hasData && progress.data != null)
-                                ? progress.data!
-                                : GetIt.I<MediaPlayer>().player.volume) *
-                            100)
-                        .toStringAsFixed(1),
-                    value: (progress.hasData && progress.data != null)
-                        ? progress.data!
-                        : GetIt.I<MediaPlayer>().player.volume,
-                    onChanged: (volume) {
-                      GetIt.I<MediaPlayer>().player.setVolume(volume);
-                    },
-                  ),
-                );
-              },
-            ),
-            StreamBuilder(
-              stream: GetIt.I<MediaPlayer>().player.speedStream,
-              builder: (context, progress) {
-                return AdaptiveListTile(
-                  dense: true,
-                  leading: const Icon(Icons.speed),
-                  title: AdaptiveSlider(
-                    max: 2,
-                    min: 0.25,
-                    divisions: 7,
-                    label: ((progress.hasData && progress.data != null)
-                            ? progress.data!
-                            : GetIt.I<MediaPlayer>().player.speed)
-                        .toString(),
-                    value: (progress.hasData && progress.data != null)
-                        ? progress.data!
-                        : GetIt.I<MediaPlayer>().player.speed,
-                    onChanged: (speed) {
-                      GetIt.I<MediaPlayer>().player.setSpeed(speed);
-                    },
-                  ),
-                );
-              },
-            ),
-          ],
-        ),
-        if (Platform.isAndroid)
-          AdaptiveListTile(
-            dense: true,
-            title: Text(S.of(context).Equalizer),
-            leading: Icon(AdaptiveIcons.equalizer),
-            onTap: () {
-              Navigator.of(context).push(MaterialPageRoute(
-                  builder: (context) => const EqualizerPage()));
-            },
-            trailing: Icon(Icons.chevron_right),
+                            : GetIt.I<MediaPlayer>().player.volume,
+                      ),
+                    ),
+                    title: AdaptiveSlider(
+                      label:
+                          (((progress.hasData && progress.data != null)
+                                      ? progress.data!
+                                      : GetIt.I<MediaPlayer>().player.volume) *
+                                  100)
+                              .toStringAsFixed(1),
+                      value: (progress.hasData && progress.data != null)
+                          ? progress.data!
+                          : GetIt.I<MediaPlayer>().player.volume,
+                      onChanged: (volume) {
+                        GetIt.I<MediaPlayer>().player.setVolume(volume);
+                      },
+                    ),
+                  );
+                },
+              ),
+              StreamBuilder(
+                stream: GetIt.I<MediaPlayer>().player.speedStream,
+                builder: (context, progress) {
+                  return AdaptiveListTile(
+                    dense: true,
+                    leading: const Icon(Icons.speed),
+                    title: AdaptiveSlider(
+                      max: 2,
+                      min: 0.25,
+                      divisions: 7,
+                      label:
+                          ((progress.hasData && progress.data != null)
+                                  ? progress.data!
+                                  : GetIt.I<MediaPlayer>().player.speed)
+                              .toString(),
+                      value: (progress.hasData && progress.data != null)
+                          ? progress.data!
+                          : GetIt.I<MediaPlayer>().player.speed,
+                      onChanged: (speed) {
+                        GetIt.I<MediaPlayer>().player.setSpeed(speed);
+                      },
+                    ),
+                  );
+                },
+              ),
+            ],
           ),
-        if (song['artists'] != null)
-          AdaptiveListTile(
-            dense: true,
-            title: Text(S.of(context).Artists),
-            leading: Icon(AdaptiveIcons.people),
-            trailing: Icon(Icons.chevron_right),
-            onTap: () {
-              Navigator.pop(context);
-              Modals.showArtistsBottomModal(
-                context,
-                song['artists'],
-                leading: song['thumbnails'].first['url'],
-                shouldPop: true,
-              );
-            },
-          ),
-        if (song['album'] != null)
-          AdaptiveListTile(
+          if (Platform.isAndroid)
+            AdaptiveListTile(
               dense: true,
-              title: Text(S.of(context).Album,
-                  maxLines: 1, overflow: TextOverflow.ellipsis),
+              title: Text(S.of(context).Equalizer),
+              leading: Icon(AdaptiveIcons.equalizer),
+              onTap: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => const EqualizerPage(),
+                  ),
+                );
+              },
+              trailing: Icon(Icons.chevron_right),
+            ),
+          if (song['artists'] != null)
+            AdaptiveListTile(
+              dense: true,
+              title: Text(S.of(context).Artists),
+              leading: Icon(AdaptiveIcons.people),
+              trailing: Icon(Icons.chevron_right),
+              onTap: () {
+                Navigator.pop(context);
+                Modals.showArtistsBottomModal(
+                  context,
+                  song['artists'],
+                  leading: song['thumbnails'].first['url'],
+                  shouldPop: true,
+                );
+              },
+            ),
+          if (song['album'] != null)
+            AdaptiveListTile(
+              dense: true,
+              title: Text(
+                S.of(context).Album,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
               leading: Icon(AdaptiveIcons.album),
               trailing: Icon(Icons.chevron_right),
               onTap: () {
-                context.go('/browse', extra: {
-                  'endpoint': song['album']['endpoint'].cast<String, dynamic>(),
-                });
-              }),
-        AdaptiveListTile(
-          dense: true,
-          title: Text(S.of(context).Add_To_Playlist),
-          leading: Icon(AdaptiveIcons.library_add),
-          onTap: () {
-            Navigator.pop(context);
-            Modals.addToPlaylist(context, song);
-          },
-        ),
-        AdaptiveListTile(
-          dense: true,
-          leading: Icon(AdaptiveIcons.timer),
-          title: Text(S.of(context).Sleep_Timer),
-          onTap: () {
-            showDurationPicker(
+                context.go(
+                  '/browse',
+                  extra: {
+                    'endpoint': song['album']['endpoint']
+                        .cast<String, dynamic>(),
+                  },
+                );
+              },
+            ),
+          AdaptiveListTile(
+            dense: true,
+            title: Text(S.of(context).Add_To_Playlist),
+            leading: Icon(AdaptiveIcons.library_add),
+            onTap: () {
+              Navigator.pop(context);
+              Modals.addToPlaylist(context, song);
+            },
+          ),
+          AdaptiveListTile(
+            dense: true,
+            leading: Icon(AdaptiveIcons.timer),
+            title: Text(S.of(context).Sleep_Timer),
+            onTap: () {
+              showDurationPicker(
                 context: context,
                 initialTime: const Duration(minutes: 30),
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(10),
                   color: AdaptiveTheme.of(context).inactiveBackgroundColor,
-                )).then(
-              (duration) {
+                ),
+              ).then((duration) {
                 if (duration != null) {
-                  context.read<MediaPlayer>().setTimer(duration);
+                  if (context.mounted) {
+                    context.read<MediaPlayer>().setTimer(duration);
+                  }
                 }
+              });
+            },
+            trailing: ValueListenableBuilder(
+              valueListenable: GetIt.I<MediaPlayer>().timerDuration,
+              builder: (context, value, child) {
+                return value == null
+                    ? const SizedBox.shrink()
+                    : TextButton.icon(
+                        onPressed: () {
+                          GetIt.I<MediaPlayer>().cancelTimer();
+                        },
+                        label: Text(formatDuration(value)),
+                        icon: const Icon(CupertinoIcons.clear),
+                        iconAlignment: IconAlignment.end,
+                      );
               },
-            );
-          },
-          trailing: ValueListenableBuilder(
-            valueListenable: GetIt.I<MediaPlayer>().timerDuration,
-            builder: (context, value, child) {
-              return value == null
-                  ? const SizedBox.shrink()
-                  : TextButton.icon(
-                      onPressed: () {
-                        GetIt.I<MediaPlayer>().cancelTimer();
-                      },
-                      label: Text(formatDuration(value)),
-                      icon: const Icon(CupertinoIcons.clear),
-                      iconAlignment: IconAlignment.end,
-                    );
+            ),
+          ),
+          AdaptiveListTile(
+            dense: true,
+            title: const Text('Share'),
+            leading: Icon(AdaptiveIcons.share),
+            onTap: () {
+              Navigator.pop(context);
+              Share.shareUri(
+                Uri.parse(
+                  'https://music.youtube.com/watch?v=${song['videoId']}',
+                ),
+              );
             },
           ),
-        ),
-        AdaptiveListTile(
-          dense: true,
-          title: const Text('Share'),
-          leading: Icon(AdaptiveIcons.share),
-          onTap: () {
-            Navigator.pop(context);
-            Share.shareUri(
-              Uri.parse('https://music.youtube.com/watch?v=${song['videoId']}'),
-            );
-          },
-        ),
-      ],
+        ],
+      ),
     ),
-  ));
+  );
 }
 
 BottomModalLayout _showSelection(
-    BuildContext context, List<SelectionItem> items) {
+  BuildContext context,
+  List<SelectionItem> items,
+) {
   return BottomModalLayout(
-    title: Center(
-      child: Text(
-        "Select",
-        style: mediumTextStyle(context),
-      ),
-    ),
+    title: Center(child: Text("Select", style: mediumTextStyle(context))),
     child: SingleChildScrollView(
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -903,9 +954,11 @@ BottomModalLayout _songBottomModal(BuildContext context, Map song) {
           ? Text(song['subtitle'], maxLines: 1, overflow: TextOverflow.ellipsis)
           : null,
       trailing: IconButton(
-          onPressed: () => Share.shareUri(Uri.parse(
-              'https://music.youtube.com/watch?v=${song['videoId']}')),
-          icon: const Icon(CupertinoIcons.share)),
+        onPressed: () => Share.shareUri(
+          Uri.parse('https://music.youtube.com/watch?v=${song['videoId']}'),
+        ),
+        icon: const Icon(CupertinoIcons.share),
+      ),
     ),
     child: SingleChildScrollView(
       child: Column(
@@ -935,22 +988,21 @@ BottomModalLayout _songBottomModal(BuildContext context, Map song) {
               Map? item = value.get(song['videoId']);
               return AdaptiveListTile(
                 dense: true,
-                title: Text(item == null
-                    ? S.of(context).Add_To_Favourites
-                    : S.of(context).Remove_From_Favourites),
-                leading: Icon(item == null
-                    ? AdaptiveIcons.heart
-                    : AdaptiveIcons.heart_fill),
+                title: Text(
+                  item == null
+                      ? S.of(context).Add_To_Favourites
+                      : S.of(context).Remove_From_Favourites,
+                ),
+                leading: Icon(
+                  item == null ? AdaptiveIcons.heart : AdaptiveIcons.heart_fill,
+                ),
                 onTap: () async {
                   Navigator.pop(context);
                   if (item == null) {
-                    await Hive.box('FAVOURITES').put(
-                      song['videoId'],
-                      {
-                        ...song,
-                        'createdAt': DateTime.now().millisecondsSinceEpoch
-                      },
-                    );
+                    await Hive.box('FAVOURITES').put(song['videoId'], {
+                      ...song,
+                      'createdAt': DateTime.now().millisecondsSinceEpoch,
+                    });
                   } else {
                     await value.delete(song['videoId']);
                   }
@@ -995,27 +1047,34 @@ BottomModalLayout _songBottomModal(BuildContext context, Map song) {
               trailing: Icon(AdaptiveIcons.chevron_right),
               onTap: () {
                 Navigator.pop(context);
-                Modals.showArtistsBottomModal(context, song['artists'],
-                    leading: song['thumbnails'].first['url']);
+                Modals.showArtistsBottomModal(
+                  context,
+                  song['artists'],
+                  leading: song['thumbnails'].first['url'],
+                );
               },
             ),
           if (song['album'] != null)
             AdaptiveListTile(
-                dense: true,
-                title: Text(S.of(context).Album,
-                    maxLines: 1, overflow: TextOverflow.ellipsis),
-                leading: Icon(AdaptiveIcons.album),
-                trailing: Icon(AdaptiveIcons.chevron_right),
-                onTap: () {
-                  Navigator.pop(context);
-                  context.push(
-                    '/browse',
-                    extra: {
-                      'endpoint':
-                          song['album']['endpoint'].cast<String, dynamic>(),
-                    },
-                  );
-                }),
+              dense: true,
+              title: Text(
+                S.of(context).Album,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+              leading: Icon(AdaptiveIcons.album),
+              trailing: Icon(AdaptiveIcons.chevron_right),
+              onTap: () {
+                Navigator.pop(context);
+                context.push(
+                  '/browse',
+                  extra: {
+                    'endpoint': song['album']['endpoint']
+                        .cast<String, dynamic>(),
+                  },
+                );
+              },
+            ),
         ],
       ),
     ),
@@ -1026,21 +1085,27 @@ BottomModalLayout _playlistBottomModal(BuildContext context, Map playlist) {
   return BottomModalLayout(
     title: AdaptiveListTile(
       contentPadding: EdgeInsets.zero,
-      title:
-          Text(playlist['title'], maxLines: 1, overflow: TextOverflow.ellipsis),
-      leading: playlist['isPredefined'] != false ||
+      title: Text(
+        playlist['title'],
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+      ),
+      leading:
+          playlist['isPredefined'] != false ||
               (playlist['songs'] != null && playlist['songs']?.length > 0)
           ? ClipRRect(
-              borderRadius:
-                  BorderRadius.circular(playlist['type'] == 'ARTIST' ? 50 : 10),
+              borderRadius: BorderRadius.circular(
+                playlist['type'] == 'ARTIST' ? 50 : 10,
+              ),
               child: CachedNetworkImage(
                 imageUrl: playlist['thumbnails']?.isNotEmpty == true
                     ? playlist['thumbnails'].first['url']
                     : playlist['isPredefined'] == true
-                        ? playlist['thumbnails']
-                            .first['url']
-                            .replaceAll('w540-h225', 'w60-h60')
-                        : playlist['songs'].first['thumbnails'].first['url'],
+                    ? playlist['thumbnails'].first['url'].replaceAll(
+                        'w540-h225',
+                        'w60-h60',
+                      )
+                    : playlist['songs'].first['thumbnails'].first['url'],
                 height: 50,
                 width: 50,
               ),
@@ -1051,7 +1116,8 @@ BottomModalLayout _playlistBottomModal(BuildContext context, Map playlist) {
               decoration: BoxDecoration(
                 color: greyColor,
                 borderRadius: BorderRadius.circular(
-                    playlist['type'] == 'ARTIST' ? 50 : 10),
+                  playlist['type'] == 'ARTIST' ? 50 : 10,
+                ),
               ),
               child: Icon(
                 CupertinoIcons.music_note_list,
@@ -1059,16 +1125,23 @@ BottomModalLayout _playlistBottomModal(BuildContext context, Map playlist) {
               ),
             ),
       subtitle: playlist['subtitle'] != null
-          ? Text(playlist['subtitle'],
-              maxLines: 1, overflow: TextOverflow.ellipsis)
+          ? Text(
+              playlist['subtitle'],
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            )
           : null,
       trailing: playlist['isPredefined'] != false
           ? IconButton(
-              onPressed: () => Share.shareUri(Uri.parse(playlist['type'] ==
-                      'ARTIST'
-                  ? 'https://music.youtube.com/channel/${playlist['endpoint']['browseId']}'
-                  : 'https://music.youtube.com/playlist?list=${playlist['playlistId']}')),
-              icon: const Icon(CupertinoIcons.share))
+              onPressed: () => Share.shareUri(
+                Uri.parse(
+                  playlist['type'] == 'ARTIST'
+                      ? 'https://music.youtube.com/channel/${playlist['endpoint']['browseId']}'
+                      : 'https://music.youtube.com/playlist?list=${playlist['playlistId']}',
+                ),
+              ),
+              icon: const Icon(CupertinoIcons.share),
+            )
           : null,
     ),
     child: SingleChildScrollView(
@@ -1111,38 +1184,46 @@ BottomModalLayout _playlistBottomModal(BuildContext context, Map playlist) {
               title: Text(S.of(context).Rename),
               onTap: () {
                 Navigator.pop(context);
-                Modals.showPlaylistRenameBottomModal(context,
-                    playlistId: playlist['playlistId'],
-                    name: playlist['title']);
+                Modals.showPlaylistRenameBottomModal(
+                  context,
+                  playlistId: playlist['playlistId'],
+                  name: playlist['title'],
+                );
               },
             ),
           AdaptiveListTile(
             dense: true,
             title: Text(
               context.watch<LibraryService>().getPlaylist(
-                          playlist['playlistId'] ??
-                              playlist['endpoint']['browseId']) ==
+                        playlist['playlistId'] ??
+                            playlist['endpoint']['browseId'],
+                      ) ==
                       null
                   ? S.of(context).Add_To_Library
                   : S.of(context).Remove_From_Library,
             ),
-            leading: Icon(context.watch<LibraryService>().getPlaylist(
+            leading: Icon(
+              context.watch<LibraryService>().getPlaylist(
                         playlist['playlistId'] ??
-                            playlist['endpoint']['browseId']) ==
-                    null
-                ? AdaptiveIcons.library_add
-                : AdaptiveIcons.library_add_check),
+                            playlist['endpoint']['browseId'],
+                      ) ==
+                      null
+                  ? AdaptiveIcons.library_add
+                  : AdaptiveIcons.library_add_check,
+            ),
             onTap: () {
               Navigator.pop(context);
-              if (context
-                      .read<LibraryService>()
-                      .getPlaylist(playlist['playlistId']) ==
+              if (context.read<LibraryService>().getPlaylist(
+                    playlist['playlistId'],
+                  ) ==
                   null) {
                 GetIt.I<LibraryService>()
                     .addToOrRemoveFromLibrary(playlist)
                     .then((String message) {
-                  BottomMessage.showText(context, message);
-                });
+                      if (context.mounted) {
+                        BottomMessage.showText(context, message);
+                      }
+                    });
               } else {
                 Modals.showConfirmBottomModal(
                   context,
@@ -1153,8 +1234,10 @@ BottomModalLayout _playlistBottomModal(BuildContext context, Map playlist) {
                     GetIt.I<LibraryService>()
                         .addToOrRemoveFromLibrary(playlist)
                         .then((String message) {
-                      BottomMessage.showText(context, message);
-                    });
+                          if (context.mounted) {
+                            BottomMessage.showText(context, message);
+                          }
+                        });
                   }
                 });
               }
@@ -1168,9 +1251,14 @@ BottomModalLayout _playlistBottomModal(BuildContext context, Map playlist) {
               onTap: () async {
                 Navigator.pop(context);
                 BottomMessage.showText(
-                    context, S.of(context).Songs_Will_Start_Playing_Soon);
-                await GetIt.I<MediaPlayer>().startRelated(Map.from(playlist),
-                    radio: true, isArtist: playlist['type'] == 'ARTIST');
+                  context,
+                  S.of(context).Songs_Will_Start_Playing_Soon,
+                );
+                await GetIt.I<MediaPlayer>().startRelated(
+                  Map.from(playlist),
+                  radio: true,
+                  isArtist: playlist['type'] == 'ARTIST',
+                );
               },
             ),
           if (playlist['artists'] != null && playlist['artists'].isNotEmpty)
@@ -1181,22 +1269,26 @@ BottomModalLayout _playlistBottomModal(BuildContext context, Map playlist) {
               trailing: Icon(AdaptiveIcons.chevron_right),
               onTap: () {
                 Navigator.pop(context);
-                Modals.showArtistsBottomModal(context, playlist['artists'],
-                    leading: playlist['thumbnails'].first['url']);
+                Modals.showArtistsBottomModal(
+                  context,
+                  playlist['artists'],
+                  leading: playlist['thumbnails'].first['url'],
+                );
               },
             ),
           if (playlist['album'] != null)
             AdaptiveListTile(
               dense: true,
-              title: Text(S.of(context).Album,
-                  maxLines: 1, overflow: TextOverflow.ellipsis),
+              title: Text(
+                S.of(context).Album,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
               leading: Icon(AdaptiveIcons.album),
               trailing: Icon(AdaptiveIcons.chevron_right),
               onTap: () => context.push(
                 '/browse',
-                extra: {
-                  'endpoint': playlist['album']['endpoint'],
-                },
+                extra: {'endpoint': playlist['album']['endpoint']},
               ),
             ),
         ],
@@ -1209,8 +1301,11 @@ BottomModalLayout _downloadBottomModal(BuildContext context) {
   return BottomModalLayout(
     title: AdaptiveListTile(
       contentPadding: EdgeInsets.zero,
-      title: Text(S.of(context).Downloads,
-          maxLines: 1, overflow: TextOverflow.ellipsis),
+      title: Text(
+        S.of(context).Downloads,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+      ),
       leading: Container(
         height: 50,
         width: 50,
@@ -1233,7 +1328,7 @@ BottomModalLayout _downloadBottomModal(BuildContext context) {
             title: Text(S.of(context).Downloading),
             leading: Icon(AdaptiveIcons.downloading),
             onTap: () async {
-              context.push('/saved/downloads_page/downloading_page');
+              context.push('/library/downloads/downloading');
               Navigator.pop(context);
             },
           ),
@@ -1244,7 +1339,9 @@ BottomModalLayout _downloadBottomModal(BuildContext context) {
             onTap: () async {
               Navigator.pop(context);
               BottomMessage.showText(
-                  context, S.of(context).Restoring_Missing_Songs);
+                context,
+                S.of(context).Restoring_Missing_Songs,
+              );
               GetIt.I<DownloadManager>().restoreDownloads();
             },
           ),
@@ -1253,14 +1350,18 @@ BottomModalLayout _downloadBottomModal(BuildContext context) {
             title: Text(S.of(context).Delete_All_Songs),
             leading: Icon(AdaptiveIcons.delete),
             onTap: () async {
-              bool shouldDelete = await Modals.showConfirmBottomModal(context,
-                  message: S.of(context).Confirm_Delete_All_Message,
-                  isDanger: true,
-                  doneText: S.of(context).Yes,
-                  cancelText: S.of(context).No);
+              bool shouldDelete = await Modals.showConfirmBottomModal(
+                context,
+                message: S.of(context).Confirm_Delete_All_Message,
+                isDanger: true,
+                doneText: S.of(context).Yes,
+                cancelText: S.of(context).No,
+              );
               if (shouldDelete) {
-                Navigator.pop(context);
-                BottomMessage.showText(context, S.of(context).Deleting_Songs);
+                if (context.mounted) {
+                  Navigator.pop(context);
+                  BottomMessage.showText(context, S.of(context).Deleting_Songs);
+                }
                 List songs = Hive.box('DOWNLOADS').values.toList();
                 for (var song in songs) {
                   await Hive.box('DOWNLOADS').delete(song['videoId']);
@@ -1283,18 +1384,29 @@ BottomModalLayout _downloadBottomModal(BuildContext context) {
 }
 
 BottomModalLayout _downloadDetailsBottomModal(
-    BuildContext context, Map playlist) {
+  BuildContext context,
+  Map playlist,
+) {
   return BottomModalLayout(
     title: AdaptiveListTile(
       contentPadding: EdgeInsets.zero,
-      title:
-          Text(playlist['title'], maxLines: 1, overflow: TextOverflow.ellipsis),
+      title: Text(
+        playlist['title'],
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+      ),
       leading: (playlist['songs']?.length > 0)
           ? (playlist['type'] == "ALBUM")
-              ? PlaylistThumbnail(
-                  playslist: [playlist['songs'][0]], size: 50, radius: 8)
-              : PlaylistThumbnail(
-                  playslist: playlist['songs'], size: 50, radius: 8)
+                ? PlaylistThumbnail(
+                    playlist: [playlist['songs'][0]],
+                    size: 50,
+                    radius: 8,
+                  )
+                : PlaylistThumbnail(
+                    playlist: playlist['songs'],
+                    size: 50,
+                    radius: 8,
+                  )
           : Container(
               height: 50,
               width: 50,
@@ -1308,8 +1420,11 @@ BottomModalLayout _downloadDetailsBottomModal(
               ),
             ),
       subtitle: playlist['subtitle'] != null
-          ? Text(playlist['subtitle'],
-              maxLines: 1, overflow: TextOverflow.ellipsis)
+          ? Text(
+              playlist['subtitle'],
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            )
           : null,
     ),
     child: SingleChildScrollView(
@@ -1342,9 +1457,12 @@ BottomModalLayout _downloadDetailsBottomModal(
             onTap: () async {
               Navigator.pop(context);
               BottomMessage.showText(
-                  context, S.of(context).Restoring_Missing_Songs);
-              GetIt.I<DownloadManager>()
-                  .restoreDownloads(songs: playlist['songs']);
+                context,
+                S.of(context).Restoring_Missing_Songs,
+              );
+              GetIt.I<DownloadManager>().restoreDownloads(
+                songs: playlist['songs'],
+              );
             },
           ),
           AdaptiveListTile(
@@ -1356,22 +1474,25 @@ BottomModalLayout _downloadDetailsBottomModal(
                 context,
                 message: S.of(context).Confirm_Delete_All_Message,
                 isDanger: true,
-              ).then(
-                (bool confirm) async {
-                  if (confirm) {
+              ).then((bool confirm) async {
+                if (confirm) {
+                  if (context.mounted) {
                     Navigator.pop(context);
+
                     BottomMessage.showText(
-                        context, S.of(context).Deleting_Songs);
-                    for (var song in playlist['songs']) {
-                      await GetIt.I<DownloadManager>().deleteSong(
-                        key: song['videoId'],
-                        path: song['path'],
-                        playlistId: playlist['id'],
-                      );
-                    }
+                      context,
+                      S.of(context).Deleting_Songs,
+                    );
                   }
-                },
-              );
+                  for (var song in playlist['songs']) {
+                    await GetIt.I<DownloadManager>().deleteSong(
+                      key: song['videoId'],
+                      path: song['path'],
+                      playlistId: playlist['id'],
+                    );
+                  }
+                }
+              });
             },
           ),
         ],
@@ -1383,9 +1504,7 @@ BottomModalLayout _downloadDetailsBottomModal(
 BottomModalLayout _accentSelector(BuildContext context) {
   Color? accentColor = GetIt.I<SettingsManager>().accentColor;
   return BottomModalLayout(
-    title: Center(
-      child: Text('Select Color', style: mediumTextStyle(context)),
-    ),
+    title: Center(child: Text('Select Color', style: mediumTextStyle(context))),
     actions: [
       AdaptiveButton(
         onPressed: () {
@@ -1452,19 +1571,24 @@ class BottomModalLayout extends StatelessWidget {
               children: [
                 if (title != null)
                   Padding(
-                      padding: const EdgeInsets.symmetric(
-                          vertical: 8, horizontal: 0),
-                      child: title!),
+                    padding: const EdgeInsets.symmetric(
+                      vertical: 8,
+                      horizontal: 0,
+                    ),
+                    child: title!,
+                  ),
                 child,
                 if (actions != null)
                   Padding(
-                    padding:
-                        const EdgeInsets.symmetric(vertical: 8, horizontal: 0),
+                    padding: const EdgeInsets.symmetric(
+                      vertical: 8,
+                      horizontal: 0,
+                    ),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: actions!,
                     ),
-                  )
+                  ),
               ],
             ),
           ),

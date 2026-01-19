@@ -71,7 +71,7 @@ dependencies:
   bloc: ^9.2.0
   meta: ^1.17.0
   loading_indicator_m3e: ^0.1.1
-  m3e_collection: ^0.3.7
+  # m3e_collection: ^0.3.7
   package_info_plus: ^9.0.0
   flutter_markdown_plus: ^1.0.7
   yt_music:
@@ -80,6 +80,8 @@ dependencies:
   connectivity_plus: ^7.0.0
   audio_service_mpris: ^0.2.0
   fluentui_system_icons: ^1.1.273
+  navigation_rail_m3e: ^0.3.5
+  m3e_collection: ^0.3.7
 
 dev_dependencies:
   flutter_test:
