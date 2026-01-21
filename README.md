@@ -1,61 +1,139 @@
+<div align="center">
 
+![Gyawun Music Banner](cover.png)
+
+# 🎵 Gyawun Music
+
+**Where Music Knows No Bounds**
+
+*Experience the freedom of unlimited, ad-free music streaming from YouTube Music*
+
+[![GitHub release](https://img.shields.io/github/v/release/sheikhhaziq/gyawun_music?style=for-the-badge)](https://github.com/sheikhhaziq/gyawun_music/releases/latest)
+[![License](https://img.shields.io/badge/license-GPL--3.0-blue?style=for-the-badge)](LICENSE)
+[![Stars](https://img.shields.io/github/stars/sheikhhaziq/gyawun_music?style=for-the-badge)](https://github.com/sheikhhaziq/gyawun_music/stargazers)
+[![Downloads](https://img.shields.io/github/downloads/sheikhhaziq/gyawun_music/total?style=for-the-badge)](https://github.com/sheikhhaziq/gyawun_music/releases)
+
+[![Join us on Telegram](https://img.shields.io/badge/Join_us_on_Telegram-0088cc?style=for-the-badge&logo=telegram)](https://t.me/jhelumcorp)
+
+[Download](https://github.com/sheikhhaziq/gyawun_music/releases/latest) • [Website](https://gyawunmusic.vercel.app/) • [Contribute](CONTRIBUTING.md) • [Report Bug](https://github.com/sheikhhaziq/gyawun_music/issues)
 
 ---
 
-<p align="center">
-   <img src="./cover.png" width="100%" />
-</p>
-
-<div align="center">
-<h1>Gyawun Music</h1>
-  <img src="https://hits.dwyl.com/jhelumcorp/gyawun.svg?style=flat-square" />
-    <a href="https://github.com/sheikhhaziq/gyavyn/releases/latest"><img src="https://img.shields.io/github/v/release/sheikhhaziq/gyawun?style=flat" alt="Latest release" /></a>
-    <a href="https://github.com/sheikhhaziq/gyawun/commits"><img src="https://img.shields.io/github/commits-since/sheikhhaziq/gyawun/latest?style=flat" alt="Commits since latest release" /></a>
-    <a href="https://github.com/sheikhhaziq/gyawun/commits"><img src="https://img.shields.io/github/commit-activity/m/sheikhhaziq/gyawun?color=g" alt="Commits per month" /></a>
-    <a href="https://github.com/sheikhhaziq/gyawun/releases/latest"><img src="https://img.shields.io/github/release-date/sheikhhaziq/gyawun" alt="Last release" /></a>
-
-  <a href="https://t.me/jhelumcorp"><img src="https://img.shields.io/badge/Join_us_on_Telegram-0088cc?style=social&logo=telegram" alt="Telergram" height="50"/></a>
 </div>
 
+## ✨ What Makes Gyawun Special
 
-## Features / TODO
-- [x] Play (almost) any song with high quality from YouTube Music
-- [x] Background playback
-- [x] Search for Songs, Artists and Playlists
-- [x] Reorder songs in playlist or queue
-- [x] Dark Mode
-- [x] Change Audio Quality
-- [x] Material You colors
-- [x] Dynamic theme support
-- [x] Add to favorites
-- [x] Create playlist
-- [x] Save history locally
-- [x] Download songs locally
-- [x] Multiple Language Support(Partially)
-- [x] Save playlist
-- [x] Equilizer and Loudness Enhancer
+Gyawun isn't just another music player—it's your gateway to an uninterrupted musical journey. Built with Flutter and powered by YouTube Music's vast library, Gyawun brings you millions of songs without the noise of advertisements, subscription walls, or unnecessary restrictions.
 
-## Installation
+Immerse yourself in crystal-clear audio quality, discover artists from every corner of the globe, and let the rhythm carry you wherever you go. With Gyawun, music flows freely, as it should.
 
-[<img src="https://github.com/machiav3lli/oandbackupx/blob/034b226cea5c1b30eb4f6a6f313e4dadcbb0ece4/badge_github.png"
-    alt="Get it on GitHub"
-    height="80">](https://github.com/sheikhhaziq/gyavun/releases/latest)
+## 🚀 Features
 
+### Core Experience
+- 🎧 **Unlimited Streaming** - Access millions of songs from YouTube Music
+- 🚫 **Ad-Free Playback** - Enjoy uninterrupted listening, always
+- 🎼 **High-Quality Audio** - Adjustable audio quality to suit your preference
+- 🌙 **Background Playback** - Keep the music playing while you multitask
+- 💾 **Offline Downloads** - Save your favorite tracks for offline listening
+- ⏰ **Sleep Timer** - Fall asleep to your favorite music with auto-stop
 
-## Contributing
+### Discovery & Organization
+- 🔍 **Smart Search** - Find songs, artists, and playlists effortlessly
+- ❤️ **Favorites** - Build your personal collection of beloved tracks
+- 📝 **Custom Playlists** - Curate and organize music your way
+- 🔄 **Flexible Queue** - Reorder songs on the fly
+- 📜 **Listening History** - Never lose track of what you've played
+- 📝 **Lyrics** - Sing along with synchronized lyrics powered by LRCLib
 
-Pull requests are welcome. For major changes, please open an issue first
-to discuss what you would like to change.
+### Personalization
+- 🎨 **Material You** - Dynamic theming that adapts to your style
+- 🌓 **Dark Mode** - Easy on the eyes, day or night
+- 🎚️ **Audio Enhancement** - Built-in equalizer and loudness enhancer
+- 🌍 **Multi-Language Support** - Available in multiple languages
+- 🔄 **Cross-Device Sync** - Sync recommendations across devices using visitor ID
+- 🎙️ **Podcast Support** - Stream your favorite podcasts alongside music
 
-Please make sure to update tests as appropriate.
+## 📱 Installation
 
+### Android
 
-## 👩‍💻👨‍💻 Our valuable Contributors
+Download the latest APK from our [releases page](https://github.com/sheikhhaziq/gyawun_music/releases/latest) and install it on your device.
 
-<p align="center"><a href="https://github.com/sheikhhaziq/gyawun/graphs/contributors">
-  <img src="https://contributors-img.web.app/image?repo=sheikhhaziq/gyawun" />
-</a></p>
+### Building from Source
 
-## Disclaimer
-This project and its contents are not affiliated with, funded, authorized, endorsed by, or in any way associated with YouTube, Google LLC or any of its affiliates and subsidiaries.
-Any trademark, service mark, trade name, or other intellectual property rights used in this project are owned by the respective owners.
+```bash
+# Clone the repository
+git clone https://github.com/sheikhhaziq/gyawun_music.git
+cd gyawun_music
+
+# This project uses FVM for Flutter version management
+# Install FVM if you haven't already: https://fvm.app/docs/getting_started/installation
+# The Flutter version is specified in .fvmrc
+
+# Install the correct Flutter version
+fvm install
+
+# Use the project's Flutter version
+fvm use
+
+# Install dependencies
+fvm flutter pub get
+
+# Run the app
+fvm flutter run
+```
+
+## 🎯 Roadmap
+
+We're constantly evolving. Here's what we're working on:
+
+- [ ] iOS Support
+- [ ] Desktop Applications (Windows, macOS, Linux)
+- [ ] Advanced Audio Controls
+- [ ] Social Features (Share playlists, collaborative playlists)
+- [ ] Import/Export Playlists
+- [ ] Enhanced Podcast Features
+
+## 🤝 Contributing
+
+Gyawun is built by music lovers, for music lovers. We welcome contributions from developers, designers, translators, and enthusiasts of all skill levels.
+
+Whether you want to fix bugs, add features, improve documentation, or translate the app into your language, your contributions make Gyawun better for everyone.
+
+Please read our [Contributing Guidelines](CONTRIBUTING.md) to get started.
+
+## 👥 Community
+
+Join our growing community of music enthusiasts:
+
+- 💬 [Telegram Group](https://t.me/jhelumcorp) - Chat, share music, and get support
+- 🐛 [Issue Tracker](https://github.com/sheikhhaziq/gyawun_music/issues) - Report bugs
+- 💡 [Discussions](https://github.com/sheikhhaziq/gyawun_music/discussions) - Request features, share ideas and feedback
+
+## 🙏 Acknowledgments
+
+A heartfelt thank you to our incredible contributors who have helped shape Gyawun:
+
+[![Contributors](https://contrib.rocks/image?repo=sheikhhaziq/gyawun_music)](https://github.com/sheikhhaziq/gyawun_music/graphs/contributors)
+
+## ⚖️ Legal
+
+**Disclaimer:** This project and its contents are not affiliated with, funded, authorized, endorsed by, or in any way associated with YouTube, Google LLC, or any of its affiliates and subsidiaries. Any trademark, service mark, trade name, or other intellectual property rights used in this project are owned by the respective owners.
+
+Gyawun is an open-source project created for educational and personal use. Users are responsible for ensuring their usage complies with YouTube's Terms of Service and applicable laws in their jurisdiction.
+
+## 📄 License
+
+This project is licensed under the GNU General Public License v3.0 - see the [LICENSE](LICENSE) file for details.
+
+---
+
+<div align="center">
+
+**Made with ❤️ by the Gyawun community**
+
+*Let the music play on*
+
+[⬆ Back to Top](#-gyawun-music)
+
+</div>
