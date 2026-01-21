@@ -1,65 +1,61 @@
 import 'package:bloc/bloc.dart';
 import 'package:flutter/foundation.dart';
 import 'package:get_it/get_it.dart';
+import 'package:gyawun/services/backup_service/backup_service.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
-import '../../../../../../services/file_storage.dart';
 import '../../../../../../services/library.dart';
 import '../../../../../../services/settings_manager.dart';
 
 part 'backup_storage_state.dart';
 
 class BackupStorageCubit extends Cubit<BackupStorageState> {
-  final Box _settingsBox = Hive.box('SETTINGS');
-  final FileStorage _fileStorage = GetIt.I<FileStorage>();
+  final BackupService _backupService;
 
-  late final VoidCallback _listener;
-
-  BackupStorageCubit()
-      : super(
-          BackupStorageState(
-            appFolder: Hive.box('SETTINGS').get(
-              'APP_FOLDER',
-              defaultValue: GetIt.I<FileStorage>().storagePaths.basePath,
-            ),
-          ),
-        ) {
-    _listener = _emit;
-    _settingsBox.listenable(keys: ['APP_FOLDER']).addListener(_listener);
+  BackupStorageCubit(this._backupService)
+    : super(const BackupStorageState(appFolder: 'Loading…')) {
+    _loadCurrentLocation();
   }
 
-  void _emit() {
+  /* ------------------------------------------------------------ */
+  /* Location                                                     */
+  /* ------------------------------------------------------------ */
+
+  Future<void> _loadCurrentLocation() async {
+    final location = await _backupService.currentLocation;
     if (isClosed) return;
-    emit(
-      state.copyWith(
-        appFolder: _settingsBox.get(
-          'APP_FOLDER',
-          defaultValue: GetIt.I<FileStorage>().storagePaths.basePath,
-        ),
-        lastResult: null, // clear one-shot result
-      ),
-    );
+
+    emit(state.copyWith(appFolder: location));
   }
 
-  Future<void> setAppFolder(String path) async {
-    await _settingsBox.put('APP_FOLDER', path);
-    await _fileStorage.updateDirectories();
-  }
+  /* ------------------------------------------------------------ */
+  /* Restore                                                      */
+  /* ------------------------------------------------------------ */
 
   Future<void> restore() async {
-    final success = await _fileStorage.loadBackup();
+    final success = await _backupService.loadBackup();
+
     emit(
       state.copyWith(
         lastResult: success ? const RestoreSuccess() : const RestoreFailure(),
       ),
     );
+
+    // Reload location in case restore affected storage
+    await _loadCurrentLocation();
   }
 
-  Future<void> backup({
-    required String action,
-    required List items,
-  }) async {
-    final Map backup = {
+  Future<void> changeDirectory() async {
+    await _backupService.changeDirectory();
+    await _loadCurrentLocation();
+  }
+
+  /* ------------------------------------------------------------ */
+  /* Backup                                                       */
+  /* ------------------------------------------------------------ */
+
+  Future<void> backup({required String action, required List items}) async {
+    final Map<String, dynamic> backup = {
       'name': 'Gyawun',
       'type': 'backup',
       'version': 1,
@@ -71,8 +67,9 @@ class BackupStorageCubit extends Cubit<BackupStorageState> {
     }
 
     if (items.contains('settings')) {
-      final settings =
-          Map<String, dynamic>.from(GetIt.I<SettingsManager>().settings);
+      final settings = Map<String, dynamic>.from(
+        GetIt.I<SettingsManager>().settings,
+      );
       settings.remove('YTMUSIC_AUTH');
       backup['data']['settings'] = settings;
     }
@@ -89,24 +86,22 @@ class BackupStorageCubit extends Cubit<BackupStorageState> {
       backup['data']['downloads'] = Hive.box('DOWNLOADS').toMap();
     }
 
-    String? path;
+    String? result;
     if (action == 'Save') {
-      path = await _fileStorage.saveBackUp(backup);
+      result = await _backupService.saveBackUp(backup);
     } else {
-      path = await _fileStorage.shareBackUp(backup);
+      result = await _backupService.shareBackUp(backup);
     }
 
     emit(
       state.copyWith(
-        lastResult:
-            (path.isEmpty) ? const BackupFailure() : BackupSuccess(path),
+        lastResult: (result.isEmpty)
+            ? const BackupFailure()
+            : BackupSuccess(result),
       ),
     );
-  }
 
-  @override
-  Future<void> close() {
-    _settingsBox.listenable(keys: ['APP_FOLDER']).removeListener(_listener);
-    return super.close();
+    // Reload location after backup (folder might change via SAF)
+    await _loadCurrentLocation();
   }
 }

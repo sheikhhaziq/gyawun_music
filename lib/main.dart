@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:get_it/get_it.dart';
+import 'package:gyawun/services/backup_service/backup_service.dart';
+import 'package:gyawun/services/directory_service/directory_service.dart';
 import 'package:gyawun/themes/theme.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:just_audio_background/just_audio_background.dart';
@@ -12,13 +14,14 @@ import 'package:just_audio_media_kit/just_audio_media_kit.dart';
 import 'package:m3e_collection/m3e_collection.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
+import 'package:saf_stream/saf_stream.dart';
+import 'package:saf_util/saf_util.dart';
 import 'package:yt_music/client.dart';
 import 'package:yt_music/modals/yt_config.dart';
 import 'package:yt_music/ytmusic.dart';
 
 import 'generated/l10n.dart';
 import 'services/download_manager.dart';
-import 'services/file_storage.dart';
 import 'services/library.dart';
 import 'services/lyrics.dart';
 import 'services/media_player.dart';
@@ -60,23 +63,32 @@ void main() async {
   YTMusic ytMusic = YTMusic(config: ytConfig!);
 
   final GlobalKey<NavigatorState> panelKey = GlobalKey<NavigatorState>();
+  final safutil = SafUtil();
+  final safStream = SafStream();
+  DirectoryService directoryService = DirectoryService(
+    safStream: safStream,
+    safUtil: safutil,
+  );
 
-  await FileStorage.initialise();
-  FileStorage fileStorage = FileStorage();
+  GetIt.I.registerSingleton<DirectoryService>(directoryService);
+
   SettingsManager settingsManager = SettingsManager();
 
   GetIt.I.registerSingleton<SettingsManager>(settingsManager);
+
   MediaPlayer mediaPlayer = MediaPlayer();
   GetIt.I.registerSingleton<MediaPlayer>(mediaPlayer);
   LibraryService libraryService = LibraryService();
-  GetIt.I.registerSingleton<DownloadManager>(DownloadManager());
+  GetIt.I.registerSingleton<DownloadManager>(DownloadManager(directoryService));
   GetIt.I.registerSingleton(panelKey);
   GetIt.I.registerSingleton<YTMusic>(ytMusic);
 
-  GetIt.I.registerSingleton<FileStorage>(fileStorage);
-
   GetIt.I.registerSingleton<LibraryService>(libraryService);
   GetIt.I.registerSingleton<Lyrics>(Lyrics());
+
+  GetIt.I.registerSingleton<BackupService>(
+    BackupService(directoryService, settingsManager, libraryService),
+  );
 
   runApp(
     MultiProvider(
@@ -123,24 +135,17 @@ class Gyawun extends StatelessWidget {
             theme: ColorScheme.fromSeed(
               seedColor: primaryColor,
             ).toM3EThemeData(base: AppTheme.light(primary: primaryColor)),
-            darkTheme: ColorScheme.fromSeed(
-              brightness: Brightness.dark,
-              surface: isPureBlack ? Colors.black : null,
-              seedColor: primaryColor,
-            ).toM3EThemeData(base: AppTheme.dark(primary: primaryColor,isPureBlack: isPureBlack)),
-            // theme: AppTheme.light(
-            //   primary: context.watch<SettingsManager>().dynamicColors &&
-            //           lightScheme != null
-            //       ? lightScheme.primary
-            //       : context.watch<SettingsManager>().accentColor,
-            // ),
-            // darkTheme: AppTheme.dark(
-            //   primary: context.watch<SettingsManager>().dynamicColors &&
-            //           darkScheme != null
-            //       ? darkScheme.primary
-            //       : context.watch<SettingsManager>().accentColor,
-            //   isPureBlack: context.watch<SettingsManager>().amoledBlack,
-            // ),
+            darkTheme:
+                ColorScheme.fromSeed(
+                  brightness: Brightness.dark,
+                  surface: isPureBlack ? Colors.black : null,
+                  seedColor: primaryColor,
+                ).toM3EThemeData(
+                  base: AppTheme.dark(
+                    primary: primaryColor,
+                    isPureBlack: isPureBlack,
+                  ),
+                ),
           ),
         );
       },

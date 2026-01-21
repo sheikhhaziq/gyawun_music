@@ -1,10 +1,10 @@
 import 'dart:io';
 
-import 'package:easy_folder_picker/FolderPicker.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:gyawun/core/utils/service_locator.dart';
 import 'package:gyawun/core/widgets/expressive_app_bar.dart';
 import 'package:gyawun/core/widgets/expressive_list_group.dart';
 import 'package:gyawun/core/widgets/expressive_list_tile.dart';
@@ -22,7 +22,7 @@ class BackupStoragePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (_) => BackupStorageCubit(),
+      create: (_) => BackupStorageCubit(sl()),
       child: BlocListener<BackupStorageCubit, BackupStorageState>(
         listenWhen: (_, state) => state.lastResult != null,
         listener: (context, state) {
@@ -88,17 +88,8 @@ class _BackupStoragePage extends StatelessWidget {
 
                             subtitle: Text(state.appFolder),
                             trailing: FilledButton.tonal(
+                              onPressed: cubit.changeDirectory,
                               child: const Text('Change'),
-                              onPressed: () async {
-                                final dir = await FolderPicker.pick(
-                                  context: context,
-                                  allowFolderCreation: true,
-                                  rootDirectory: Directory(state.appFolder),
-                                );
-                                if (dir != null) {
-                                  cubit.setAppFolder(dir.path);
-                                }
-                              },
                             ),
                           ),
                         ],

@@ -42,7 +42,7 @@ dependencies:
   path_provider: ^2.1.3
   
   path: ^1.9.0
-  file_picker: ^10.1.9
+  file_picker: ^10.3.8
   dynamic_color: ^1.7.0
   audiotags: ^1.4.3
   pub_semver: ^2.1.4
@@ -58,8 +58,7 @@ dependencies:
       url: https://github.com/sheikhhaziq/receive_sharing_intent.git
   fl_toast: ^3.2.0 # Discontinued
   flutter_colorpicker: ^1.1.0
-  easy_folder_picker: ^1.3.3
-  permission_handler: ^11.4.0
+  # easy_folder_picker: ^1.3.4
   http_server: ^1.0.0
   rxdart: ^0.28.0
   translator: ^1.0.4+1
@@ -82,6 +81,11 @@ dependencies:
   fluentui_system_icons: ^1.1.273
   navigation_rail_m3e: ^0.3.5
   m3e_collection: ^0.3.7
+  shared_preferences: ^2.5.4
+  saf: ^1.0.4
+  permission_handler: ^12.0.1
+  saf_stream: ^0.12.3
+  saf_util: ^0.11.0
 
 dev_dependencies:
   flutter_test:
