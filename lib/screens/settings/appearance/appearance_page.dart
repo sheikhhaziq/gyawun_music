@@ -1,11 +1,17 @@
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:get_it/get_it.dart';
+import 'package:gyawun/core/extensions/string_extensions.dart';
+import 'package:gyawun/core/utils/expressive_sheet.dart';
+import 'package:gyawun/core/widgets/expressive_app_bar.dart';
+import 'package:gyawun/core/widgets/expressive_list_group.dart';
+import 'package:gyawun/core/widgets/expressive_list_tile.dart';
+import 'package:gyawun/core/widgets/expressive_switch_list_tile.dart';
+import 'package:gyawun/screens/settings/widgets/color_icon.dart';
+import 'package:gyawun/services/settings_manager.dart';
 
 import '../../../generated/l10n.dart';
-import '../widgets/setting_item.dart';
-import '../../../utils/adaptive_widgets/adaptive_widgets.dart';
-import '../../../utils/bottom_modals.dart';
 import 'cubit/appearance_cubit.dart';
 
 class AppearancePage extends StatelessWidget {
@@ -16,94 +22,135 @@ class AppearancePage extends StatelessWidget {
     return BlocProvider(
       create: (_) => AppearanceCubit(),
       child: Scaffold(
-        appBar: AppBar(title: Text(S.of(context).Appearence)),
-        body: Center(
-          child: Container(
-            constraints: const BoxConstraints(maxWidth: 1000),
-            child: BlocBuilder<AppearanceCubit, AppearanceState>(
-              builder: (context, state) {
-                final s = state as AppearanceLoaded;
+        body: NestedScrollView(
+          headerSliverBuilder: (context, innerBoxIsScrolled) {
+            return [
+              ExpressiveAppBar(
+                title: S.of(context).Appearence,
+                hasLeading: true,
+              ),
+            ];
+          },
+          body: Center(
+            child: Container(
+              constraints: const BoxConstraints(maxWidth: 1000),
+              child: BlocBuilder<AppearanceCubit, AppearanceState>(
+                builder: (context, state) {
+                  final s = state as AppearanceLoaded;
 
-                return ListView(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 8,
-                  ),
-                  children: [
-                    GroupTitle(title: "Theme"),
-
-                    /// Theme mode
-                    SettingTile(
-                      title: S.of(context).Theme_Mode,
-                      leading: const Icon(FluentIcons.dark_theme_24_filled),
-                      isFirst: true,
-                      trailing: AdaptiveDropdownButton<ThemeMode>(
-                        value: s.themeMode,
-                        items: ThemeMode.values
-                            .map(
-                              (e) => AdaptiveDropdownMenuItem(
-                                value: e,
-                                child: Text(e.name.toUpperCase()),
-                              ),
-                            )
-                            .toList(),
-                        onChanged: (value) {
-                          if (value == null) return;
-                          context.read<AppearanceCubit>().setThemeMode(value);
-                        },
-                      ),
+                  return ListView(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 8,
                     ),
-
-                    /// Accent color
-                    SettingTile(
-                      title: "AccentColor",
-                      leading: const Icon(FluentIcons.color_24_filled),
-                      trailing: CircleAvatar(
-                        radius: 20,
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(20),
-                          child: Row(
-                            children: [
-                              Container(
-                                color: s.accentColor ?? Colors.black,
-                                width: 20,
-                              ),
-                              Container(
-                                color: s.accentColor ?? Colors.white,
-                                width: 20,
-                              ),
-                            ],
+                    children: [
+                      ExpressiveListGroup(
+                        title: 'Theme',
+                        children: [
+                          ExpressiveListTile(
+                            title: Text(S.of(context).Theme_Mode),
+                            subtitle: Text(s.themeMode.name.capitalize()),
+                            leading: SettingsColorIcon(
+                              icon: FluentIcons.dark_theme_24_filled,
+                            ),
+                            onTap: () async {
+                              final selected =
+                                  await ExpressiveSheet.showSelection(
+                                    context,
+                                    title: "Choose Theme",
+                                    options: [
+                                      ExpressiveSheetOption(
+                                        label: "System Default",
+                                        icon: FluentIcons.system_24_filled,
+                                        value: ThemeMode.system,
+                                      ),
+                                      ExpressiveSheetOption(
+                                        label: "Light Mode",
+                                        icon: FluentIcons.lightbulb_24_filled,
+                                        value: ThemeMode.light,
+                                      ),
+                                      ExpressiveSheetOption(
+                                        label: "Dark Mode",
+                                        icon: FluentIcons.dark_theme_24_filled,
+                                        value: ThemeMode.dark,
+                                      ),
+                                    ],
+                                  );
+                              if (selected == null) return;
+                              if (context.mounted) {
+                                context.read<AppearanceCubit>().setThemeMode(
+                                  selected,
+                                );
+                              }
+                            },
                           ),
-                        ),
-                      ),
-                      onTap: () => Modals.showAccentSelector(context),
-                    ),
+                          ExpressiveListTile(
+                            title: Text('Accent Color'),
+                            leading: SettingsColorIcon(
+                              icon: FluentIcons.color_24_filled,
+                            ),
+                            trailing: CircleAvatar(
+                              radius: 20,
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(20),
+                                child: Row(
+                                  children: [
+                                    Container(
+                                      color: s.accentColor ?? Colors.black,
+                                      width: 20,
+                                    ),
+                                    Container(
+                                      color: s.accentColor ?? Colors.white,
+                                      width: 20,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                            onTap: () async {
+                              final selected =
+                                  await ExpressiveSheet.showColorSelection(
+                                    context,
+                                    title: 'Select Accent Color',
+                                  );
+                              if (selected != null) {
+                                GetIt.I<SettingsManager>().accentColor =
+                                    selected;
+                              }
+                            },
+                          ),
+                          ExpressiveSwitchListTile(
+                            title: Text('Amoled Black'),
+                            leading: const SettingsColorIcon(
+                              icon: FluentIcons.drop_24_filled,
+                            ),
+                            value: s.amoledBlack,
+                            onChanged: (value) {
+                              context.read<AppearanceCubit>().setAmoledBlack(
+                                value,
+                              );
+                            },
+                          ),
 
-                    /// AMOLED
-                    SettingSwitchTile(
-                      title: 'Amoled Black',
-                      leading: const Icon(FluentIcons.drop_24_filled),
-                      value: s.amoledBlack,
-                      onChanged: (value) {
-                        context.read<AppearanceCubit>().setAmoledBlack(value);
-                      },
-                    ),
-
-                    /// Dynamic colors
-                    SettingSwitchTile(
-                      title: S.of(context).Dynamic_Colors,
-                      leading: const Icon(
-                        FluentIcons.color_background_24_filled,
+                          /// Dynamic colors
+                          ExpressiveSwitchListTile(
+                            title: Text(S.of(context).Dynamic_Colors),
+                            leading: const SettingsColorIcon(
+                              icon: FluentIcons.color_background_24_filled,
+                            ),
+                            value: s.dynamicColors,
+                            onChanged: (value) {
+                              context.read<AppearanceCubit>().setDynamicColors(
+                                value,
+                              );
+                            },
+                          ),
+                        ],
                       ),
-                      isLast: true,
-                      value: s.dynamicColors,
-                      onChanged: (value) {
-                        context.read<AppearanceCubit>().setDynamicColors(value);
-                      },
-                    ),
-                  ],
-                );
-              },
+                    ],
+                  );
+                },
+              ),
             ),
           ),
         ),

@@ -5,6 +5,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:gyawun/core/widgets/expressive_app_bar.dart';
+import 'package:gyawun/core/widgets/expressive_list_group.dart';
+import 'package:gyawun/core/widgets/expressive_list_tile.dart';
 import 'package:gyawun/services/update_service/update_service.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -13,7 +16,6 @@ import '../../themes/text_styles.dart';
 import '../../utils/adaptive_widgets/adaptive_widgets.dart';
 import '../../utils/bottom_modals.dart';
 import 'widgets/color_icon.dart';
-import 'widgets/setting_item.dart';
 import 'cubit/settings_system_cubit.dart';
 
 class SettingsPage extends StatelessWidget {
@@ -35,89 +37,139 @@ class SettingsPage extends StatelessWidget {
                 constraints: const BoxConstraints(maxWidth: 1000),
                 child: NestedScrollView(
                   headerSliverBuilder: (context, innerBoxIsScrolled) {
-                    return [
-                      SliverAppBar(
-                        pinned: true,
-                        expandedHeight: 120,
-                        flexibleSpace: FlexibleSpaceBar(
-                          titlePadding: .only(left: 16, bottom: 12),
-                          title: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                S.of(context).Settings,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: textStyle(
-                                  context,
-                                ).copyWith(fontSize: 24),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ];
+                    return [ExpressiveAppBar(title: S.of(context).Settings)];
                   },
                   body: ListView(
-                    padding: .only(left: 16,right: 16,bottom: 16),
+                    padding: .symmetric(horizontal: 16, vertical: 8),
                     children: [
                       if (Platform.isAndroid && batteryDisabled != true)
                         _BatteryWarningTile(),
-                      GroupTitle(title: "General"),
-                      SettingTile(
-                        title: S.of(context).Appearence,
-                        leading: const Icon(FluentIcons.color_background_24_filled),
-                        isFirst: true,
-                        onTap: () => context.go('/settings/appearance'),
+                      if (Platform.isAndroid && batteryDisabled != true)
+                        SizedBox(height: 24),
+                      ExpressiveListGroup(
+                        title: "General",
+                        children: [
+                          ExpressiveListTile(
+                            leading: SettingsColorIcon(
+                              icon: FluentIcons.color_background_24_filled,
+                              color: const Color.fromARGB(155, 183, 86, 118),
+                            ),
+                            title: Text(S.of(context).Appearence),
+                            subtitle: Text('Themes, layout, and visual style'),
+                            onTap: () => context.go('/settings/appearance'),
+                            trailing: const Icon(
+                              FluentIcons.chevron_right_24_filled,
+                            ),
+                          ),
+                          ExpressiveListTile(
+                            leading: SettingsColorIcon(
+                              icon: FluentIcons.play_24_filled,
+                              color: const Color.fromARGB(155, 70, 92, 141),
+                            ),
+                            title: Text('Player'),
+                            subtitle: Text('Audio effects & playback'),
+                            onTap: () => context.go('/settings/player'),
+                            trailing: const Icon(
+                              FluentIcons.chevron_right_24_filled,
+                            ),
+                          ),
+                        ],
                       ),
-                      SettingTile(
-                        title: "Player",
-                        leading: const Icon(FluentIcons.play_24_filled),
-                        isLast: true,
-                        onTap: () => context.go('/settings/player'),
+                      SizedBox(height: 24),
+
+                      ExpressiveListGroup(
+                        title: "Services",
+                        children: [
+                          ExpressiveListTile(
+                            leading: SettingsColorIcon(
+                              icon: Icons.play_circle_fill,
+                              color: const Color.fromARGB(155, 181, 54, 54),
+                            ),
+                            title: Text('Youtube Music'),
+                            subtitle: Text(
+                              'Content region, language, audio quality',
+                            ),
+                            onTap: () =>
+                                context.go('/settings/services/ytmusic'),
+                            trailing: const Icon(
+                              FluentIcons.chevron_right_24_filled,
+                            ),
+                          ),
+                        ],
                       ),
-                      GroupTitle(title: "Services"),
-                      SettingTile(
-                        title: "Youtube Music",
-                        leading: const Icon(Icons.play_circle_fill),
-                        isFirst: true,
-                        isLast: true,
-                        onTap: () => context.go('/settings/services/ytmusic'),
+                      SizedBox(height: 24),
+
+                      ExpressiveListGroup(
+                        title: "Storage & Privacy",
+                        children: [
+                          ExpressiveListTile(
+                            leading: SettingsColorIcon(
+                              icon: FluentIcons.storage_24_filled,
+                              color: const Color.fromARGB(155, 130, 146, 66),
+                            ),
+                            title: Text('Backup and storage'),
+                            subtitle: Text('App folder, backup, and restore'),
+                            onTap: () => context.go('/settings/backup_storage'),
+                            trailing: const Icon(
+                              FluentIcons.chevron_right_24_filled,
+                            ),
+                          ),
+                          ExpressiveListTile(
+                            leading: SettingsColorIcon(
+                              icon: FluentIcons.shield_keyhole_24_filled,
+                              color: const Color.fromARGB(155, 46, 115, 76),
+                            ),
+                            title: Text('Privacy'),
+                            subtitle: Text('Playback & search history'),
+                            onTap: () => context.go('/settings/privacy'),
+                            trailing: const Icon(
+                              FluentIcons.chevron_right_24_filled,
+                            ),
+                          ),
+                        ],
                       ),
-                      GroupTitle(title: "Storage & Privacy"),
-                      SettingTile(
-                        title: "Backup and storage",
-                        leading: const Icon(FluentIcons.storage_24_filled),
-                        isFirst: true,
-                        onTap: () => context.go('/settings/backup_storage'),
-                      ),
-                      SettingTile(
-                        title: "Privacy",
-                        leading: const Icon(FluentIcons.shield_keyhole_24_filled),
-                        isLast: true,
-                        onTap: () => context.go('/settings/privacy'),
-                      ),
-                      GroupTitle(title: "Updates & About"),
-                      SettingTile(
-                        title: S.of(context).About,
-                        leading: const Icon(FluentIcons.info_24_filled),
-                        isFirst: true,
-                        onTap: () => context.go('/settings/about'),
-                      ),
-                      SettingTile(
-                        title: S.of(context).Check_For_Update,
-                        leading: const Icon(FluentIcons.arrow_circle_up_24_filled),
-                        onTap: () async {
-                          await UpdateService.manualCheck(context);
-                        },
-                      ),
-                      SettingTile(
-                        leading: const Icon(FluentIcons.money_24_filled),
-                        title: S.of(context).Donate,
-                        isLast: true,
-                        subtitle: S.of(context).Donate_Message,
-                        onTap: () => showPaymentsModal(context),
+                      SizedBox(height: 24),
+
+                      ExpressiveListGroup(
+                        title: "Updates & About",
+                        children: [
+                          ExpressiveListTile(
+                            leading: SettingsColorIcon(
+                              icon: FluentIcons.info_24_filled,
+                              color: const Color.fromARGB(155, 115, 84, 46),
+                            ),
+                            title: Text(S.of(context).About),
+                            subtitle: Text('App info, support & links'),
+                            onTap: () => context.go('/settings/about'),
+                            trailing: const Icon(
+                              FluentIcons.chevron_right_24_filled,
+                            ),
+                          ),
+                          ExpressiveListTile(
+                            leading: SettingsColorIcon(
+                              icon: FluentIcons.arrow_circle_up_24_filled,
+                              color: const Color.fromARGB(155, 115, 46, 62),
+                            ),
+                            title: Text(S.of(context).Check_For_Update),
+                            subtitle: Text('Check GitHub for releases'),
+                            onTap: () => UpdateService.manualCheck(context),
+                            trailing: const Icon(
+                              FluentIcons.chevron_right_24_filled,
+                            ),
+                          ),
+                          ExpressiveListTile(
+                            leading: SettingsColorIcon(
+                              icon: FluentIcons.money_24_filled,
+                              color: const Color.fromARGB(155, 46, 100, 115),
+                            ),
+                            title: Text(S.of(context).Donate),
+                            subtitle: Text(S.of(context).Donate_Message),
+                            onTap: () => showPaymentsModal(context),
+                            trailing: const Icon(
+                              FluentIcons.chevron_right_24_filled,
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),

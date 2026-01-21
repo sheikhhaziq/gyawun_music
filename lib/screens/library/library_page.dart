@@ -6,12 +6,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:gyawun/core/extensions/random_material_shape.dart';
+import 'package:gyawun/core/widgets/expressive_app_bar.dart';
+import 'package:gyawun/core/widgets/expressive_list_group.dart';
+import 'package:gyawun/core/widgets/expressive_list_tile.dart';
 import 'package:gyawun/core/widgets/internet_guard.dart';
 import 'package:gyawun/core/utils/service_locator.dart';
-import 'package:gyawun/core/widgets/library_tile.dart';
 import 'package:gyawun/core/widgets/rounded_polygon_icon.dart';
 import 'package:gyawun/screens/settings/widgets/color_icon.dart';
-import 'package:gyawun/themes/text_styles.dart';
 import '../../../../generated/l10n.dart';
 import '../../../../services/library.dart';
 import '../../../../utils/adaptive_widgets/adaptive_widgets.dart';
@@ -91,27 +92,7 @@ class _LibraryBody extends StatelessWidget {
   Widget build(BuildContext context) {
     return NestedScrollView(
       headerSliverBuilder: (context, innerBoxIsScrolled) {
-        return [
-          SliverAppBar(
-            pinned: true,
-            expandedHeight: 120,
-            flexibleSpace: FlexibleSpaceBar(
-              titlePadding: .only(left: 16, bottom: 12),
-              title: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Library',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: textStyle(context).copyWith(fontSize: 24),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ];
+        return [ExpressiveAppBar(title: "Library")];
       },
       body: CustomScrollView(
         slivers: [
@@ -119,162 +100,118 @@ class _LibraryBody extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 8.0),
             sliver: SliverToBoxAdapter(
               child: Padding(
-                padding: const .symmetric(vertical: 4),
+                padding: const .symmetric(vertical: 4, horizontal: 8),
                 child: Column(
                   children: [
-                    // FAVOURITES
-                    Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 4,
-                      ),
-                      child: LibraryTile(
-                        title: Text(
-                          S.of(context).Favourites,
-                          style: textStyle(context).copyWith(fontSize: 16),
-                          overflow: .ellipsis,
-                           maxLines: 1,
+                    ExpressiveListGroup(
+                      title: "Default",
+                      children: [
+                        ExpressiveListTile(
+                          title: Text(S.of(context).Favourites),
+                          leading: ColorIcon(
+                            icon: FluentIcons.heart_24_filled,
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.primaryContainer,
+                            size: 30,
+                          ),
+                          subtitle: Text(S.of(context).nSongs(favouritesCount)),
+                          trailing: Icon(FluentIcons.chevron_right_24_filled),
+                          onTap: () => context.push('/library/favourites'),
                         ),
-                        leading: ColorIcon(
-                          icon: FluentIcons.heart_24_filled,
-                          color: Theme.of(context).colorScheme.primaryContainer,
-                          size: 30,
+                        ExpressiveListTile(
+                          title: Text(S.of(context).Downloads),
+                          leading: ColorIcon(
+                            icon: FluentIcons.cloud_arrow_down_24_filled,
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.primaryContainer,
+                            size: 30,
+                          ),
+                          subtitle: Text(S.of(context).nSongs(downloadsCount)),
+                          trailing: Icon(FluentIcons.chevron_right_24_filled),
+                          onTap: () => context.push('/library/downloads'),
                         ),
-                        subtitle: Text(
-                          S.of(context).nSongs(favouritesCount),
-                          style: textStyle(context).copyWith(fontSize: 11),
-                          overflow: .ellipsis,
-                           maxLines: 1,
+                        ExpressiveListTile(
+                          title: Text(S.of(context).History),
+                          leading: ColorIcon(
+                            icon: FluentIcons.history_24_filled,
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.primaryContainer,
+                            size: 30,
+                          ),
+                          subtitle: Text(S.of(context).nSongs(historyCount)),
+                          trailing: Icon(FluentIcons.chevron_right_24_filled),
+                          onTap: () => context.push('/library/history'),
                         ),
-                        trailing: Icon(FluentIcons.chevron_right_24_filled),
-                        onTap: () => context.push('/library/favourites'),
-                      ),
-                    ),
-                    // DOWNLOADS
-                    Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 4,
-                      ),
-                      child: LibraryTile(
-                        title: Text(
-                          S.of(context).Downloads,
-                          style: textStyle(context).copyWith(fontSize: 16),
-                          overflow: .ellipsis,
-                           maxLines: 1,
-                        ),
-                        leading: ColorIcon(
-                          icon: FluentIcons.cloud_arrow_down_24_filled,
-                          color: Theme.of(context).colorScheme.primaryContainer,
-                          size: 30,
-                        ),
-                        subtitle: Text(
-                          S.of(context).nSongs(downloadsCount),
-                          style: textStyle(context).copyWith(fontSize: 11),
-                          overflow: .ellipsis,
-                           maxLines: 1,
-                        ),
-                        trailing: Icon(FluentIcons.chevron_right_24_filled),
-                        onTap: () => context.push('/library/downloads'),
-                      ),
+                      ],
                     ),
 
-                    /// HISTORY
-                    Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 4,
-                      ),
-                      child: LibraryTile(
-                        title: Text(
-                          S.of(context).History,
-                          style: textStyle(context).copyWith(fontSize: 16),
-                          overflow: .ellipsis,
-                           maxLines: 1,
-                        ),
-                        leading: ColorIcon(
-                          icon: FluentIcons.history_24_filled,
-                          color: Theme.of(context).colorScheme.primaryContainer,
-                          size: 30,
-                        ),
-                        subtitle: Text(
-                          S.of(context).nSongs(historyCount),
-                          style: textStyle(context).copyWith(fontSize: 11),
-                           overflow: .ellipsis,
-                           maxLines: 1,
-                        ),
-                        trailing: Icon(FluentIcons.chevron_right_24_filled),
-                        onTap: () => context.push('/library/history'),
-                      ),
-                    ),
-                    Column(
-                      children: SplayTreeMap.from(playlists)
-                          .map((key, item) {
-                            if (item == null) {
-                              return MapEntry(key, const SizedBox());
-                            }
-                            return MapEntry(
-                              key,
-                              Padding(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 8,
-                                  vertical: 4,
-                                ),
-                                child: LibraryTile(
-                                  title: Text(
-                                    item['title'],
-                                    maxLines: 1,
-                                    overflow: .ellipsis,
-                                    style: textStyle(
+                    SizedBox(height: 17),
+                    if (playlists.isNotEmpty)
+                      ExpressiveListGroup(
+                        title: "Custom",
+                        children: SplayTreeMap.from(playlists)
+                            .map((key, item) {
+                              if (item == null) {
+                                return MapEntry(key, const SizedBox());
+                              }
+                              return MapEntry(
+                                key,
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 8,
+                                    vertical: 4,
+                                  ),
+                                  child: ExpressiveListTile(
+                                    title: Text(item['title']),
+                                    leading: _playlistLeading(
                                       context,
-                                    ).copyWith(fontSize: 16),
+                                      key,
+                                      item,
+                                    ),
+                                    subtitle:
+                                        (item['songs'] != null ||
+                                            item['isPredefined'])
+                                        ? Text(
+                                            item['isPredefined'] == true
+                                                ? item['subtitle']
+                                                : S
+                                                      .of(context)
+                                                      .nSongs(
+                                                        item['songs'].length,
+                                                      ),
+                                          )
+                                        : null,
+                                    trailing: Icon(
+                                      FluentIcons.chevron_right_24_filled,
+                                    ),
+                                    onTap: () {
+                                      if (item['isPredefined'] == true) {
+                                        context.push(
+                                          '/browse',
+                                          extra: {
+                                            'endpoint': item['endpoint']
+                                                .cast<String, dynamic>(),
+                                          },
+                                        );
+                                      } else {
+                                        context.push(
+                                          '/library/playlist_details',
+                                          extra: {'playlistkey': key},
+                                        );
+                                      }
+                                    },
+                                    onLongPress: () =>
+                                        _showPlaylistMenu(context, key, item),
                                   ),
-                                  leading: _playlistLeading(context, key, item),
-                                  subtitle:
-                                      (item['songs'] != null ||
-                                          item['isPredefined'])
-                                      ? Text(
-                                          item['isPredefined'] == true
-                                              ? item['subtitle']
-                                              : S
-                                                    .of(context)
-                                                    .nSongs(
-                                                      item['songs'].length,
-                                                    ),
-                                          maxLines: 1,
-                                          style: textStyle(
-                                            context,
-                                          ).copyWith(fontSize: 11),
-                                        )
-                                      : null,
-                                  trailing: Icon(
-                                    FluentIcons.chevron_right_24_filled,
-                                  ),
-                                  onTap: () {
-                                    if (item['isPredefined'] == true) {
-                                      context.push(
-                                        '/browse',
-                                        extra: {
-                                          'endpoint': item['endpoint']
-                                              .cast<String, dynamic>(),
-                                        },
-                                      );
-                                    } else {
-                                      context.push(
-                                        '/library/playlist_details',
-                                        extra: {'playlistkey': key},
-                                      );
-                                    }
-                                  },
-                                  onLongPress: () =>
-                                      _showPlaylistMenu(context, key, item),
                                 ),
-                              ),
-                            );
-                          })
-                          .values
-                          .toList(),
-                    ),
+                              );
+                            })
+                            .values
+                            .toList(),
+                      ),
                   ],
                 ),
               ),

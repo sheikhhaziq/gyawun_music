@@ -6,8 +6,8 @@ class YTMusicState {
   final Map<String, String> language;
   final bool autofetchSongs;
 
-  final dynamic streamingQuality;
-  final dynamic downloadQuality;
+  final AudioQuality streamingQuality;
+  final AudioQuality downloadQuality;
 
   final bool translateLyrics;
   final bool personalisedContent;
