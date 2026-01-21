@@ -71,6 +71,8 @@ jobs:
 
       - name: Install dependencies
         run: flutter pub get
+      - name: Generate Splash Screen
+        run: dart run flutter_native_splash:create
 
       - name: Build Android APK (Beta - Universal)
         run: flutter build apk --dart-define=FLAVOR=beta --flavor beta --release
