@@ -71,14 +71,15 @@ jobs:
 
       - name: Install dependencies
         run: flutter pub get
+        
       - name: Generate Splash Screen
         run: dart run flutter_native_splash:create
 
       - name: Build Android APK (Beta - Universal)
-        run: flutter build apk --dart-define=FLAVOR=beta --flavor beta --release
+        run: flutter build apk --flavor beta --release
       
       - name: Build Android APK (Beta - Split per ABI)
-        run: flutter build apk --dart-define=FLAVOR=beta --flavor beta --release --split-per-abi
+        run: flutter build apk --flavor beta --release --split-per-abi
       
       - name: Rename build artifacts
         run: |
