@@ -23,20 +23,22 @@ class YTMusicCubit extends Cubit<YTMusicState> {
   late final VoidCallback _hiveListener;
 
   YTMusicCubit()
-      : super(
-          YTMusicState(
-            location: GetIt.I<SettingsManager>().location,
-            language: GetIt.I<SettingsManager>().language,
-            autofetchSongs: GetIt.I<SettingsManager>().autofetchSongs,
-            streamingQuality: GetIt.I<SettingsManager>().streamingQuality,
-            downloadQuality: GetIt.I<SettingsManager>().downloadQuality,
-            translateLyrics: Hive.box('SETTINGS')
-                .get('TRANSLATE_LYRICS', defaultValue: false),
-            personalisedContent: Hive.box('SETTINGS')
-                .get('PERSONALISED_CONTENT', defaultValue: true),
-            visitorId: Hive.box('SETTINGS').get('VISITOR_ID', defaultValue: ''),
-          ),
-        ) {
+    : super(
+        YTMusicState(
+          location: GetIt.I<SettingsManager>().location,
+          language: GetIt.I<SettingsManager>().language,
+          autofetchSongs: GetIt.I<SettingsManager>().autofetchSongs,
+          streamingQuality: GetIt.I<SettingsManager>().streamingQuality,
+          downloadQuality: GetIt.I<SettingsManager>().downloadQuality,
+          translateLyrics: Hive.box(
+            'SETTINGS',
+          ).get('TRANSLATE_LYRICS', defaultValue: false),
+          personalisedContent: Hive.box(
+            'SETTINGS',
+          ).get('PERSONALISED_CONTENT', defaultValue: true),
+          visitorId: Hive.box('SETTINGS').get('VISITOR_ID', defaultValue: ''),
+        ),
+      ) {
     _settingsListener = _emit;
     _hiveListener = _emit;
 
@@ -55,8 +57,10 @@ class YTMusicCubit extends Cubit<YTMusicState> {
         streamingQuality: _settings.streamingQuality,
         downloadQuality: _settings.downloadQuality,
         translateLyrics: _box.get('TRANSLATE_LYRICS', defaultValue: false),
-        personalisedContent:
-            _box.get('PERSONALISED_CONTENT', defaultValue: true),
+        personalisedContent: _box.get(
+          'PERSONALISED_CONTENT',
+          defaultValue: true,
+        ),
         visitorId: _box.get('VISITOR_ID', defaultValue: ''),
       ),
     );
@@ -74,11 +78,11 @@ class YTMusicCubit extends Cubit<YTMusicState> {
     _settings.autofetchSongs = value;
   }
 
-  void setStreamingQuality(dynamic quality) {
+  void setStreamingQuality(AudioQuality quality) {
     _settings.streamingQuality = quality;
   }
 
-  void setDownloadQuality(dynamic quality) {
+  void setDownloadQuality(AudioQuality quality) {
     _settings.downloadQuality = quality;
   }
 
@@ -89,7 +93,7 @@ class YTMusicCubit extends Cubit<YTMusicState> {
   Future<void> setPersonalisedContent(bool value) async {
     await _box.put('PERSONALISED_CONTENT', value);
     final config = await YTClient.getConfig();
-    if(config!=null){
+    if (config != null) {
       await _box.put('VISITOR_ID', config.visitorData);
     }
   }
@@ -101,7 +105,7 @@ class YTMusicCubit extends Cubit<YTMusicState> {
 
   Future<void> resetVisitorId() async {
     final config = await YTClient.getConfig();
-    if(config !=null){
+    if (config != null) {
       await _box.put('VISITOR_ID', config.visitorData);
     }
   }

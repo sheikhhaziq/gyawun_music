@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_swipe_action_cell/core/cell.dart';
 import 'package:get_it/get_it.dart';
+import 'package:gyawun/core/widgets/expressive_app_bar.dart';
 import 'package:gyawun/core/widgets/song_tile.dart';
 import 'package:gyawun/services/media_player.dart';
 import 'package:gyawun/themes/text_styles.dart';
@@ -48,43 +49,28 @@ class _FavouritesBody extends StatelessWidget {
     return NestedScrollView(
       headerSliverBuilder: (context, innerBoxIsScrolled) {
         return [
-          SliverAppBar(
-            pinned: true,
-            expandedHeight: 120,
-            flexibleSpace: LayoutBuilder(
-              builder: (context, constraints) {
-                final maxHeight = 120.0;
-                final t = (constraints.maxHeight / (maxHeight + 30)).clamp(
-                  0.0,
-                  1.0,
-                );
-                final paddingLeft = lerpDouble(100, 16, t)!;
-
-                return FlexibleSpaceBar(
-                  titlePadding: EdgeInsets.only(left: paddingLeft, bottom: 8),
-                  title: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Favourites',
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: textStyle(context).copyWith(fontSize: 16),
-                      ),
-                      SizedBox(height: 2),
-                      Text(
-                        S.of(context).nSongs(songs.length),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: textStyle(
-                          context,
-                        ).copyWith(fontSize: 11, fontWeight: FontWeight.w600),
-                      ),
-                    ],
-                  ),
-                );
-              },
+          ExpressiveAppBar(
+            hasLeading: true,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Favourites',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: textStyle(context).copyWith(fontSize: 16),
+                ),
+                SizedBox(height: 2),
+                Text(
+                  S.of(context).nSongs(songs.length),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: textStyle(
+                    context,
+                  ).copyWith(fontSize: 11, fontWeight: FontWeight.w600),
+                ),
+              ],
             ),
           ),
         ];

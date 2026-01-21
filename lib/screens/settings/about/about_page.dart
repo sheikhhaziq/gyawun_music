@@ -1,16 +1,13 @@
-import 'dart:ui';
-
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:gyawun/themes/text_styles.dart';
+import 'package:gyawun/core/widgets/expressive_app_bar.dart';
+import 'package:gyawun/core/widgets/expressive_list_group.dart';
+import 'package:gyawun/core/widgets/expressive_list_tile.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../generated/l10n.dart';
-import '../../../themes/colors.dart';
 import '../widgets/color_icon.dart';
-import '../widgets/setting_item.dart';
 
 class AboutPage extends StatefulWidget {
   const AboutPage({super.key});
@@ -44,37 +41,13 @@ class _AboutPageState extends State<AboutPage> {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
     return Scaffold(
       body: NestedScrollView(
         headerSliverBuilder: (context, innerBoxIsScrolled) {
           return [
-            SliverAppBar(
-              pinned: true,
-              expandedHeight: 120,
-              flexibleSpace: LayoutBuilder(
-                builder: (context, constraints) {
-                  final maxHeight = 120.0;
-                  final t = (constraints.maxHeight / (maxHeight + 30)).clamp(
-                    0.0,
-                    1.0,
-                  );
-                  final paddingLeft = lerpDouble(100, 16, t)!;
-
-                  return FlexibleSpaceBar(
-                    titlePadding: EdgeInsets.only(
-                      left: paddingLeft,
-                      bottom: 12,
-                    ),
-                    title: Text(
-                      S.of(context).About,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: textStyle(context).copyWith(fontSize: 24),
-                    ),
-                  );
-                },
-              ),
-            ),
+            ExpressiveAppBar(title: S.of(context).About, hasLeading: true),
           ];
         },
         body: Center(
@@ -83,47 +56,62 @@ class _AboutPageState extends State<AboutPage> {
             child: ListView(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               children: [
-                /// APP ICON
                 Center(
                   child: Column(
                     children: [
-                      Image.asset(
-                        'assets/images/icon.png',
+                      Container(
                         height: 100,
                         width: 100,
-                        errorBuilder: (_, _, _) => Container(
+                        decoration: BoxDecoration(
+                          color: colorScheme.surfaceContainerHighest,
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: colorScheme.shadow.withValues(alpha: 0.08),
+                              blurRadius: 12,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
+                        ),
+                        clipBehavior: Clip.antiAlias,
+                        child: Image.asset(
+                          'assets/images/icon.png',
                           height: 100,
                           width: 100,
-                          decoration: BoxDecoration(
-                            color: darkGreyColor.withAlpha(50),
-                            borderRadius: BorderRadius.circular(50),
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, _, _) => Icon(
+                            Icons.music_note_rounded,
+                            size: 48,
+                            color: colorScheme.primary,
                           ),
                         ),
                       ),
+                      const SizedBox(height: 16),
                       Text(
                         'Gyawun Music',
-                        style: textStyle(
-                          context,
-                        ).copyWith(fontSize: 20, fontWeight: .w700),
+                        style: textTheme.headlineMedium?.copyWith(
+                          fontWeight: FontWeight.w700,
+                          color: colorScheme.onSurface,
+                          letterSpacing: -0.5,
+                        ),
                       ),
-                      SizedBox(height: 8),
+                      const SizedBox(height: 8),
                       if (_version != null)
                         Container(
-                          padding: .symmetric(horizontal: 16, vertical: 8),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 6,
+                          ),
                           decoration: BoxDecoration(
-                            borderRadius: .circular(24),
-                            color: Theme.of(
-                              context,
-                            ).colorScheme.tertiaryContainer,
+                            borderRadius: BorderRadius.circular(20),
+                            color: colorScheme.tertiaryContainer,
                           ),
                           child: Text(
                             'Version $_version',
-                            style: textStyle(context).copyWith(
-                              color: Theme.of(
-                                context,
-                              ).colorScheme.onTertiaryContainer,
-                              fontWeight: .w600,
-                              fontSize: 18,
+                            style: textTheme.labelLarge?.copyWith(
+                              color: colorScheme.onTertiaryContainer,
+                              fontWeight: FontWeight.w600,
+                              letterSpacing: 0.5,
                             ),
                           ),
                         ),
@@ -133,79 +121,79 @@ class _AboutPageState extends State<AboutPage> {
 
                 const SizedBox(height: 16),
 
-                /// DEVELOPER
-                SettingTile(
-                  isFirst: true,
-                  leading: const Icon(CupertinoIcons.person),
-                  title: S.of(context).Developer,
-                  subtitle: S.of(context).Sheikh_Haziq,
-                  trailing: Icon(FluentIcons.chevron_right_24_filled),
-                  onTap: () => _open('https://github.com/sheikhhaziq'),
+                ExpressiveListGroup(
+                  title: "About",
+                  children: [
+                    ExpressiveListTile(
+                      leading: const SettingsColorIcon(icon: Icons.person),
+                      title: const Text("Developer"),
+                      subtitle: const Text("Sheikh Haziq"),
+                      trailing: const Icon(FluentIcons.chevron_right_24_filled),
+                      onTap: () => _open('https://github.com/sheikhhaziq'),
+                    ),
+                    ExpressiveListTile(
+                      leading: const SettingsColorIcon(icon: Icons.link),
+                      title: const Text("Website"),
+                      trailing: const Icon(FluentIcons.chevron_right_24_filled),
+                      onTap: () => _open('https://gyawunmusic.vercel.app'),
+                    ),
+                  ],
                 ),
 
-                /// LINKS
-                SettingTile(
-                  leading: const ColorIcon(color: null, icon: Icons.link),
-                  title: 'Website',
-                  trailing: Icon(FluentIcons.chevron_right_24_filled),
-                  onTap: () => _open('https://gyawunmusic.vercel.app'),
+                const SizedBox(height: 24),
+
+                ExpressiveListGroup(
+                  title: "Community",
+                  children: [
+                    ExpressiveListTile(
+                      leading: const SettingsColorIcon(icon: Icons.people),
+                      title: const Text("Contributors"),
+                      trailing: const Icon(FluentIcons.chevron_right_24_filled),
+                      onTap: () => _open(
+                        'https://github.com/jhelumcorp/gyawun/contributors',
+                      ),
+                    ),
+                    ExpressiveListTile(
+                      leading: const SettingsColorIcon(icon: Icons.send),
+                      title: const Text("Telegram"),
+                      trailing: const Icon(FluentIcons.chevron_right_24_filled),
+                      onTap: () => _open('https://t.me/jhelumcorp'),
+                    ),
+                  ],
                 ),
-                SettingTile(
-                  leading: const ColorIcon(
-                    color: null,
-                    icon: Icons.telegram_outlined,
-                  ),
-                  title: S.of(context).Telegram,
-                  trailing: Icon(FluentIcons.chevron_right_24_filled),
-                  onTap: () => _open('https://t.me/jhelumcorp'),
-                ),
-                SettingTile(
-                  leading: const ColorIcon(
-                    color: null,
-                    icon: CupertinoIcons.person_3,
-                  ),
-                  title: S.of(context).Contributors,
-                  trailing: Icon(FluentIcons.chevron_right_24_filled),
-                  onTap: () => _open(
-                    'https://github.com/jhelumcorp/gyawun/contributors',
-                  ),
-                ),
-                SettingTile(
-                  leading: const ColorIcon(color: null, icon: Icons.code),
-                  title: S.of(context).Source_Code,
-                  trailing: Icon(FluentIcons.chevron_right_24_filled),
-                  onTap: () => _open('https://github.com/jhelumcorp/gyawun'),
-                ),
-                SettingTile(
-                  leading: const ColorIcon(color: null, icon: Icons.bug_report),
-                  title: S.of(context).Bug_Report,
-                  trailing: Icon(FluentIcons.chevron_right_24_filled),
-                  onTap: () => _open(
-                    'https://github.com/sheikhhaziq/gyawun_music/issues/new?template=bug_report.yml',
-                  ),
-                ),
-                SettingTile(
-                  leading: const ColorIcon(
-                    color: null,
-                    icon: Icons.request_page,
-                  ),
-                  title: S.of(context).Feature_Request,
-                  isLast: true,
-                  trailing: Icon(FluentIcons.chevron_right_24_filled),
-                  onTap: () => _open(
-                    'https://github.com/sheikhhaziq/gyawun_music/discussions',
-                  ),
+
+                const SizedBox(height: 24),
+
+                ExpressiveListGroup(
+                  title: "Development",
+                  children: [
+                    ExpressiveListTile(
+                      leading: const SettingsColorIcon(icon: Icons.code),
+                      title: const Text("Source Code"),
+                      trailing: const Icon(FluentIcons.chevron_right_24_filled),
+                      onTap: () =>
+                          _open('https://github.com/jhelumcorp/gyawun'),
+                    ),
+                    ExpressiveListTile(
+                      leading: const SettingsColorIcon(icon: Icons.bug_report),
+                      title: const Text("Bug Report"),
+                      trailing: const Icon(FluentIcons.chevron_right_24_filled),
+                      onTap: () => _open(
+                        'https://github.com/sheikhhaziq/gyawun_music/issues/new?template=bug_report.yml',
+                      ),
+                    ),
+                    ExpressiveListTile(
+                      leading: const SettingsColorIcon(icon: Icons.description),
+                      title: const Text("Feature Request"),
+                      trailing: const Icon(FluentIcons.chevron_right_24_filled),
+                      onTap: () => _open(
+                        'https://github.com/sheikhhaziq/gyawun_music/discussions',
+                      ),
+                    ),
+                  ],
                 ),
 
                 const SizedBox(height: 16),
-
-                /// FOOTER
-                Center(
-                  child: Text(
-                    S.of(context).Made_In_Kashmir,
-                    style: textStyle(context).copyWith(fontSize: 16),
-                  ),
-                ),
               ],
             ),
           ),

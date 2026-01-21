@@ -5,10 +5,12 @@ import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:gyawun/core/widgets/expressive_app_bar.dart';
+import 'package:gyawun/core/widgets/expressive_list_group.dart';
+import 'package:gyawun/core/widgets/expressive_list_tile.dart';
+import 'package:gyawun/screens/settings/widgets/color_icon.dart';
 
 import '../../../generated/l10n.dart';
-import '../widgets/setting_item.dart';
-import '../../../utils/adaptive_widgets/adaptive_widgets.dart';
 import '../../../utils/bottom_modals.dart';
 import '../../../services/bottom_message.dart';
 
@@ -33,20 +35,11 @@ class BackupStoragePage extends StatelessWidget {
               '${S.of(context).Backup_Success} ${result.path}',
             );
           } else if (result is BackupFailure) {
-            BottomMessage.showText(
-              context,
-              S.of(context).Backup_Failed,
-            );
+            BottomMessage.showText(context, S.of(context).Backup_Failed);
           } else if (result is RestoreSuccess) {
-            BottomMessage.showText(
-              context,
-              S.of(context).Restore_Success,
-            );
+            BottomMessage.showText(context, S.of(context).Restore_Success);
           } else if (result is RestoreFailure) {
-            BottomMessage.showText(
-              context,
-              S.of(context).Restore_Failed,
-            );
+            BottomMessage.showText(context, S.of(context).Restore_Failed);
           }
         },
         child: const _BackupStoragePage(),
@@ -61,72 +54,88 @@ class _BackupStoragePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(S.of(context).Backup_And_Restore),
-      ),
-      body: Center(
-        child: Container(
-          constraints: const BoxConstraints(maxWidth: 1000),
-          child: BlocBuilder<BackupStorageCubit, BackupStorageState>(
-            builder: (context, state) {
-              final cubit = context.read<BackupStorageCubit>();
+      body: NestedScrollView(
+        headerSliverBuilder: (context, innerBoxIsScrolled) {
+          return [
+            ExpressiveAppBar(
+              title: S.of(context).Backup_And_Restore,
+              hasLeading: true,
+            ),
+          ];
+        },
+        body: Center(
+          child: Container(
+            constraints: const BoxConstraints(maxWidth: 1000),
+            child: BlocBuilder<BackupStorageCubit, BackupStorageState>(
+              builder: (context, state) {
+                final cubit = context.read<BackupStorageCubit>();
 
-              return ListView(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                children: [
-                  if (Platform.isAndroid) ...[
-                    GroupTitle(title: "Storage"),
-                    SettingTile(
-                      title: "App Folder",
-                      leading: const Icon(FluentIcons.folder_24_filled),
-                      isFirst: true,
-                      isLast: true,
-                      subtitle: state.appFolder,
-                      trailing: AdaptiveOutlinedButton(
-                        child: const Text('Change'),
-                        onPressed: () async {
-                          final dir = await FolderPicker.pick(
-                            context: context,
-                            allowFolderCreation: true,
-                            rootDirectory: Directory(state.appFolder),
-                          );
-                          if (dir != null) {
-                            cubit.setAppFolder(dir.path);
-                          }
-                        },
+                return ListView(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
+                  children: [
+                    if (Platform.isAndroid) ...[
+                      ExpressiveListGroup(
+                        title: 'Storage',
+                        children: [
+                          ExpressiveListTile(
+                            title: Text("App Folder"),
+                            leading: const SettingsColorIcon(
+                              icon: FluentIcons.folder_24_filled,
+                            ),
+
+                            subtitle: Text(state.appFolder),
+                            trailing: FilledButton.tonal(
+                              child: const Text('Change'),
+                              onPressed: () async {
+                                final dir = await FolderPicker.pick(
+                                  context: context,
+                                  allowFolderCreation: true,
+                                  rootDirectory: Directory(state.appFolder),
+                                );
+                                if (dir != null) {
+                                  cubit.setAppFolder(dir.path);
+                                }
+                              },
+                            ),
+                          ),
+                        ],
                       ),
+                    ],
+
+                    SizedBox(height: 24),
+
+                    ExpressiveListGroup(
+                      title: S.of(context).Backup_And_Restore,
+                      children: [
+                        ExpressiveListTile(
+                          title: Text(S.of(context).Backup),
+                          leading: const SettingsColorIcon(
+                            icon: Icons.backup_rounded,
+                          ),
+                          onTap: () async {
+                            final result = await showBackupSelector(context);
+                            if (result == null) return;
+
+                            cubit.backup(action: result.$1, items: result.$2);
+                          },
+                        ),
+
+                        ExpressiveListTile(
+                          title: Text(S.of(context).Restore),
+                          leading: const SettingsColorIcon(
+                            icon: Icons.restore_rounded,
+                          ),
+                          onTap: cubit.restore,
+                        ),
+                      ],
                     ),
                   ],
-
-                  GroupTitle(title: S.of(context).Backup_And_Restore),
-
-                  /// BACKUP
-                  SettingTile(
-                    title: S.of(context).Backup,
-                    leading: const Icon(Icons.backup_rounded),
-                    isFirst: true,
-                    onTap: () async {
-                      final result = await showBackupSelector(context);
-                      if (result == null) return;
-
-                      cubit.backup(
-                        action: result.$1,
-                        items: result.$2,
-                      );
-                    },
-                  ),
-
-                  /// RESTORE
-                  SettingTile(
-                    title: S.of(context).Restore,
-                    leading: const Icon(Icons.restore_rounded),
-                    isLast: true,
-                    onTap: cubit.restore,
-                  ),
-                ],
-              );
-            },
+                );
+              },
+            ),
           ),
         ),
       ),
@@ -186,8 +195,10 @@ Future<(String, List)?> showBackupSelector(BuildContext context) async {
                 },
               ),
               Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -223,25 +234,18 @@ Widget _backupActionButton(
 }) {
   return MaterialButton(
     color: Theme.of(context).colorScheme.primary,
-    shape: RoundedRectangleBorder(
-      borderRadius: BorderRadius.circular(20),
-    ),
+    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
     onPressed: () {
       final selected = items.value
           .where((e) => e['selected'] == true)
           .map((e) => e['name'].toLowerCase())
           .toList();
 
-      Navigator.pop(
-        context,
-        selected.isEmpty ? null : (action, selected),
-      );
+      Navigator.pop(context, selected.isEmpty ? null : (action, selected));
     },
     child: Text(
       label,
-      style: TextStyle(
-        color: Theme.of(context).scaffoldBackgroundColor,
-      ),
+      style: TextStyle(color: Theme.of(context).scaffoldBackgroundColor),
     ),
   );
 }

@@ -158,7 +158,7 @@ class SingleColumnList extends StatelessWidget {
     return Column(
       children: songs.map((song) {
         return Padding(
-          padding: const .symmetric(horizontal: 8,vertical: 4),
+          padding: const .symmetric(horizontal: 8, vertical: 4),
           child: SongTile(song: song),
         );
       }).toList(),

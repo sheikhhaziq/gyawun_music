@@ -88,9 +88,7 @@ class _PlayerPageState extends State<PlayerPage> {
   }
 
   Future<void> updateBackgroundColor(ImageProvider image) async {
-    final c = await ColorScheme.fromImageProvider(
-      provider: image,
-    );
+    final c = await ColorScheme.fromImageProvider(provider: image);
     if (mounted) {
       setState(() {
         color = c.primary;
@@ -98,21 +96,18 @@ class _PlayerPageState extends State<PlayerPage> {
     }
   }
 
-  MaterialColor primaryWhite = const MaterialColor(
-    0xFFFFFFFF,
-    <int, Color>{
-      50: Color(0xFFFFFFFF),
-      100: Color(0xFFFFFFFF),
-      200: Color(0xFFFFFFFF),
-      300: Color(0xFFFFFFFF),
-      400: Color(0xFFFFFFFF),
-      500: Color(0xFFFFFFFF),
-      600: Color(0xFFFFFFFF),
-      700: Color(0xFFFFFFFF),
-      800: Color(0xFFFFFFFF),
-      900: Color(0xFFFFFFFF),
-    },
-  );
+  MaterialColor primaryWhite = const MaterialColor(0xFFFFFFFF, <int, Color>{
+    50: Color(0xFFFFFFFF),
+    100: Color(0xFFFFFFFF),
+    200: Color(0xFFFFFFFF),
+    300: Color(0xFFFFFFFF),
+    400: Color(0xFFFFFFFF),
+    500: Color(0xFFFFFFFF),
+    600: Color(0xFFFFFFFF),
+    700: Color(0xFFFFFFFF),
+    800: Color(0xFFFFFFFF),
+    900: Color(0xFFFFFFFF),
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -125,9 +120,7 @@ class _PlayerPageState extends State<PlayerPage> {
         ),
       ),
       child: (widget.videoId != null && fetchedSong == false)
-          ? const Center(
-              child: AdaptiveProgressRing(),
-            )
+          ? const Center(child: AdaptiveProgressRing())
           // ignore: deprecated_member_use
           : WillPopScope(
               onWillPop: () async {
@@ -153,14 +146,14 @@ class _PlayerPageState extends State<PlayerPage> {
                       gradient: LinearGradient(
                         colors: [
                           (color ??
-                                  Theme.of(context)
-                                      .colorScheme
-                                      .surfaceContainerLow)
+                                  Theme.of(
+                                    context,
+                                  ).colorScheme.surfaceContainerLow)
                               .withAlpha(200),
                           (color ??
-                                  Theme.of(context)
-                                      .colorScheme
-                                      .surfaceContainerLow)
+                                  Theme.of(
+                                    context,
+                                  ).colorScheme.surfaceContainerLow)
                               .withAlpha(80),
                         ],
                         begin: Alignment.topLeft,
@@ -204,13 +197,14 @@ class _PlayerPageState extends State<PlayerPage> {
                       ),
                       key: _key,
                       backgroundColor: Colors.transparent,
-                      endDrawer: MediaQuery.of(context).size.width >
+                      endDrawer:
+                          MediaQuery.of(context).size.width >
                                   MediaQuery.of(context).size.height ||
                               Platform.isWindows
                           ? SizedBox(
                               width:
                                   min(400, MediaQuery.of(context).size.width) -
-                                      50,
+                                  50,
                               child: const QueueList(),
                             )
                           : null,
@@ -219,10 +213,12 @@ class _PlayerPageState extends State<PlayerPage> {
                         child: LayoutBuilder(
                           builder: (context, constraints) {
                             EdgeInsets padding = MediaQuery.of(context).padding;
-                            double maxWidth = constraints.maxWidth -
+                            double maxWidth =
+                                constraints.maxWidth -
                                 padding.left -
                                 padding.right;
-                            double maxHeight = constraints.maxHeight -
+                            double maxHeight =
+                                constraints.maxHeight -
                                 padding.top -
                                 padding.bottom;
                             if (maxWidth > maxHeight) {
@@ -243,7 +239,7 @@ class _PlayerPageState extends State<PlayerPage> {
                                     width: maxWidth - (maxWidth / 2.3),
                                     height: maxHeight,
                                     isRow: true,
-                                  )
+                                  ),
                                 ],
                               );
                             }
@@ -265,10 +261,11 @@ class _PlayerPageState extends State<PlayerPage> {
                                     NameAndControls(
                                       song: currentSong,
                                       width: maxWidth,
-                                      height: maxHeight -
+                                      height:
+                                          maxHeight -
                                           min(maxWidth, maxHeight / 2.2) -
                                           24,
-                                    )
+                                    ),
                                   ],
                                 ),
                                 SlidingUpPanel(
@@ -281,19 +278,22 @@ class _PlayerPageState extends State<PlayerPage> {
                                     topRight: Radius.circular(20),
                                   ),
                                   boxShadow: const [],
-                                  minHeight: 50 +
+                                  minHeight:
+                                      50 +
                                       MediaQuery.of(context).padding.bottom,
                                   panel: ClipRRect(
                                     borderRadius: const BorderRadius.only(
-                                        topLeft: Radius.circular(20),
-                                        topRight: Radius.circular(20)),
+                                      topLeft: Radius.circular(20),
+                                      topRight: Radius.circular(20),
+                                    ),
                                     child: Container(
                                       width: constraints.maxWidth,
                                       alignment: Alignment.center,
                                       decoration: const BoxDecoration(
                                         borderRadius: BorderRadius.only(
-                                            topLeft: Radius.circular(20),
-                                            topRight: Radius.circular(20)),
+                                          topLeft: Radius.circular(20),
+                                          topRight: Radius.circular(20),
+                                        ),
                                       ),
                                       child: Column(
                                         crossAxisAlignment:
@@ -303,12 +303,15 @@ class _PlayerPageState extends State<PlayerPage> {
                                           ClipRRect(
                                             child: BackdropFilter(
                                               filter: ImageFilter.blur(
-                                                  sigmaX: 3, sigmaY: 3),
+                                                sigmaX: 3,
+                                                sigmaY: 3,
+                                              ),
                                               child: Container(
-                                                height: 50 +
-                                                    MediaQuery.of(context)
-                                                        .padding
-                                                        .bottom,
+                                                height:
+                                                    50 +
+                                                    MediaQuery.of(
+                                                      context,
+                                                    ).padding.bottom,
                                                 width: double.maxFinite,
                                                 decoration: BoxDecoration(
                                                   color: Theme.of(context)
@@ -316,12 +319,11 @@ class _PlayerPageState extends State<PlayerPage> {
                                                       .withAlpha(70),
                                                   borderRadius:
                                                       const BorderRadius.only(
-                                                          topLeft:
-                                                              Radius.circular(
-                                                                  20),
-                                                          topRight:
-                                                              Radius.circular(
-                                                                  20)),
+                                                        topLeft:
+                                                            Radius.circular(20),
+                                                        topRight:
+                                                            Radius.circular(20),
+                                                      ),
                                                 ),
                                                 child: Column(
                                                   mainAxisSize:
@@ -335,27 +337,30 @@ class _PlayerPageState extends State<PlayerPage> {
                                                       decoration: BoxDecoration(
                                                         color: greyColor,
                                                         borderRadius:
-                                                            BorderRadius
-                                                                .circular(20),
+                                                            BorderRadius.circular(
+                                                              20,
+                                                            ),
                                                       ),
                                                     ),
                                                     const SizedBox(height: 8),
                                                     Text(
                                                       S.of(context).Next_Up,
-                                                      style: textStyle(context,
-                                                          bold: true),
+                                                      style: textStyle(
+                                                        context,
+                                                        bold: true,
+                                                      ),
                                                     ),
                                                   ],
                                                 ),
                                               ),
                                             ),
                                           ),
-                                          const Expanded(child: QueueList())
+                                          const Expanded(child: QueueList()),
                                         ],
                                       ),
                                     ),
                                   ),
-                                )
+                                ),
                               ],
                             );
                           },
@@ -371,13 +376,14 @@ class _PlayerPageState extends State<PlayerPage> {
 }
 
 class Artwork extends StatelessWidget {
-  const Artwork(
-      {this.song,
-      required this.width,
-      required this.showLyrics,
-      required this.setShowLyrics,
-      this.onImageReady,
-      super.key});
+  const Artwork({
+    this.song,
+    required this.width,
+    required this.showLyrics,
+    required this.setShowLyrics,
+    this.onImageReady,
+    super.key,
+  });
   final double width;
   final MediaItem? song;
   final bool showLyrics;
@@ -392,43 +398,44 @@ class Artwork extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.all(8.0),
         child: song == null
-            ? Icon(
-                Icons.music_note,
-                size: width * 0.5,
-              )
+            ? Icon(Icons.music_note, size: width * 0.5)
             : SafeArea(
-                child: LayoutBuilder(builder: (context, constraints) {
-                  return GestureDetector(
-                    onTap: () {
-                      setShowLyrics();
-                    },
-                    child: Center(
-                      child: showLyrics
-                          ? LyricsBox(
-                              currentSong: song!, size: Size(width, width))
-                          : Container(
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(8),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withAlpha(30),
-                                    spreadRadius: 10,
-                                    blurRadius: 10,
-                                    offset: const Offset(0, 3),
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    return GestureDetector(
+                      onTap: () {
+                        setShowLyrics();
+                      },
+                      child: Center(
+                        child: showLyrics
+                            ? LyricsBox(
+                                currentSong: song!,
+                                size: Size(width, width),
+                              )
+                            : Container(
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(8),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withAlpha(30),
+                                      spreadRadius: 10,
+                                      blurRadius: 10,
+                                      offset: const Offset(0, 3),
+                                    ),
+                                  ],
+                                ),
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(8),
+                                  child: SongThumbnail(
+                                    song: song!.extras!,
+                                    onImageReady: onImageReady,
                                   ),
-                                ],
-                              ),
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(8),
-                                child: SongThumbnail(
-                                  song: song!.extras!,
-                                  onImageReady: onImageReady,
                                 ),
                               ),
-                            ),
-                    ),
-                  );
-                }),
+                      ),
+                    );
+                  },
+                ),
               ),
       ),
     );
@@ -436,12 +443,13 @@ class Artwork extends StatelessWidget {
 }
 
 class NameAndControls extends StatelessWidget {
-  const NameAndControls(
-      {this.song,
-      required this.height,
-      required this.width,
-      this.isRow = false,
-      super.key});
+  const NameAndControls({
+    this.song,
+    required this.height,
+    required this.width,
+    this.isRow = false,
+    super.key,
+  });
   final double width;
   final double height;
   final MediaItem? song;
@@ -475,7 +483,7 @@ class NameAndControls extends StatelessWidget {
                       song?.extras?['subtitle'] ??
                       '',
                   style: smallTextStyle(context),
-                )
+                ),
               ],
             ),
             Column(
@@ -511,14 +519,13 @@ class NameAndControls extends StatelessWidget {
                           ),
                           onPressed: () async {
                             if (item == null) {
-                              await Hive.box('FAVOURITES').put(
-                                song!.extras!['videoId'],
-                                {
-                                  ...song!.extras!,
-                                  'createdAt':
-                                      DateTime.now().millisecondsSinceEpoch
-                                },
-                              );
+                              await Hive.box(
+                                'FAVOURITES',
+                              ).put(song!.extras!['videoId'], {
+                                ...song!.extras!,
+                                'createdAt':
+                                    DateTime.now().millisecondsSinceEpoch,
+                              });
                             } else {
                               await value.delete(song!.extras!['videoId']);
                             }
@@ -530,40 +537,35 @@ class NameAndControls extends StatelessWidget {
                       onPressed: () {
                         mediaPlayer.player.seekToPrevious();
                       },
-                      icon: Icon(
-                        AdaptiveIcons.skip_previous,
-                        size: 30,
-                      ),
+                      icon: Icon(AdaptiveIcons.skip_previous, size: 30),
                     ),
                     const PlayPauseButton(size: 40),
                     AdaptiveIconButton(
                       onPressed: () {
                         mediaPlayer.player.seekToNext();
                       },
-                      icon: Icon(
-                        AdaptiveIcons.skip_next,
-                        size: 30,
-                      ),
+                      icon: Icon(AdaptiveIcons.skip_next, size: 30),
                     ),
                     ValueListenableBuilder(
-                        valueListenable: mediaPlayer.loopMode,
-                        builder: (context, value, child) {
-                          return AdaptiveIconButton(
-                            onPressed: () {
-                              mediaPlayer.changeLoopMode();
-                            },
-                            isSelected: value != LoopMode.off,
-                            icon: Icon(
-                              value == LoopMode.off || value == LoopMode.all
-                                  ? AdaptiveIcons.repeat_all
-                                  : AdaptiveIcons.repeat_one,
-                              size: 30,
-                              color: value == LoopMode.off
-                                  ? Colors.white.withValues(alpha: 0.3)
-                                  : null,
-                            ),
-                          );
-                        }),
+                      valueListenable: mediaPlayer.loopMode,
+                      builder: (context, value, child) {
+                        return AdaptiveIconButton(
+                          onPressed: () {
+                            mediaPlayer.changeLoopMode();
+                          },
+                          isSelected: value != LoopMode.off,
+                          icon: Icon(
+                            value == LoopMode.off || value == LoopMode.all
+                                ? AdaptiveIcons.repeat_all
+                                : AdaptiveIcons.repeat_one,
+                            size: 30,
+                            color: value == LoopMode.off
+                                ? Colors.white.withValues(alpha: 0.3)
+                                : null,
+                          ),
+                        );
+                      },
+                    ),
                   ],
                 ),
               ],
@@ -574,21 +576,24 @@ class NameAndControls extends StatelessWidget {
                 if (song != null)
                   RepaintBoundary(
                     child: ValueListenableBuilder(
-                      valueListenable:
-                          Hive.box('DOWNLOADS').listenable(keys: [song!.id]),
+                      valueListenable: Hive.box(
+                        'DOWNLOADS',
+                      ).listenable(keys: [song!.id]),
                       builder: (context, box, child) {
                         final Map? item = box.get(song!.id);
                         if (item != null) {
                           if (item['status'] == 'DOWNLOADING') {
-                            final notifier = GetIt.I<DownloadManager>()
-                                    .getProgressNotifier(song!.id) ??
+                            final notifier =
+                                GetIt.I<DownloadManager>().getProgressNotifier(
+                                  song!.id,
+                                ) ??
                                 ValueNotifier(0.0);
                             return ValueListenableBuilder(
                               valueListenable: notifier,
                               builder: (context, double progress, child) {
-                                
                                 return CircularProgressIndicator(
-                                  value: item['status'] == 'DOWNLOADING' &&
+                                  value:
+                                      item['status'] == 'DOWNLOADING' &&
                                           progress > 0.0
                                       ? progress
                                       : null,
@@ -602,32 +607,29 @@ class NameAndControls extends StatelessWidget {
                           }
                         }
                         return AdaptiveIconButton(
-                            onPressed: () {
-                              GetIt.I<DownloadManager>()
-                                  .downloadSong(song!.extras!);
-                            },
-                            icon: Icon(
-                              AdaptiveIcons.download,
-                              size: 30,
-                            ));
+                          onPressed: () {
+                            GetIt.I<DownloadManager>().downloadSong(
+                              song!.extras!,
+                            );
+                          },
+                          icon: Icon(AdaptiveIcons.download, size: 30),
+                        );
                       },
                     ),
                   ),
                 AdaptiveIconButton(
-                    onPressed: () {
-                      Modals.showPlayerOptionsModal(
-                        context,
-                        mediaPlayer.currentSongNotifier.value!.extras!,
-                      );
-                    },
-                    icon: Icon(
-                      AdaptiveIcons.more_vertical,
-                      size: 30,
-                    ))
+                  onPressed: () {
+                    Modals.showPlayerOptionsModal(
+                      context,
+                      mediaPlayer.currentSongNotifier.value!.extras!,
+                    );
+                  },
+                  icon: Icon(AdaptiveIcons.more_vertical, size: 30),
+                ),
               ],
             ),
             if (song != null && !isRow)
-              SizedBox(height: 55 + MediaQuery.of(context).padding.bottom)
+              SizedBox(height: 55 + MediaQuery.of(context).padding.bottom),
           ],
         ),
       ),

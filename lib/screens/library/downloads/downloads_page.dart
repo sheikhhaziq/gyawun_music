@@ -1,11 +1,10 @@
-import 'dart:ui';
-
+import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:gyawun/core/widgets/library_tile.dart';
+import 'package:gyawun/core/widgets/expressive_app_bar.dart';
+import 'package:gyawun/core/widgets/expressive_list_tile.dart';
 import 'package:gyawun/services/download_manager.dart';
-import 'package:gyawun/themes/text_styles.dart';
 
 import '../../../../generated/l10n.dart';
 import '../../../../utils/bottom_modals.dart';
@@ -60,29 +59,9 @@ class _DownloadsBody extends StatelessWidget {
     return NestedScrollView(
       headerSliverBuilder: (context, innerBoxIsScrolled) {
         return [
-          SliverAppBar(
-            pinned: true,
-            expandedHeight: 120,
-            flexibleSpace: LayoutBuilder(
-              builder: (context, constraints) {
-                final maxHeight = 120.0;
-                final t = (constraints.maxHeight / (maxHeight + 30)).clamp(
-                  0.0,
-                  1.0,
-                );
-                final paddingLeft = lerpDouble(100, 16, t)!;
-
-                return FlexibleSpaceBar(
-                  titlePadding: EdgeInsets.only(left: paddingLeft, bottom: 12),
-                  title: Text(
-                    S.of(context).Downloads,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: textStyle(context).copyWith(fontSize: 24),
-                  ),
-                );
-              },
-            ),
+          ExpressiveAppBar(
+            title: S.of(context).Downloads,
+            hasLeading: true,
             actions: [
               IconButton(
                 onPressed: () {
@@ -94,30 +73,29 @@ class _DownloadsBody extends StatelessWidget {
           ),
         ];
       },
-      body: ListView.builder(
+      body: ListView.separated(
         itemCount: sortedEntries.length,
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+        separatorBuilder: (context, index) => SizedBox(height: 4),
         itemBuilder: (context, index) {
           final playlist = sortedEntries[index].value;
-          return Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            child: LibraryTile(
-              title: playlist['type'] == 'SONGS'
-                  ? Text(S.of(context).Songs)
-                  : Text(playlist['title']),
-              leading: _leading(context, playlist),
-              subtitle: Text(S.of(context).nSongs(playlist['songs'].length)),
-              trailing: const Icon(Icons.chevron_right),
-              onTap: () {
-                context.push(
-                  '/library/downloads/download_playlist',
-                  extra: {'playlistId': playlist['id']},
-                );
-              },
+          return ExpressiveListTile(
+            title: playlist['type'] == 'SONGS'
+                ? Text(S.of(context).Songs)
+                : Text(playlist['title']),
+            leading: _leading(context, playlist),
+            subtitle: Text(S.of(context).nSongs(playlist['songs'].length)),
+            trailing: const Icon(FluentIcons.chevron_right_24_filled),
+            onTap: () {
+              context.push(
+                '/library/downloads/download_playlist',
+                extra: {'playlistId': playlist['id']},
+              );
+            },
 
-              onLongPress: () {
-                Modals.showDownloadDetailsBottomModal(context, playlist);
-              },
-            ),
+            onLongPress: () {
+              Modals.showDownloadDetailsBottomModal(context, playlist);
+            },
           );
         },
       ),
@@ -135,11 +113,10 @@ class _DownloadsBody extends StatelessWidget {
         ),
         child: Icon(
           Icons.music_note,
-          color: Theme.of(context).colorScheme.onPrimaryContainer
+          color: Theme.of(context).colorScheme.onPrimaryContainer,
         ),
       );
     }
-
 
     if (playlist['type'] == 'ALBUM') {
       return PlaylistThumbnail(playlist: [playlist['songs'][0]], size: 40);
@@ -148,5 +125,3 @@ class _DownloadsBody extends StatelessWidget {
     return PlaylistThumbnail(playlist: playlist['songs'], size: 40);
   }
 }
-
-

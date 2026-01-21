@@ -1,9 +1,13 @@
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:gyawun/core/widgets/expressive_app_bar.dart';
+import 'package:gyawun/core/widgets/expressive_list_group.dart';
+import 'package:gyawun/core/widgets/expressive_list_tile.dart';
+import 'package:gyawun/core/widgets/expressive_switch_list_tile.dart';
+import 'package:gyawun/screens/settings/widgets/color_icon.dart';
 
 import '../../../../generated/l10n.dart';
-import '../widgets/setting_item.dart';
 import '../../../../utils/bottom_modals.dart';
 import '../../../../services/bottom_message.dart';
 
@@ -48,82 +52,91 @@ class _PrivacyView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("Privacy"),
-      ),
-      body: Center(
-        child: Container(
-          constraints: const BoxConstraints(maxWidth: 1000),
-          child: BlocBuilder<PrivacyCubit, PrivacyState>(
-            builder: (context, state) {
-              final cubit = context.read<PrivacyCubit>();
+      body: NestedScrollView(
+        headerSliverBuilder: (context, innerBoxIsScrolled) {
+          return [ExpressiveAppBar(title: "Privacy", hasLeading: true)];
+        },
+        body: Center(
+          child: Container(
+            constraints: const BoxConstraints(maxWidth: 1000),
+            child: BlocBuilder<PrivacyCubit, PrivacyState>(
+              builder: (context, state) {
+                final cubit = context.read<PrivacyCubit>();
 
-              return ListView(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                children: [
-                  GroupTitle(title: "Playback"),
+                return ListView(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  children: [
+                    ExpressiveListGroup(
+                      title: "Playback",
+                      children: [
+                        ExpressiveSwitchListTile(
+                          title: Text(S.of(context).Enable_Playback_History),
+                          leading: const SettingsColorIcon(
+                            icon: Icons.play_arrow_rounded,
+                          ),
+                          value: state.playbackHistory,
+                          onChanged: cubit.togglePlaybackHistory,
+                        ),
 
-                  /// PLAYBACK HISTORY ENABLE
-                  SettingSwitchTile(
-                    title: S.of(context).Enable_Playback_History,
-                    leading: const Icon(Icons.play_arrow_rounded),
-                    isFirst: true,
-                    value: state.playbackHistory,
-                    onChanged: cubit.togglePlaybackHistory,
-                  ),
+                        ExpressiveListTile(
+                          title: Text(S.of(context).Delete_Playback_History),
+                          leading: const SettingsColorIcon(
+                            icon: FluentIcons.history_dismiss_24_filled,
+                          ),
+                          onTap: () async {
+                            final confirm = await Modals.showConfirmBottomModal(
+                              context,
+                              message: S
+                                  .of(context)
+                                  .Delete_Playback_History_Confirm_Message,
+                              isDanger: true,
+                            );
 
-                  /// DELETE PLAYBACK HISTORY
-                  SettingTile(
-                    title: S.of(context).Delete_Playback_History,
-                    leading: const Icon(FluentIcons.history_dismiss_24_filled),
-                    isLast: true,
-                    onTap: () async {
-                      final confirm = await Modals.showConfirmBottomModal(
-                        context,
-                        message: S
-                            .of(context)
-                            .Delete_Playback_History_Confirm_Message,
-                        isDanger: true,
-                      );
+                            if (confirm == true) {
+                              cubit.clearPlaybackHistory();
+                            }
+                          },
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: 24),
+                    ExpressiveListGroup(
+                      title: "Search",
+                      children: [
+                        ExpressiveSwitchListTile(
+                          title: Text(S.of(context).Enable_Search_History),
+                          leading: const SettingsColorIcon(
+                            icon: Icons.saved_search_rounded,
+                          ),
+                          value: state.searchHistory,
+                          onChanged: cubit.toggleSearchHistory,
+                        ),
 
-                      if (confirm == true) {
-                        cubit.clearPlaybackHistory();
-                      }
-                    },
-                  ),
+                        ExpressiveListTile(
+                          title: Text(S.of(context).Delete_Search_History),
+                          leading: const SettingsColorIcon(
+                            icon: Icons.manage_search_rounded,
+                          ),
+                          onTap: () async {
+                            final confirm = await Modals.showConfirmBottomModal(
+                              context,
+                              message: S
+                                  .of(context)
+                                  .Delete_Search_History_Confirm_Message,
+                              isDanger: true,
+                            );
 
-                  GroupTitle(title: "Search"),
-
-                  /// SEARCH HISTORY ENABLE
-                  SettingSwitchTile(
-                    title: S.of(context).Enable_Search_History,
-                    leading: const Icon(Icons.saved_search_rounded),
-                    isFirst: true,
-                    value: state.searchHistory,
-                    onChanged: cubit.toggleSearchHistory,
-                  ),
-
-                  /// DELETE SEARCH HISTORY
-                  SettingTile(
-                    title: S.of(context).Delete_Search_History,
-                    leading: const Icon(Icons.manage_search_rounded),
-                    isLast: true,
-                    onTap: () async {
-                      final confirm = await Modals.showConfirmBottomModal(
-                        context,
-                        message:
-                            S.of(context).Delete_Search_History_Confirm_Message,
-                        isDanger: true,
-                      );
-
-                      if (confirm == true) {
-                        cubit.clearSearchHistory();
-                      }
-                    },
-                  ),
-                ],
-              );
-            },
+                            if (confirm == true) {
+                              cubit.clearSearchHistory();
+                            }
+                          },
+                        ),
+                      ],
+                    ),
+                  ],
+                );
+              },
+            ),
           ),
         ),
       ),
