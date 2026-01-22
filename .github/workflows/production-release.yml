@@ -12,6 +12,9 @@ jobs:
     if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
       - name: Validate PR is from beta branch
         run: |
           if [ "${{ github.event.pull_request.head.ref }}" != "beta" ]; then
@@ -25,9 +28,11 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       release_tag: ${{ steps.app_version.outputs.version }}
+      release_channel: 'stable'
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
@@ -36,25 +41,42 @@ jobs:
         run: |
           FVM_VERSION=$(jq -r '.flutterSdkVersion' .fvm/fvm_config.json)
           echo "version=$FVM_VERSION" >> $GITHUB_OUTPUT
+          echo "Flutter version from FVM: $FVM_VERSION"
 
       - name: Validate beta-derived version
         run: |
-          grep -q -- "-beta." pubspec.yaml || exit 1
+          if ! grep -q -- "-beta\." pubspec.yaml; then
+            echo "❌ Error: Production releases must be from beta versions"
+            exit 1
+          fi
+          echo "✅ Version is beta-derived"
 
       - name: Set production version
         id: app_version
         run: |
-          BASE=$(grep '^version:' pubspec.yaml | awk '{print $2}' | cut -d+ -f1)
-          CODE=$((100 + ${{ github.run_number }}))
-          FINAL="$BASE+$CODE"
-          sed -i "s/^version:.*/version: $FINAL/" pubspec.yaml
+          # Extract base version and remove -beta.N suffix
+          FULL_VERSION=$(grep '^version:' pubspec.yaml | awk '{print $2}')
+          BASE=$(echo "$FULL_VERSION" | sed 's/-beta\.[0-9]*//g' | cut -d+ -f1)
+          
+          LEGACY_BASE=100
+          PROD_SEQ=${{ github.run_number }}
+          VERSION_CODE=$((LEGACY_BASE + PROD_SEQ))
+          
+          FINAL_VERSION="$BASE+$VERSION_CODE"
+          
+          sed -i "s/^version:.*/version: $FINAL_VERSION/" pubspec.yaml
+          
           echo "version=$BASE" >> $GITHUB_OUTPUT
-          echo "build=$CODE" >> $GITHUB_OUTPUT
+          echo "build=$VERSION_CODE" >> $GITHUB_OUTPUT
+          
+          echo "✅ Production version set to: $FINAL_VERSION"
 
-      - uses: kuhnroyal/flutter-fvm-config-action/setup@v3
+      - name: Setup Flutter with FVM
+        uses: kuhnroyal/flutter-fvm-config-action/setup@v3
 
       - name: Decode keystore
-        run: echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > android/app/keystore.jks
+        run: |
+          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > android/app/keystore.jks
 
       - name: Create key.properties
         run: |
@@ -65,30 +87,78 @@ jobs:
           storeFile=keystore.jks
           EOF
 
-      - run: flutter pub get
-      - run: dart run flutter_native_splash:create
+      - name: Install dependencies
+        run: flutter pub get
 
-      - run: flutter build apk --flavor production --release
-      - run: flutter build apk --flavor production --release --split-per-abi
+      - name: Generate Splash Screen
+        run: dart run flutter_native_splash:create
+
+      - name: Build Android APK (Production - Universal)
+        run: flutter build apk --flavor production --release
+
+      - name: Build Android APK (Production - Split per ABI)
+        run: flutter build apk --flavor production --release --split-per-abi
 
       - name: Rename build artifacts
         run: |
           mkdir -p releases
+
+          # Universal
           cp build/app/outputs/flutter-apk/app-production-release.apk \
              releases/gyawun-v${{ steps.app_version.outputs.version }}-universal.apk
+
+          # Split APKs
           cp build/app/outputs/flutter-apk/app-arm64-v8a-production-release.apk \
              releases/gyawun-v${{ steps.app_version.outputs.version }}-arm64-v8a.apk
+
           cp build/app/outputs/flutter-apk/app-armeabi-v7a-production-release.apk \
              releases/gyawun-v${{ steps.app_version.outputs.version }}-armeabi-v7a.apk
+
           cp build/app/outputs/flutter-apk/app-x86_64-production-release.apk \
              releases/gyawun-v${{ steps.app_version.outputs.version }}-x86_64.apk
 
-      - name: Create Release
+      - name: Create Stable Release
         uses: softprops/action-gh-release@v1
         with:
           tag_name: v${{ steps.app_version.outputs.version }}
+          name: v${{ steps.app_version.outputs.version }}
           prerelease: false
-          files: releases/*.apk
+          draft: false
+          body: |
+            ## ✅ Production Release v${{ steps.app_version.outputs.version }}
+
+            **This is a stable production release.**
+
+            ---
+
+            ### 🔖 Build Information
+            - **Channel:** Production
+            - **Version:** `${{ steps.app_version.outputs.version }}`
+            - **Build Number:** `${{ steps.app_version.outputs.build }}`
+            - **Flutter SDK:** `${{ steps.fvm_version.outputs.version }}`
+            - **Branch:** `main`
+
+            ---
+
+            ### 📦 Available Downloads
+
+            📱 **Universal APK**
+            - `gyawun-v${{ steps.app_version.outputs.version }}-universal.apk`
+
+            🎯 **Architecture-Specific APKs**
+            - `gyawun-v${{ steps.app_version.outputs.version }}-arm64-v8a.apk`
+            - `gyawun-v${{ steps.app_version.outputs.version }}-armeabi-v7a.apk`
+            - `gyawun-v${{ steps.app_version.outputs.version }}-x86_64.apk`
+
+            ---
+
+            ### 📝 Release Notes
+            ${{ github.event.pull_request.body }}
+          files: |
+            releases/gyawun-v${{ steps.app_version.outputs.version }}-universal.apk
+            releases/gyawun-v${{ steps.app_version.outputs.version }}-arm64-v8a.apk
+            releases/gyawun-v${{ steps.app_version.outputs.version }}-armeabi-v7a.apk
+            releases/gyawun-v${{ steps.app_version.outputs.version }}-x86_64.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -97,6 +167,7 @@ jobs:
     uses: ./.github/workflows/notify-telegram.yml
     with:
       release_tag: v${{ needs.production-release.outputs.release_tag }}
+      release_channel: ${{ needs.production-release.outputs.release_channel }}
     secrets:
       TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
       TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}

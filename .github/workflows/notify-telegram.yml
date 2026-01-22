@@ -6,6 +6,9 @@ on:
       release_tag:
         required: true
         type: string
+      release_channel:
+        required: true
+        type: string
     secrets:
       TELEGRAM_BOT_TOKEN:
         required: true
@@ -23,9 +26,25 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # ─────────────────────────────────────────────
-      # 1. Fetch release data from GitHub
-      # ─────────────────────────────────────────────
+      - name: Determine topic ID
+        id: topic
+        run: |
+          CHANNEL="${{ inputs.release_channel }}"
+          
+          if [ "$CHANNEL" = "alpha" ]; then
+            echo "id=${{ secrets.TELEGRAM_TOPIC_ALPHA }}" >> $GITHUB_OUTPUT
+            echo "emoji=🚧" >> $GITHUB_OUTPUT
+          elif [ "$CHANNEL" = "beta" ]; then
+            echo "id=${{ secrets.TELEGRAM_TOPIC_BETA }}" >> $GITHUB_OUTPUT
+            echo "emoji=🧪" >> $GITHUB_OUTPUT
+          elif [ "$CHANNEL" = "stable" ] || [ "$CHANNEL" = "production" ]; then
+            echo "id=${{ secrets.TELEGRAM_TOPIC_STABLE }}" >> $GITHUB_OUTPUT
+            echo "emoji=✅" >> $GITHUB_OUTPUT
+          else
+            echo "❌ Unknown channel: $CHANNEL"
+            exit 1
+          fi
+
       - name: Fetch release data
         id: release
         run: |
@@ -40,126 +59,79 @@ jobs:
             "https://api.github.com/repos/$REPO/releases/tags/$TAG" \
             > release.json
 
+          # Extract data
+          RELEASE_URL=$(jq -r '.html_url // ""' release.json)
+          RELEASE_NAME=$(jq -r '.name // ""' release.json)
+          IS_PRERELEASE=$(jq -r '.prerelease // false' release.json)
           BODY=$(jq -r '.body // ""' release.json)
 
+          # Get download URLs for APKs
+          UNIVERSAL_URL=$(jq -r '.assets[] | select(.name | contains("universal.apk")) | .browser_download_url' release.json)
+          ARM64_URL=$(jq -r '.assets[] | select(.name | contains("arm64-v8a.apk")) | .browser_download_url' release.json)
+          ARMV7_URL=$(jq -r '.assets[] | select(.name | contains("armeabi-v7a.apk")) | .browser_download_url' release.json)
+          X86_64_URL=$(jq -r '.assets[] | select(.name | contains("x86_64.apk")) | .browser_download_url' release.json)
+
+          # Save to outputs
           {
+            echo "url=$RELEASE_URL"
+            echo "name=$RELEASE_NAME"
+            echo "prerelease=$IS_PRERELEASE"
+            echo "universal_url=$UNIVERSAL_URL"
+            echo "arm64_url=$ARM64_URL"
+            echo "armv7_url=$ARMV7_URL"
+            echo "x86_64_url=$X86_64_URL"
             echo "body<<EOF"
             echo "$BODY"
             echo "EOF"
           } >> "$GITHUB_OUTPUT"
 
-      # ─────────────────────────────────────────────
-      # 2. Detect channel and topic
-      # ─────────────────────────────────────────────
-      - name: Detect channel and topic
-        id: channel
+      - name: Send Telegram notification
         run: |
-          TAG="${{ inputs.release_tag }}"
+          CHANNEL="${{ inputs.release_channel }}"
+          EMOJI="${{ steps.topic.outputs.emoji }}"
+          
+          # Prepare message
+          MESSAGE="$EMOJI <b>New ${CHANNEL^} Release</b> $EMOJI
 
-          if [[ "$TAG" == *"-alpha."* ]]; then
-            NAME="Alpha"
-            EMOJI="🚧"
-            NOTE="Highly unstable. Internal testing only."
-            TOPIC="${{ secrets.TELEGRAM_TOPIC_ALPHA }}"
-          elif [[ "$TAG" == *"-beta."* ]]; then
-            NAME="Beta"
-            EMOJI="🧪"
-            NOTE="Feature-complete. May contain bugs."
-            TOPIC="${{ secrets.TELEGRAM_TOPIC_BETA }}"
-          else
-            NAME="Stable"
-            EMOJI="🚀"
-            NOTE="Recommended for all users."
-            TOPIC="${{ secrets.TELEGRAM_TOPIC_STABLE }}"
-          fi
+📦 <b>${{ steps.release.outputs.name }}</b>
 
+🔗 <a href=\"${{ steps.release.outputs.url }}\">View Release on GitHub</a>
+
+${{ steps.release.outputs.body }}"
+
+          # Prepare inline keyboard with download buttons
+          KEYBOARD=$(cat <<EOF
           {
-            echo "name=$NAME"
-            echo "emoji=$EMOJI"
-            echo "note=$NOTE"
-            echo "topic=$TOPIC"
-          } >> "$GITHUB_OUTPUT"
-
-      # ─────────────────────────────────────────────
-      # 3. Build inline keyboard (WAIT + NULL SAFE)
-      # ─────────────────────────────────────────────
-      - name: Build inline keyboard (wait for assets)
-        id: keyboard
-        run: |
-          set -e
-
-          for i in {1..10}; do
-            ASSET_COUNT=$(jq '.assets | length // 0' release.json)
-
-            if [ "$ASSET_COUNT" -gt 0 ]; then
-              echo "✅ Assets detected ($ASSET_COUNT)"
-              break
-            fi
-
-            echo "⏳ Waiting for assets to appear ($i/10)..."
-            sleep 3
-
-            curl -s \
-              -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
-              -H "Accept: application/vnd.github+json" \
-              "https://api.github.com/repos/${{ github.repository }}/releases/tags/${{ inputs.release_tag }}" \
-              > release.json
-          done
-
-          KEYBOARD=$(jq '
-            [(.assets // [])[]
-              | select(.name | endswith(".apk"))
-              | {
-                  text:
-                    (if (.name | contains("universal")) then "⬇ Universal"
-                     elif (.name | contains("arm64")) then "📱 ARM64 (Most devices)"
-                     elif (.name | contains("armeabi")) then "📱 ARMv7 (32-bit)"
-                     elif (.name | contains("x86_64")) then "💻 x86_64 (Emulator)"
-                     else .name end),
-                  url: .browser_download_url
-                }
+            "inline_keyboard": [
+              [
+                {"text": "📱 Universal APK", "url": "${{ steps.release.outputs.universal_url }}"}
+              ],
+              [
+                {"text": "🎯 ARM64 (v8a)", "url": "${{ steps.release.outputs.arm64_url }}"},
+                {"text": "🎯 ARMv7", "url": "${{ steps.release.outputs.armv7_url }}"}
+              ],
+              [
+                {"text": "🎯 x86_64", "url": "${{ steps.release.outputs.x86_64_url }}"}
+              ],
+              [
+                {"text": "📄 Full Release Notes", "url": "${{ steps.release.outputs.url }}"}
+              ]
             ]
-            | sort_by(.text)
-            | map([.])
-          ' release.json)
+          }
+          EOF
+          )
 
-          echo "keyboard=$KEYBOARD" >> "$GITHUB_OUTPUT"
+          # Send to Telegram
+          curl -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage" \
+            -H "Content-Type: application/json" \
+            -d "{
+              \"chat_id\": \"${{ secrets.TELEGRAM_CHAT_ID }}\",
+              \"message_thread_id\": ${{ steps.topic.outputs.id }},
+              \"text\": $(echo "$MESSAGE" | jq -Rs .),
+              \"parse_mode\": \"HTML\",
+              \"reply_markup\": $KEYBOARD,
+              \"disable_web_page_preview\": true
+            }"
 
-      # ─────────────────────────────────────────────
-      # 4. Send Telegram message (emoji-safe, jq-only)
-      # ─────────────────────────────────────────────
-      - name: Send Telegram message (simple, safe)
-        run: |
-          set -e
-
-          jq -n \
-            --arg chat "${{ secrets.TELEGRAM_CHAT_ID }}" \
-            --arg thread "${{ steps.channel.outputs.topic }}" \
-            --arg tag "${{ inputs.release_tag }}" \
-            --arg channel "${{ steps.channel.outputs.name }}" \
-            --arg emoji "${{ steps.channel.outputs.emoji }}" \
-            --arg note "${{ steps.channel.outputs.note }}" \
-            --argjson keyboard '${{ steps.keyboard.outputs.keyboard }}' \
-            '
-            {
-              chat_id: ($chat | tonumber),
-              message_thread_id: ($thread | tonumber),
-              parse_mode: "HTML",
-              text:
-                (
-                  "<b>" + $emoji + " GyawunMusic " + $channel + " Release</b>\n\n"
-                  + "<b>Version:</b> " + $tag + "\n"
-                  + "<b>Channel:</b> " + $channel + "\n\n"
-                  + "<b>Notes:</b>\n"
-                  + $note + "\n\n"
-                  + "<i>Select the correct APK for your device below.</i>\n\n"
-                  + "<a href=\"https://github.com/${{ github.repository }}/releases/tag/" + $tag + "\">View on GitHub</a>"
-                ),
-              reply_markup: {
-                inline_keyboard: $keyboard
-              }
-            }' \
-          | curl -s -X POST \
-              -H "Content-Type: application/json" \
-              "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage" \
-              -d @-
+      - name: Verify notification sent
+        run: echo "✅ Telegram notification sent successfully to ${{ inputs.release_channel }} topic!"
