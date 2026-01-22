@@ -11,6 +11,10 @@ jobs:
   alpha-release:
     if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
+    # Add outputs here
+    outputs:
+      release_tag: ${{ steps.app_version.outputs.version }}
+      release_channel: 'alpha'
 
     steps:
       - name: Checkout code
@@ -24,7 +28,6 @@ jobs:
           FVM_VERSION=$(jq -r '.flutterSdkVersion' .fvm/fvm_config.json)
           echo "version=$FVM_VERSION" >> $GITHUB_OUTPUT
 
-      # 🔒 Ensure placeholder version
       - name: Validate pubspec placeholder version
         run: |
           if ! grep -qE '^version: .+\+0$' pubspec.yaml; then
@@ -32,7 +35,6 @@ jobs:
             exit 1
           fi
 
-      # 🔑 Set alpha version (X.Y.Z-alpha.N+N)
       - name: Set alpha version
         id: app_version
         run: |
@@ -77,16 +79,13 @@ jobs:
       - name: Build Android APK (Alpha - Split per ABI)
         run: flutter build apk --flavor alpha --release --split-per-abi
 
-
       - name: Rename build artifacts
         run: |
           mkdir -p releases
 
-          # Universal
           cp build/app/outputs/flutter-apk/app-alpha-release.apk \
             releases/gyawun-alpha-v${{ steps.app_version.outputs.version }}-universal.apk
 
-          # Split APKs
           cp build/app/outputs/flutter-apk/app-arm64-v8a-alpha-release.apk \
             releases/gyawun-alpha-v${{ steps.app_version.outputs.version }}-arm64-v8a.apk
 
@@ -95,7 +94,6 @@ jobs:
 
           cp build/app/outputs/flutter-apk/app-x86_64-alpha-release.apk \
             releases/gyawun-alpha-v${{ steps.app_version.outputs.version }}-x86_64.apk
-
 
       - name: Create Alpha Pre-Release
         uses: softprops/action-gh-release@v1
@@ -149,16 +147,16 @@ jobs:
             releases/gyawun-alpha-v${{ steps.app_version.outputs.version }}-x86_64.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
   notify-telegram:
     needs: alpha-release
     uses: ./.github/workflows/notify-telegram.yml
     with:
       release_tag: v${{ needs.alpha-release.outputs.release_tag }}
+      release_channel: ${{ needs.alpha-release.outputs.release_channel }}
     secrets:
       TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
       TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
       TELEGRAM_TOPIC_ALPHA: ${{ secrets.TELEGRAM_TOPIC_ALPHA }}
       TELEGRAM_TOPIC_BETA: ${{ secrets.TELEGRAM_TOPIC_BETA }}
       TELEGRAM_TOPIC_STABLE: ${{ secrets.TELEGRAM_TOPIC_STABLE }}
-
-

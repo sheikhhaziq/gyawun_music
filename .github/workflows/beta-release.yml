@@ -11,6 +11,9 @@ jobs:
   beta-release:
     if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
+    outputs:
+      release_tag: ${{ steps.app_version.outputs.version }}
+      release_channel: 'beta'
 
     steps:
       - name: Checkout code
@@ -25,7 +28,6 @@ jobs:
           echo "version=$FVM_VERSION" >> $GITHUB_OUTPUT
           echo "Flutter version from FVM: $FVM_VERSION"
 
-      # 🔒 Ensure git uses placeholder version only
       - name: Validate pubspec placeholder version
         run: |
           if ! grep -qE '^version: .+\+0$' pubspec.yaml; then
@@ -34,7 +36,6 @@ jobs:
           fi
           echo "✅ pubspec.yaml placeholder version confirmed"
 
-      # 🔑 Derive beta version (X.Y.Z-beta.N+N)
       - name: Set beta version
         id: app_version
         run: |
@@ -85,19 +86,21 @@ jobs:
         run: |
           mkdir -p releases
 
+          # Universal
           cp build/app/outputs/flutter-apk/app-beta-release.apk \
              releases/gyawun-beta-v${{ steps.app_version.outputs.version }}-universal.apk
+
+          # Split APKs (consistent ordering with alpha)
+          cp build/app/outputs/flutter-apk/app-arm64-v8a-beta-release.apk \
+             releases/gyawun-beta-v${{ steps.app_version.outputs.version }}-arm64-v8a.apk
 
           cp build/app/outputs/flutter-apk/app-armeabi-v7a-beta-release.apk \
              releases/gyawun-beta-v${{ steps.app_version.outputs.version }}-armeabi-v7a.apk
 
-          cp build/app/outputs/flutter-apk/app-arm64-v8a-beta-release.apk \
-             releases/gyawun-beta-v${{ steps.app_version.outputs.version }}-arm64-v8a.apk
-
           cp build/app/outputs/flutter-apk/app-x86_64-beta-release.apk \
              releases/gyawun-beta-v${{ steps.app_version.outputs.version }}-x86_64.apk
 
-      - name: Create Pre-Release
+      - name: Create Beta Pre-Release
         uses: softprops/action-gh-release@v1
         with:
           tag_name: v${{ steps.app_version.outputs.version }}
@@ -105,15 +108,23 @@ jobs:
           prerelease: true
           draft: false
           body: |
-            ## Beta Release v${{ steps.app_version.outputs.version }}
+            ## 🧪 Beta Release v${{ steps.app_version.outputs.version }}
 
-            **Build Information:**
-            - App Version: `${{ steps.app_version.outputs.version }}`
-            - Build Number: `${{ steps.app_version.outputs.build }}`
-            - Flutter Version: `${{ steps.fvm_version.outputs.version }}`
-            - Branch: `beta`
+            ⚠️ **This is a BETA release.**  
+            For testing purposes – may contain bugs.
 
-            **Available Downloads:**
+            ---
+
+            ### 🔖 Build Information
+            - **Channel:** Beta
+            - **Version:** `${{ steps.app_version.outputs.version }}`
+            - **Build Number:** `${{ steps.app_version.outputs.build }}`
+            - **Flutter SDK:** `${{ steps.fvm_version.outputs.version }}`
+            - **Branch:** `beta`
+
+            ---
+
+            ### 📦 Available Downloads
 
             📱 **Universal APK**
             - `gyawun-beta-v${{ steps.app_version.outputs.version }}-universal.apk`
@@ -123,11 +134,17 @@ jobs:
             - `gyawun-beta-v${{ steps.app_version.outputs.version }}-armeabi-v7a.apk`
             - `gyawun-beta-v${{ steps.app_version.outputs.version }}-x86_64.apk`
 
-            **Changes:**
-            ${{ github.event.pull_request.body }}
+            ---
+
+            ### 🧪 Testing Notes
+            - Beta quality – expect some bugs
+            - Please report issues on GitHub
+            - Backup your data before testing
 
             ---
-            ⚠️ **Beta release – for testing only**
+
+            ### 📝 Changes
+            ${{ github.event.pull_request.body }}
           files: |
             releases/gyawun-beta-v${{ steps.app_version.outputs.version }}-universal.apk
             releases/gyawun-beta-v${{ steps.app_version.outputs.version }}-arm64-v8a.apk
@@ -135,11 +152,13 @@ jobs:
             releases/gyawun-beta-v${{ steps.app_version.outputs.version }}-x86_64.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
   notify-telegram:
     needs: beta-release
     uses: ./.github/workflows/notify-telegram.yml
     with:
       release_tag: v${{ needs.beta-release.outputs.release_tag }}
+      release_channel: ${{ needs.beta-release.outputs.release_channel }}
     secrets:
       TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
       TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
