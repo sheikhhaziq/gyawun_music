@@ -52,22 +52,16 @@ jobs:
           curl -s -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" -H "Accept: application/vnd.github+json" "https://api.github.com/repos/$REPO/releases/tags/$TAG" > release.json
           RELEASE_URL=$(jq -r '.html_url // ""' release.json)
           RELEASE_NAME=$(jq -r '.name // ""' release.json)
-          IS_PRERELEASE=$(jq -r '.prerelease // false' release.json)
-          BODY=$(jq -r '.body // ""' release.json)
           UNIVERSAL_URL=$(jq -r '.assets[] | select(.name | contains("universal.apk")) | .browser_download_url' release.json)
           ARM64_URL=$(jq -r '.assets[] | select(.name | contains("arm64-v8a.apk")) | .browser_download_url' release.json)
           ARMV7_URL=$(jq -r '.assets[] | select(.name | contains("armeabi-v7a.apk")) | .browser_download_url' release.json)
           X86_64_URL=$(jq -r '.assets[] | select(.name | contains("x86_64.apk")) | .browser_download_url' release.json)
           echo "url=$RELEASE_URL" >> $GITHUB_OUTPUT
           echo "name=$RELEASE_NAME" >> $GITHUB_OUTPUT
-          echo "prerelease=$IS_PRERELEASE" >> $GITHUB_OUTPUT
           echo "universal_url=$UNIVERSAL_URL" >> $GITHUB_OUTPUT
           echo "arm64_url=$ARM64_URL" >> $GITHUB_OUTPUT
           echo "armv7_url=$ARMV7_URL" >> $GITHUB_OUTPUT
           echo "x86_64_url=$X86_64_URL" >> $GITHUB_OUTPUT
-          echo "body<<EOF" >> $GITHUB_OUTPUT
-          echo "$BODY" >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
 
       - name: Send Telegram notification
         env:
@@ -76,16 +70,15 @@ jobs:
           TOPIC_ID: ${{ steps.topic.outputs.id }}
           EMOJI: ${{ steps.topic.outputs.emoji }}
           CHANNEL: ${{ inputs.release_channel }}
-          RELEASE_NAME: ${{ steps.release.outputs.name }}
+          RELEASE_TAG: ${{ inputs.release_tag }}
           RELEASE_URL: ${{ steps.release.outputs.url }}
-          RELEASE_BODY: ${{ steps.release.outputs.body }}
           UNIVERSAL_URL: ${{ steps.release.outputs.universal_url }}
           ARM64_URL: ${{ steps.release.outputs.arm64_url }}
           ARMV7_URL: ${{ steps.release.outputs.armv7_url }}
           X86_64_URL: ${{ steps.release.outputs.x86_64_url }}
         run: |
           CHANNEL_DISPLAY="$(echo "${CHANNEL:0:1}" | tr '[:lower:]' '[:upper:]')${CHANNEL:1}"
-          MESSAGE="${EMOJI} <b>New ${CHANNEL_DISPLAY} Release</b> ${EMOJI}\n\n📦 <b>${RELEASE_NAME}</b>\n\n🔗 <a href=\"${RELEASE_URL}\">View Release on GitHub</a>\n\n${RELEASE_BODY}"
+          MESSAGE="${EMOJI} <b>New ${CHANNEL_DISPLAY} Release</b> ${EMOJI}\n\n📦 Version: <code>${RELEASE_TAG}</code>\n\n🔗 <a href=\"${RELEASE_URL}\">View on GitHub</a>\n\n💾 Download APK using buttons below ⬇️"
           KEYBOARD=$(jq -n --arg universal "$UNIVERSAL_URL" --arg arm64 "$ARM64_URL" --arg armv7 "$ARMV7_URL" --arg x86 "$X86_64_URL" --arg release "$RELEASE_URL" '{inline_keyboard: [[{text: "📱 Universal APK", url: $universal}], [{text: "🎯 ARM64 (v8a)", url: $arm64}, {text: "🎯 ARMv7", url: $armv7}], [{text: "🎯 x86_64", url: $x86}], [{text: "📄 Full Release Notes", url: $release}]]}')
           curl -s -X POST "https://api.telegram.org/bot${BOT_TOKEN}/sendMessage" -H "Content-Type: application/json" -d "$(jq -n --arg chat_id "$CHAT_ID" --argjson topic_id "$TOPIC_ID" --arg text "$MESSAGE" --argjson keyboard "$KEYBOARD" '{chat_id: $chat_id, message_thread_id: $topic_id, text: $text, parse_mode: "HTML", reply_markup: $keyboard, disable_web_page_preview: true}')"
 
