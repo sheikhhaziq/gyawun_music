@@ -11,7 +11,6 @@ jobs:
   validate-source:
     if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
-
     steps:
       - name: Validate PR is from beta branch
         run: |
@@ -24,10 +23,11 @@ jobs:
   production-release:
     needs: validate-source
     runs-on: ubuntu-latest
+    outputs:
+      release_tag: ${{ steps.app_version.outputs.version }}
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
@@ -36,42 +36,25 @@ jobs:
         run: |
           FVM_VERSION=$(jq -r '.flutterSdkVersion' .fvm/fvm_config.json)
           echo "version=$FVM_VERSION" >> $GITHUB_OUTPUT
-          echo "Flutter version from FVM: $FVM_VERSION"
 
-      # 🔒 Ensure this really came from a beta build
       - name: Validate beta-derived version
         run: |
-          if ! grep -q -- "-beta." pubspec.yaml; then
-            echo "❌ Error: Production releases must be promoted from beta builds"
-            exit 1
-          fi
-          echo "✅ Beta-derived version confirmed"
+          grep -q -- "-beta." pubspec.yaml || exit 1
 
       - name: Set production version
         id: app_version
         run: |
-          BASE_VERSION=$(grep '^version:' pubspec.yaml | awk '{print $2}' | cut -d'+' -f1)
+          BASE=$(grep '^version:' pubspec.yaml | awk '{print $2}' | cut -d+ -f1)
+          CODE=$((100 + ${{ github.run_number }}))
+          FINAL="$BASE+$CODE"
+          sed -i "s/^version:.*/version: $FINAL/" pubspec.yaml
+          echo "version=$BASE" >> $GITHUB_OUTPUT
+          echo "build=$CODE" >> $GITHUB_OUTPUT
 
-          LEGACY_BASE=100
-          CI_SEQ=${{ github.run_number }}
-          VERSION_CODE=$((LEGACY_BASE + CI_SEQ))
-
-          FINAL_VERSION="$BASE_VERSION+$VERSION_CODE"
-
-          sed -i "s/^version:.*/version: $FINAL_VERSION/" pubspec.yaml
-
-          echo "version=$BASE_VERSION" >> $GITHUB_OUTPUT
-          echo "build=$VERSION_CODE" >> $GITHUB_OUTPUT
-
-          echo "✅ Production version set to: $FINAL_VERSION"
-
-
-      - name: Setup Flutter with FVM
-        uses: kuhnroyal/flutter-fvm-config-action/setup@v3
+      - uses: kuhnroyal/flutter-fvm-config-action/setup@v3
 
       - name: Decode keystore
-        run: |
-          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > android/app/keystore.jks
+        run: echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > android/app/keystore.jks
 
       - name: Create key.properties
         run: |
@@ -82,31 +65,21 @@ jobs:
           storeFile=keystore.jks
           EOF
 
-      - name: Install dependencies
-        run: flutter pub get
+      - run: flutter pub get
+      - run: dart run flutter_native_splash:create
 
-      - name: Generate Splash Screen
-        run: dart run flutter_native_splash:create
-
-      - name: Build Android APK (Production - Universal)
-        run: flutter build apk --flavor production --release
-
-      - name: Build Android APK (Production - Split per ABI)
-        run: flutter build apk --flavor production --release --split-per-abi
+      - run: flutter build apk --flavor production --release
+      - run: flutter build apk --flavor production --release --split-per-abi
 
       - name: Rename build artifacts
         run: |
           mkdir -p releases
-
           cp build/app/outputs/flutter-apk/app-production-release.apk \
              releases/gyawun-v${{ steps.app_version.outputs.version }}-universal.apk
-
-          cp build/app/outputs/flutter-apk/app-armeabi-v7a-production-release.apk \
-             releases/gyawun-v${{ steps.app_version.outputs.version }}-armeabi-v7a.apk
-
           cp build/app/outputs/flutter-apk/app-arm64-v8a-production-release.apk \
              releases/gyawun-v${{ steps.app_version.outputs.version }}-arm64-v8a.apk
-
+          cp build/app/outputs/flutter-apk/app-armeabi-v7a-production-release.apk \
+             releases/gyawun-v${{ steps.app_version.outputs.version }}-armeabi-v7a.apk
           cp build/app/outputs/flutter-apk/app-x86_64-production-release.apk \
              releases/gyawun-v${{ steps.app_version.outputs.version }}-x86_64.apk
 
@@ -114,50 +87,10 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           tag_name: v${{ steps.app_version.outputs.version }}
-          name: Release v${{ steps.app_version.outputs.version }}
           prerelease: false
-          draft: false
-          body: |
-            ## Release v${{ steps.app_version.outputs.version }}
-
-            **Build Information:**
-            - App Version: `${{ steps.app_version.outputs.version }}`
-            - Build Number: `${{ steps.app_version.outputs.build }}`
-            - Flutter Version: `${{ steps.fvm_version.outputs.version }}`
-            - Branch: `main`
-
-            **Available Downloads:**
-
-            📱 **Universal APK**
-            - `gyawun-v${{ steps.app_version.outputs.version }}-universal.apk`
-
-            🎯 **Architecture-Specific APKs**
-            - `gyawun-v${{ steps.app_version.outputs.version }}-arm64-v8a.apk`
-            - `gyawun-v${{ steps.app_version.outputs.version }}-armeabi-v7a.apk`
-            - `gyawun-v${{ steps.app_version.outputs.version }}-x86_64.apk`
-
-            **Changes:**
-            ${{ github.event.pull_request.body }}
-
-            ---
-            ✅ **Production Release**
-          files: |
-            releases/gyawun-v${{ steps.app_version.outputs.version }}-universal.apk
-            releases/gyawun-v${{ steps.app_version.outputs.version }}-arm64-v8a.apk
-            releases/gyawun-v${{ steps.app_version.outputs.version }}-armeabi-v7a.apk
-            releases/gyawun-v${{ steps.app_version.outputs.version }}-x86_64.apk
+          files: releases/*.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - name: Notify Telegram
-        uses: ./.github/workflows/notify-telegram.yml
-        with:
-          release_tag: v${{ steps.app_version.outputs.version }}
-        secrets:
-          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
-          TELEGRAM_TOPIC_ALPHA: ${{ secrets.TELEGRAM_TOPIC_ALPHA }}
-          TELEGRAM_TOPIC_BETA: ${{ secrets.TELEGRAM_TOPIC_BETA }}
-          TELEGRAM_TOPIC_STABLE: ${{ secrets.TELEGRAM_TOPIC_STABLE }}
 
   notify-telegram:
     needs: production-release
