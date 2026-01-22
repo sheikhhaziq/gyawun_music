@@ -81,13 +81,33 @@ jobs:
           } >> "$GITHUB_OUTPUT"
 
       # ─────────────────────────────────────────────
-      # 3. Build inline keyboard (Universal + ABIs)
+      # 3. Build inline keyboard (WAIT + NULL SAFE)
       # ─────────────────────────────────────────────
-      - name: Build inline keyboard
+      - name: Build inline keyboard (wait for assets)
         id: keyboard
         run: |
+          set -e
+
+          for i in {1..10}; do
+            ASSET_COUNT=$(jq '.assets | length // 0' release.json)
+
+            if [ "$ASSET_COUNT" -gt 0 ]; then
+              echo "✅ Assets detected ($ASSET_COUNT)"
+              break
+            fi
+
+            echo "⏳ Waiting for assets to appear ($i/10)..."
+            sleep 3
+
+            curl -s \
+              -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+              -H "Accept: application/vnd.github+json" \
+              "https://api.github.com/repos/${{ github.repository }}/releases/tags/${{ inputs.release_tag }}" \
+              > release.json
+          done
+
           KEYBOARD=$(jq '
-            [.assets[]
+            [(.assets // [])[]
               | select(.name | endswith(".apk"))
               | {
                   text:
