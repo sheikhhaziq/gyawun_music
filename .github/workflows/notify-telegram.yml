@@ -23,51 +23,70 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # ─────────────────────────────────────────────
+      # 1. Fetch release data from GitHub
+      # ─────────────────────────────────────────────
       - name: Fetch release data
         id: release
         run: |
+          set -e
+
           REPO="${{ github.repository }}"
           TAG="${{ inputs.release_tag }}"
 
-          RELEASE=$(curl -s \
+          curl -s \
             -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
             -H "Accept: application/vnd.github+json" \
-            https://api.github.com/repos/$REPO/releases/tags/$TAG)
+            "https://api.github.com/repos/$REPO/releases/tags/$TAG" \
+            > release.json
 
-          echo "$RELEASE" > release.json
+          BODY=$(jq -r '.body // ""' release.json)
 
-          BODY=$(jq -r '.body' release.json)
+          {
+            echo "body<<EOF"
+            echo "$BODY"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
 
-          echo "body<<EOF" >> $GITHUB_OUTPUT
-          echo "$BODY" >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
-
+      # ─────────────────────────────────────────────
+      # 2. Detect channel + topic
+      # ─────────────────────────────────────────────
       - name: Detect channel and topic
         id: channel
         run: |
           TAG="${{ inputs.release_tag }}"
 
           if [[ "$TAG" == *"-alpha."* ]]; then
-            echo "name=Alpha" >> $GITHUB_OUTPUT
-            echo "emoji=🚧" >> $GITHUB_OUTPUT
-            echo "note=Highly unstable. Internal testing only." >> $GITHUB_OUTPUT
-            echo "topic=${{ secrets.TELEGRAM_TOPIC_ALPHA }}" >> $GITHUB_OUTPUT
+            NAME="Alpha"
+            EMOJI="🚧"
+            NOTE="Highly unstable. Internal testing only."
+            TOPIC="${{ secrets.TELEGRAM_TOPIC_ALPHA }}"
           elif [[ "$TAG" == *"-beta."* ]]; then
-            echo "name=Beta" >> $GITHUB_OUTPUT
-            echo "emoji=🧪" >> $GITHUB_OUTPUT
-            echo "note=Feature-complete. May contain bugs." >> $GITHUB_OUTPUT
-            echo "topic=${{ secrets.TELEGRAM_TOPIC_BETA }}" >> $GITHUB_OUTPUT
+            NAME="Beta"
+            EMOJI="🧪"
+            NOTE="Feature-complete. May contain bugs."
+            TOPIC="${{ secrets.TELEGRAM_TOPIC_BETA }}"
           else
-            echo "name=Stable" >> $GITHUB_OUTPUT
-            echo "emoji=🚀" >> $GITHUB_OUTPUT
-            echo "note=Recommended for all users." >> $GITHUB_OUTPUT
-            echo "topic=${{ secrets.TELEGRAM_TOPIC_STABLE }}" >> $GITHUB_OUTPUT
+            NAME="Stable"
+            EMOJI="🚀"
+            NOTE="Recommended for all users."
+            TOPIC="${{ secrets.TELEGRAM_TOPIC_STABLE }}"
           fi
 
-      - name: Build inline keyboard (per ABI)
+          {
+            echo "name=$NAME"
+            echo "emoji=$EMOJI"
+            echo "note=$NOTE"
+            echo "topic=$TOPIC"
+          } >> "$GITHUB_OUTPUT"
+
+      # ─────────────────────────────────────────────
+      # 3. Build inline keyboard (Universal + ABIs)
+      # ─────────────────────────────────────────────
+      - name: Build inline keyboard
         id: keyboard
         run: |
-          BUTTONS=$(jq -r '
+          KEYBOARD=$(jq '
             [.assets[]
               | select(.name | endswith(".apk"))
               | {
@@ -84,22 +103,26 @@ jobs:
             | map([.])
           ' release.json)
 
-          echo "keyboard=$BUTTONS" >> $GITHUB_OUTPUT
+          echo "keyboard=$KEYBOARD" >> "$GITHUB_OUTPUT"
 
+      # ─────────────────────────────────────────────
+      # 4. Send Telegram message
+      # ─────────────────────────────────────────────
       - name: Send Telegram message with buttons
         run: |
+          set -e
+
           TAG="${{ inputs.release_tag }}"
           CHANNEL="${{ steps.channel.outputs.name }}"
           EMOJI="${{ steps.channel.outputs.emoji }}"
           NOTE="${{ steps.channel.outputs.note }}"
           TOPIC_ID="${{ steps.channel.outputs.topic }}"
           BODY="${{ steps.release.outputs.body }}"
-          BUTTONS='${{ steps.keyboard.outputs.keyboard }}'
+          KEYBOARD='${{ steps.keyboard.outputs.keyboard }}'
 
-          # Short release notes snippet
           NOTES=$(echo "$BODY" | sed '/^\s*$/d' | head -n 5)
 
-          TEXT=$(cat <<EOF
+          MESSAGE=$(cat <<EOF
 $EMOJI *GyawunMusic $CHANNEL Release*
 
 *Version:* $TAG
@@ -112,17 +135,19 @@ $NOTES
 EOF
 )
 
-          curl -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage" \
-            -H "Content-Type: application/json" \
-            -d "$(jq -n \
-              --arg chat "${{ secrets.TELEGRAM_CHAT_ID }}" \
-              --argjson thread "$TOPIC_ID" \
-              --arg text "$TEXT" \
-              --argjson keyboard "$BUTTONS" \
-              '{
-                chat_id: ($chat | tonumber),
-                message_thread_id: $thread,
-                text: $text,
-                parse_mode: "Markdown",
-                reply_markup: { inline_keyboard: $keyboard }
-              }')"
+          jq -n \
+            --arg chat "${{ secrets.TELEGRAM_CHAT_ID }}" \
+            --arg thread "$TOPIC_ID" \
+            --arg text "$MESSAGE" \
+            --argjson keyboard "$KEYBOARD" \
+            '{
+              chat_id: ($chat | tonumber),
+              message_thread_id: ($thread | tonumber),
+              text: $text,
+              parse_mode: "Markdown",
+              reply_markup: { inline_keyboard: $keyboard }
+            }' \
+          | curl -s -X POST \
+              -H "Content-Type: application/json" \
+              "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage" \
+              -d @-
