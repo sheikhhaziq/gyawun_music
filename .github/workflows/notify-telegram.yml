@@ -24,13 +24,11 @@ on:
 jobs:
   notify:
     runs-on: ubuntu-latest
-
     steps:
       - name: Determine topic ID
         id: topic
         run: |
           CHANNEL="${{ inputs.release_channel }}"
-          
           if [ "$CHANNEL" = "alpha" ]; then
             echo "id=${{ secrets.TELEGRAM_TOPIC_ALPHA }}" >> $GITHUB_OUTPUT
             echo "emoji=🚧" >> $GITHUB_OUTPUT
@@ -49,89 +47,47 @@ jobs:
         id: release
         run: |
           set -e
-
           REPO="${{ github.repository }}"
           TAG="${{ inputs.release_tag }}"
-
-          curl -s \
-            -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
-            -H "Accept: application/vnd.github+json" \
-            "https://api.github.com/repos/$REPO/releases/tags/$TAG" \
-            > release.json
-
-          # Extract data
+          curl -s -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" -H "Accept: application/vnd.github+json" "https://api.github.com/repos/$REPO/releases/tags/$TAG" > release.json
           RELEASE_URL=$(jq -r '.html_url // ""' release.json)
           RELEASE_NAME=$(jq -r '.name // ""' release.json)
           IS_PRERELEASE=$(jq -r '.prerelease // false' release.json)
           BODY=$(jq -r '.body // ""' release.json)
-
-          # Get download URLs for APKs
           UNIVERSAL_URL=$(jq -r '.assets[] | select(.name | contains("universal.apk")) | .browser_download_url' release.json)
           ARM64_URL=$(jq -r '.assets[] | select(.name | contains("arm64-v8a.apk")) | .browser_download_url' release.json)
           ARMV7_URL=$(jq -r '.assets[] | select(.name | contains("armeabi-v7a.apk")) | .browser_download_url' release.json)
           X86_64_URL=$(jq -r '.assets[] | select(.name | contains("x86_64.apk")) | .browser_download_url' release.json)
-
-          # Save to outputs
-          {
-            echo "url=$RELEASE_URL"
-            echo "name=$RELEASE_NAME"
-            echo "prerelease=$IS_PRERELEASE"
-            echo "universal_url=$UNIVERSAL_URL"
-            echo "arm64_url=$ARM64_URL"
-            echo "armv7_url=$ARMV7_URL"
-            echo "x86_64_url=$X86_64_URL"
-            echo "body<<EOF"
-            echo "$BODY"
-            echo "EOF"
-          } >> "$GITHUB_OUTPUT"
+          echo "url=$RELEASE_URL" >> $GITHUB_OUTPUT
+          echo "name=$RELEASE_NAME" >> $GITHUB_OUTPUT
+          echo "prerelease=$IS_PRERELEASE" >> $GITHUB_OUTPUT
+          echo "universal_url=$UNIVERSAL_URL" >> $GITHUB_OUTPUT
+          echo "arm64_url=$ARM64_URL" >> $GITHUB_OUTPUT
+          echo "armv7_url=$ARMV7_URL" >> $GITHUB_OUTPUT
+          echo "x86_64_url=$X86_64_URL" >> $GITHUB_OUTPUT
+          echo "body<<EOF" >> $GITHUB_OUTPUT
+          echo "$BODY" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
 
       - name: Send Telegram notification
+        env:
+          BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          TOPIC_ID: ${{ steps.topic.outputs.id }}
+          EMOJI: ${{ steps.topic.outputs.emoji }}
+          CHANNEL: ${{ inputs.release_channel }}
+          RELEASE_NAME: ${{ steps.release.outputs.name }}
+          RELEASE_URL: ${{ steps.release.outputs.url }}
+          RELEASE_BODY: ${{ steps.release.outputs.body }}
+          UNIVERSAL_URL: ${{ steps.release.outputs.universal_url }}
+          ARM64_URL: ${{ steps.release.outputs.arm64_url }}
+          ARMV7_URL: ${{ steps.release.outputs.armv7_url }}
+          X86_64_URL: ${{ steps.release.outputs.x86_64_url }}
         run: |
-          CHANNEL="${{ inputs.release_channel }}"
-          EMOJI="${{ steps.topic.outputs.emoji }}"
-          
-          # Prepare message
-          MESSAGE="$EMOJI <b>New ${CHANNEL^} Release</b> $EMOJI
-
-📦 <b>${{ steps.release.outputs.name }}</b>
-
-🔗 <a href=\"${{ steps.release.outputs.url }}\">View Release on GitHub</a>
-
-${{ steps.release.outputs.body }}"
-
-          # Prepare inline keyboard with download buttons
-          KEYBOARD=$(cat <<EOF
-          {
-            "inline_keyboard": [
-              [
-                {"text": "📱 Universal APK", "url": "${{ steps.release.outputs.universal_url }}"}
-              ],
-              [
-                {"text": "🎯 ARM64 (v8a)", "url": "${{ steps.release.outputs.arm64_url }}"},
-                {"text": "🎯 ARMv7", "url": "${{ steps.release.outputs.armv7_url }}"}
-              ],
-              [
-                {"text": "🎯 x86_64", "url": "${{ steps.release.outputs.x86_64_url }}"}
-              ],
-              [
-                {"text": "📄 Full Release Notes", "url": "${{ steps.release.outputs.url }}"}
-              ]
-            ]
-          }
-          EOF
-          )
-
-          # Send to Telegram
-          curl -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage" \
-            -H "Content-Type: application/json" \
-            -d "{
-              \"chat_id\": \"${{ secrets.TELEGRAM_CHAT_ID }}\",
-              \"message_thread_id\": ${{ steps.topic.outputs.id }},
-              \"text\": $(echo "$MESSAGE" | jq -Rs .),
-              \"parse_mode\": \"HTML\",
-              \"reply_markup\": $KEYBOARD,
-              \"disable_web_page_preview\": true
-            }"
+          CHANNEL_DISPLAY="$(echo "${CHANNEL:0:1}" | tr '[:lower:]' '[:upper:]')${CHANNEL:1}"
+          MESSAGE="${EMOJI} <b>New ${CHANNEL_DISPLAY} Release</b> ${EMOJI}\n\n📦 <b>${RELEASE_NAME}</b>\n\n🔗 <a href=\"${RELEASE_URL}\">View Release on GitHub</a>\n\n${RELEASE_BODY}"
+          KEYBOARD=$(jq -n --arg universal "$UNIVERSAL_URL" --arg arm64 "$ARM64_URL" --arg armv7 "$ARMV7_URL" --arg x86 "$X86_64_URL" --arg release "$RELEASE_URL" '{inline_keyboard: [[{text: "📱 Universal APK", url: $universal}], [{text: "🎯 ARM64 (v8a)", url: $arm64}, {text: "🎯 ARMv7", url: $armv7}], [{text: "🎯 x86_64", url: $x86}], [{text: "📄 Full Release Notes", url: $release}]]}')
+          curl -s -X POST "https://api.telegram.org/bot${BOT_TOKEN}/sendMessage" -H "Content-Type: application/json" -d "$(jq -n --arg chat_id "$CHAT_ID" --argjson topic_id "$TOPIC_ID" --arg text "$MESSAGE" --argjson keyboard "$KEYBOARD" '{chat_id: $chat_id, message_thread_id: $topic_id, text: $text, parse_mode: "HTML", reply_markup: $keyboard, disable_web_page_preview: true}')"
 
       - name: Verify notification sent
         run: echo "✅ Telegram notification sent successfully to ${{ inputs.release_channel }} topic!"
