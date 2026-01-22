@@ -149,15 +149,16 @@ jobs:
             releases/gyawun-alpha-v${{ steps.app_version.outputs.version }}-x86_64.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - name: Notify Telegram
-        uses: ./.github/workflows/notify-telegram.yml
-        with:
-          release_tag: v${{ steps.app_version.outputs.version }}
-        secrets:
-          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
-          TELEGRAM_TOPIC_ALPHA: ${{ secrets.TELEGRAM_TOPIC_ALPHA }}
-          TELEGRAM_TOPIC_BETA: ${{ secrets.TELEGRAM_TOPIC_BETA }}
-          TELEGRAM_TOPIC_STABLE: ${{ secrets.TELEGRAM_TOPIC_STABLE }}
+  notify-telegram:
+    needs: alpha-release
+    uses: ./.github/workflows/notify-telegram.yml
+    with:
+      release_tag: v${{ needs.alpha-release.outputs.release_tag }}
+    secrets:
+      TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+      TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+      TELEGRAM_TOPIC_ALPHA: ${{ secrets.TELEGRAM_TOPIC_ALPHA }}
+      TELEGRAM_TOPIC_BETA: ${{ secrets.TELEGRAM_TOPIC_BETA }}
+      TELEGRAM_TOPIC_STABLE: ${{ secrets.TELEGRAM_TOPIC_STABLE }}
 
 

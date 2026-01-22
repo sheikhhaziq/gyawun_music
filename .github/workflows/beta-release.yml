@@ -145,4 +145,14 @@ jobs:
           TELEGRAM_TOPIC_ALPHA: ${{ secrets.TELEGRAM_TOPIC_ALPHA }}
           TELEGRAM_TOPIC_BETA: ${{ secrets.TELEGRAM_TOPIC_BETA }}
           TELEGRAM_TOPIC_STABLE: ${{ secrets.TELEGRAM_TOPIC_STABLE }}
-
+  notify-telegram:
+    needs: beta-release
+    uses: ./.github/workflows/notify-telegram.yml
+    with:
+      release_tag: v${{ needs.beta-release.outputs.release_tag }}
+    secrets:
+      TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+      TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+      TELEGRAM_TOPIC_ALPHA: ${{ secrets.TELEGRAM_TOPIC_ALPHA }}
+      TELEGRAM_TOPIC_BETA: ${{ secrets.TELEGRAM_TOPIC_BETA }}
+      TELEGRAM_TOPIC_STABLE: ${{ secrets.TELEGRAM_TOPIC_STABLE }}
