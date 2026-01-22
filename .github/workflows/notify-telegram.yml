@@ -141,21 +141,40 @@ jobs:
             --arg note "${{ steps.channel.outputs.note }}" \
             --arg body "${{ steps.release.outputs.body }}" \
             --argjson keyboard '${{ steps.keyboard.outputs.keyboard }}' \
-            '{
+            '
+            def esc:
+              gsub("&"; "&amp;")
+              | gsub("<"; "&lt;")
+              | gsub(">"; "&gt;");
+
+            def short_notes:
+              esc($body)
+              | split("\n")
+              | map(select(length > 0))
+              | .[:5]
+              | join("\n");
+
+            {
               chat_id: ($chat | tonumber),
               message_thread_id: ($thread | tonumber),
-              parse_mode: "Markdown",
+              parse_mode: "HTML",
               text:
-                ($emoji + " *GyawunMusic " + $channel + " Release*\n\n"
-                + "*Version:* " + $tag + "\n"
-                + $note + "\n\n"
-                + "*Changes:*\n"
-                + ($body
-                    | split("\n")
-                    | map(select(length > 0))
-                    | .[:5]
-                    | join("\n"))
-                + "\n\n🔗 https://github.com/${{ github.repository }}/releases/tag/" + $tag),
+                (
+                  "<b>" + $emoji + " GyawunMusic " + $channel + " Release</b>\n\n"
+
+                  + "<b>Version:</b> " + $tag + "\n"
+                  + "<b>Channel:</b> " + $channel + "\n\n"
+
+                  + "<b>ℹ️ Notes</b>\n"
+                  + esc($note) + "\n\n"
+
+                  + "<b>📝 What’s new</b>\n"
+                  + short_notes + "\n\n"
+
+                  + "<i>Choose the correct APK for your device below.</i>\n\n"
+
+                  + "<a href=\"https://github.com/${{ github.repository }}/releases/tag/" + $tag + "\">View full release on GitHub</a>"
+                ),
               reply_markup: {
                 inline_keyboard: $keyboard
               }
