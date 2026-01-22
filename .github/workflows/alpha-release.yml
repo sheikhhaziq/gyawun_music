@@ -71,21 +71,31 @@ jobs:
       - name: Generate Splash Screen
         run: dart run flutter_native_splash:create
 
-      - name: Build Android APK (Alpha)
+      - name: Build Android APK (Alpha - Universal)
+        run: flutter build apk --flavor alpha --release
+
+      - name: Build Android APK (Alpha - Split per ABI)
         run: flutter build apk --flavor alpha --release --split-per-abi
+
 
       - name: Rename build artifacts
         run: |
           mkdir -p releases
 
+          # Universal
+          cp build/app/outputs/flutter-apk/app-alpha-release.apk \
+            releases/gyawun-alpha-v${{ steps.app_version.outputs.version }}-universal.apk
+
+          # Split APKs
           cp build/app/outputs/flutter-apk/app-arm64-v8a-alpha-release.apk \
-             releases/gyawun-alpha-v${{ steps.app_version.outputs.version }}-arm64-v8a.apk
+            releases/gyawun-alpha-v${{ steps.app_version.outputs.version }}-arm64-v8a.apk
 
           cp build/app/outputs/flutter-apk/app-armeabi-v7a-alpha-release.apk \
-             releases/gyawun-alpha-v${{ steps.app_version.outputs.version }}-armeabi-v7a.apk
+            releases/gyawun-alpha-v${{ steps.app_version.outputs.version }}-armeabi-v7a.apk
 
           cp build/app/outputs/flutter-apk/app-x86_64-alpha-release.apk \
-             releases/gyawun-alpha-v${{ steps.app_version.outputs.version }}-x86_64.apk
+            releases/gyawun-alpha-v${{ steps.app_version.outputs.version }}-x86_64.apk
+
 
       - name: Create Alpha Pre-Release
         uses: softprops/action-gh-release@v1
@@ -93,15 +103,61 @@ jobs:
           tag_name: v${{ steps.app_version.outputs.version }}
           name: Alpha v${{ steps.app_version.outputs.version }}
           prerelease: true
+          draft: false
           body: |
-            ## Alpha Release v${{ steps.app_version.outputs.version }}
+            ## 🚧 Alpha Release v${{ steps.app_version.outputs.version }}
 
-            ⚠️ **Highly unstable – internal testing only**
+            ⚠️ **This is an ALPHA release.**  
+            Highly unstable – for **internal testing only**.
 
-            - Branch: `alpha`
-            - Build: `${{ steps.app_version.outputs.build }}`
-            - Flutter: `${{ steps.fvm_version.outputs.version }}`
+            ---
+
+            ### 🔖 Build Information
+            - **Channel:** Alpha
+            - **Version:** `${{ steps.app_version.outputs.version }}`
+            - **Build Number:** `${{ steps.app_version.outputs.build }}`
+            - **Flutter SDK:** `${{ steps.fvm_version.outputs.version }}`
+            - **Branch:** `alpha`
+
+            ---
+
+            ### 📦 Available Downloads
+
+            📱 **Universal APK**
+            - `gyawun-alpha-v${{ steps.app_version.outputs.version }}-universal.apk`
+
+            🎯 **Architecture-Specific APKs**
+            - `gyawun-alpha-v${{ steps.app_version.outputs.version }}-arm64-v8a.apk`
+            - `gyawun-alpha-v${{ steps.app_version.outputs.version }}-armeabi-v7a.apk`
+            - `gyawun-alpha-v${{ steps.app_version.outputs.version }}-x86_64.apk`
+
+            ---
+
+            ### 🧪 Notes
+            - Experimental features
+            - Breaking changes may occur
+            - Do **not** use with production data
+
+            ---
+
+            ### 📝 Changes
+            ${{ github.event.pull_request.body }}
           files: |
-            releases/*.apk
+            releases/gyawun-alpha-v${{ steps.app_version.outputs.version }}-universal.apk
+            releases/gyawun-alpha-v${{ steps.app_version.outputs.version }}-arm64-v8a.apk
+            releases/gyawun-alpha-v${{ steps.app_version.outputs.version }}-armeabi-v7a.apk
+            releases/gyawun-alpha-v${{ steps.app_version.outputs.version }}-x86_64.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Notify Telegram
+        uses: ./.github/workflows/notify-telegram.yml
+        with:
+          release_tag: v${{ steps.app_version.outputs.version }}
+        secrets:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          TELEGRAM_TOPIC_ALPHA: ${{ secrets.TELEGRAM_TOPIC_ALPHA }}
+          TELEGRAM_TOPIC_BETA: ${{ secrets.TELEGRAM_TOPIC_BETA }}
+          TELEGRAM_TOPIC_STABLE: ${{ secrets.TELEGRAM_TOPIC_STABLE }}
+
+

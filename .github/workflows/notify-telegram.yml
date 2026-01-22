@@ -1,0 +1,128 @@
+name: Telegram Release Notify
+
+on:
+  workflow_call:
+    inputs:
+      release_tag:
+        required: true
+        type: string
+    secrets:
+      TELEGRAM_BOT_TOKEN:
+        required: true
+      TELEGRAM_CHAT_ID:
+        required: true
+      TELEGRAM_TOPIC_ALPHA:
+        required: true
+      TELEGRAM_TOPIC_BETA:
+        required: true
+      TELEGRAM_TOPIC_STABLE:
+        required: true
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Fetch release data
+        id: release
+        run: |
+          REPO="${{ github.repository }}"
+          TAG="${{ inputs.release_tag }}"
+
+          RELEASE=$(curl -s \
+            -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Accept: application/vnd.github+json" \
+            https://api.github.com/repos/$REPO/releases/tags/$TAG)
+
+          echo "$RELEASE" > release.json
+
+          BODY=$(jq -r '.body' release.json)
+
+          echo "body<<EOF" >> $GITHUB_OUTPUT
+          echo "$BODY" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Detect channel and topic
+        id: channel
+        run: |
+          TAG="${{ inputs.release_tag }}"
+
+          if [[ "$TAG" == *"-alpha."* ]]; then
+            echo "name=Alpha" >> $GITHUB_OUTPUT
+            echo "emoji=🚧" >> $GITHUB_OUTPUT
+            echo "note=Highly unstable. Internal testing only." >> $GITHUB_OUTPUT
+            echo "topic=${{ secrets.TELEGRAM_TOPIC_ALPHA }}" >> $GITHUB_OUTPUT
+          elif [[ "$TAG" == *"-beta."* ]]; then
+            echo "name=Beta" >> $GITHUB_OUTPUT
+            echo "emoji=🧪" >> $GITHUB_OUTPUT
+            echo "note=Feature-complete. May contain bugs." >> $GITHUB_OUTPUT
+            echo "topic=${{ secrets.TELEGRAM_TOPIC_BETA }}" >> $GITHUB_OUTPUT
+          else
+            echo "name=Stable" >> $GITHUB_OUTPUT
+            echo "emoji=🚀" >> $GITHUB_OUTPUT
+            echo "note=Recommended for all users." >> $GITHUB_OUTPUT
+            echo "topic=${{ secrets.TELEGRAM_TOPIC_STABLE }}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Build inline keyboard (per ABI)
+        id: keyboard
+        run: |
+          BUTTONS=$(jq -r '
+            [.assets[]
+              | select(.name | endswith(".apk"))
+              | {
+                  text:
+                    (if (.name | contains("universal")) then "⬇ Universal"
+                     elif (.name | contains("arm64")) then "📱 ARM64 (Most devices)"
+                     elif (.name | contains("armeabi")) then "📱 ARMv7 (32-bit)"
+                     elif (.name | contains("x86_64")) then "💻 x86_64 (Emulator)"
+                     else .name end),
+                  url: .browser_download_url
+                }
+            ]
+            | sort_by(.text)
+            | map([.])
+          ' release.json)
+
+          echo "keyboard=$BUTTONS" >> $GITHUB_OUTPUT
+
+      - name: Send Telegram message with buttons
+        run: |
+          TAG="${{ inputs.release_tag }}"
+          CHANNEL="${{ steps.channel.outputs.name }}"
+          EMOJI="${{ steps.channel.outputs.emoji }}"
+          NOTE="${{ steps.channel.outputs.note }}"
+          TOPIC_ID="${{ steps.channel.outputs.topic }}"
+          BODY="${{ steps.release.outputs.body }}"
+          BUTTONS='${{ steps.keyboard.outputs.keyboard }}'
+
+          # Short release notes snippet
+          NOTES=$(echo "$BODY" | sed '/^\s*$/d' | head -n 5)
+
+          TEXT=$(cat <<EOF
+$EMOJI *GyawunMusic $CHANNEL Release*
+
+*Version:* $TAG
+$NOTE
+
+*Changes:*
+$NOTES
+
+🔗 https://github.com/${{ github.repository }}/releases/tag/$TAG
+EOF
+)
+
+          curl -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage" \
+            -H "Content-Type: application/json" \
+            -d "$(jq -n \
+              --arg chat "${{ secrets.TELEGRAM_CHAT_ID }}" \
+              --argjson thread "$TOPIC_ID" \
+              --arg text "$TEXT" \
+              --argjson keyboard "$BUTTONS" \
+              '{
+                chat_id: ($chat | tonumber),
+                message_thread_id: $thread,
+                text: $text,
+                parse_mode: "Markdown",
+                reply_markup: { inline_keyboard: $keyboard }
+              }')"
