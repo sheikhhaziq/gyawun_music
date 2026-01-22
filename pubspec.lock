@@ -1134,14 +1134,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.28.0"
-  saf:
-    dependency: "direct main"
-    description:
-      name: saf
-      sha256: f1c45cbf65f578b4b9e86fc95d945ad554eed778594c6580afa1b2fc99e909b7
-      url: "https://pub.dev"
-    source: hosted
-    version: "1.0.4"
   saf_stream:
     dependency: "direct main"
     description:

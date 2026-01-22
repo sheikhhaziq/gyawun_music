@@ -82,10 +82,9 @@ dependencies:
   navigation_rail_m3e: ^0.3.5
   m3e_collection: ^0.3.7
   shared_preferences: ^2.5.4
-  saf: ^1.0.4
-  permission_handler: ^12.0.1
   saf_stream: ^0.12.3
   saf_util: ^0.11.0
+  permission_handler: ^12.0.1
 
 dev_dependencies:
   flutter_test:

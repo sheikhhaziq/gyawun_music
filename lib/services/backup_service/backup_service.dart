@@ -1,6 +1,5 @@
 import 'dart:convert';
 
-import 'package:file_picker/file_picker.dart';
 import 'package:gyawun/services/directory_service/directory_service.dart';
 import 'package:gyawun/services/library.dart';
 import 'package:gyawun/services/settings_manager.dart';
@@ -34,19 +33,11 @@ class BackupService {
   /* ------------------------------------------------------------ */
 
   Future<bool> loadBackup() async {
-    final picker = await FilePicker.platform.pickFiles(
-      allowMultiple: false,
-      withData: true,
-      type: FileType.custom,
-      allowedExtensions: ['json'],
-    );
-    if (picker == null) return false;
-
-    final file = picker.files.first.xFile;
-    final data = await file.readAsString();
+    final data = await _directoryService.pickFile();
+    if (data == null) return false;
 
     final Map<String, dynamic> backup =
-        jsonDecode(data) as Map<String, dynamic>;
+        jsonDecode(utf8.decode(data)) as Map<String, dynamic>;
 
     // ✅ Correct validation
     if (backup['name'] != 'Gyawun' || backup['type'] != 'backup') {

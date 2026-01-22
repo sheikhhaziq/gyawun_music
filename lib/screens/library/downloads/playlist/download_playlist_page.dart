@@ -7,6 +7,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_swipe_action_cell/core/cell.dart';
 import 'package:get_it/get_it.dart';
 import 'package:gyawun/core/widgets/song_tile.dart';
+import 'package:gyawun/services/download_manager.dart';
 import 'package:gyawun/services/media_player.dart';
 import 'package:gyawun/themes/text_styles.dart';
 import '../../../../../generated/l10n.dart';
@@ -70,7 +71,9 @@ class _PlaylistView extends StatelessWidget {
                   expandedHeight: 120,
                   leading: BackButton(
                     style: ButtonStyle(
-                      backgroundColor: WidgetStatePropertyAll(Theme.of(context).colorScheme.surfaceContainer)
+                      backgroundColor: WidgetStatePropertyAll(
+                        Theme.of(context).colorScheme.surfaceContainer,
+                      ),
                     ),
                   ),
                   flexibleSpace: LayoutBuilder(
@@ -81,7 +84,6 @@ class _PlaylistView extends StatelessWidget {
                       final paddingLeft = lerpDouble(100, 16, t)!;
 
                       return FlexibleSpaceBar(
-                        
                         titlePadding: EdgeInsets.only(
                           left: paddingLeft,
                           bottom: 8,
@@ -110,8 +112,7 @@ class _PlaylistView extends StatelessWidget {
                             ),
                           ],
                         ),
-                        background:
-                            playlist['thumbnails']!=null
+                        background: playlist['thumbnails'] != null
                             ? Container(
                                 height: 120,
                                 width: double.infinity,
@@ -221,7 +222,7 @@ class _PlaylistView extends StatelessWidget {
                     final song = songs[index];
 
                     return Padding(
-                        padding: const .symmetric(horizontal: 8, vertical: 4),
+                      padding: const .symmetric(horizontal: 8, vertical: 4),
                       child: SwipeActionCell(
                         key: ObjectKey(song['videoId']),
                         backgroundColor: Colors.transparent,
@@ -230,11 +231,19 @@ class _PlaylistView extends StatelessWidget {
                             title: S.of(context).Remove,
                             color: Colors.red,
                             onTap: (handler) async {
-                              await Modals.showConfirmBottomModal(
-                                context,
-                                message: S.of(context).Remove_Message,
-                                isDanger: true,
-                              );
+                              final bool confirmed =
+                                  await Modals.showConfirmBottomModal(
+                                    context,
+                                    message: S.of(context).Remove_Message,
+                                    isDanger: true,
+                                  );
+                              if (!confirmed) {
+                                handler(false);
+                                return;
+                              }
+                              // await GetIt.I<DownloadManager>().fileExists(
+                              //   song['path'],
+                              // );
                             },
                           ),
                         ],

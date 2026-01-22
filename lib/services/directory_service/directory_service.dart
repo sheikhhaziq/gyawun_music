@@ -1,10 +1,8 @@
-import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:collection/collection.dart';
-import 'package:device_info_plus/device_info_plus.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import 'package:permission_handler/permission_handler.dart';
+import 'package:path/path.dart' as path;
 import 'package:saf_stream/saf_stream.dart';
 import 'package:saf_util/saf_util.dart';
 import 'package:saf_util/saf_util_platform_interface.dart';
@@ -25,21 +23,63 @@ class DirectoryService {
   /* ------------------------------------------------------------ */
 
   Future<String?> saveMusic(String fileName, List<int> bytes) {
-    return _save(subDir: 'Music', fileName: fileName, bytes: bytes);
+    return _save('Music', fileName, bytes);
   }
 
   Future<String?> saveBackup(String fileName, List<int> bytes) {
-    return _save(subDir: 'Backups', fileName: fileName, bytes: bytes);
+    return _save('Backups', fileName, bytes);
   }
 
   /// Deletes a previously saved file.
   /// [relativePath] must be the same path returned by saveMusic/saveBackup.
   Future<bool> deleteFile(String relativePath) async {
-    if (await _shouldUseSaf()) {
-      return _deleteViaSaf(relativePath);
-    } else {
-      return _deleteLegacy(relativePath);
+    return _deleteViaSaf(relativePath);
+  }
+
+  /// Checks whether a previously saved file exists.
+  /// [relativePath] must be the same path returned by saveMusic/saveBackup.
+  Future<bool> fileExists(String relativePath) async {
+    try {
+      final String? treeUri = _settingsBox.get(_appFolderKey);
+      if (treeUri == null) return false;
+      SafDocumentFile? current = await _safUtil.documentFileFromUri(
+        path.join(treeUri, relativePath),
+        false,
+      );
+
+      if (current == null) return false;
+
+      final parts = relativePath.split('/');
+
+      for (final name in parts) {
+        final List<SafDocumentFile> children = await _safUtil.list(
+          current!.uri,
+        );
+
+        final SafDocumentFile? next = children.firstWhereOrNull(
+          (f) => f.name == name,
+        );
+        print(next?.uri.toString());
+
+        if (next == null) {
+          return false; // segment not found
+        }
+
+        current = next;
+      }
+
+      // Successfully resolved full path
+      return true;
+    } catch (_) {
+      return false;
     }
+  }
+
+  Future<Uint8List?>? pickFile() async {
+    final file = await _safUtil.pickFile(mimeTypes: ['application/json']);
+    if (file == null) return null;
+    final data = await _safStream.readFileBytes(file.uri);
+    return data;
   }
 
   Future<bool> _deleteViaSaf(String relativePath) async {
@@ -90,29 +130,7 @@ class DirectoryService {
     }
   }
 
-  Future<bool> _deleteLegacy(String relativePath) async {
-    try {
-      const base = '/storage/emulated/0';
-
-      final file = File('$base/$relativePath');
-      if (!await file.exists()) return false;
-
-      await file.delete();
-      return true;
-    } catch (_) {
-      return false;
-    }
-  }
-
-  /// Ensures SAF directory permission exists.
-  /// If already granted, does nothing.
-  /// Returns true if permission is available after the call.
   Future<bool> ensureDirectoryPermission() async {
-    if (!await _shouldUseSaf()) {
-      // Legacy storage does not need SAF
-      return true;
-    }
-
     // Check if we already have a persisted SAF directory
     final existing = _settingsBox.get(_appFolderKey);
     if (existing != null && existing is String && existing.isNotEmpty) {
@@ -136,12 +154,6 @@ class DirectoryService {
 
   /// 📂 User selects directory (SAF picker)
   Future<String?> changeDirectory() async {
-    if (!await _shouldUseSaf()) {
-      const legacy = '/storage/emulated/0/Gyawun Music';
-      _settingsBox.put(_appFolderKey, legacy);
-      return legacy;
-    }
-
     final dir = await _safUtil.pickDirectory(
       writePermission: true,
       persistablePermission: true,
@@ -165,38 +177,18 @@ class DirectoryService {
       return 'Not configured';
     }
 
-    if (!await _shouldUseSaf()) {
-      return stored;
-    }
-
-    return 'Selected folder';
+    return stored;
   }
 
   /* ------------------------------------------------------------ */
   /* Internal routing                                             */
   /* ------------------------------------------------------------ */
 
-  Future<String?> _save({
-    required String subDir,
-    required String fileName,
-    required List<int> bytes,
-  }) async {
-    if (await _shouldUseSaf()) {
-      return _saveViaSaf(subDir, fileName, bytes);
-    } else {
-      return _saveLegacy(subDir, fileName, bytes);
-    }
-  }
-
   /* ------------------------------------------------------------ */
   /* SAF (Android 10+)                                            */
   /* ------------------------------------------------------------ */
 
-  Future<String?> _saveViaSaf(
-    String subDir,
-    String fileName,
-    List<int> bytes,
-  ) async {
+  Future<String?> _save(String subDir, String fileName, List<int> bytes) async {
     try {
       final String? treeUri = _settingsBox.get(_appFolderKey);
       if (treeUri == null) return null;
@@ -222,44 +214,5 @@ class DirectoryService {
     } catch (e) {
       return null;
     }
-  }
-
-  /* ------------------------------------------------------------ */
-  /* Legacy (Android ≤ 9)                                         */
-  /* ------------------------------------------------------------ */
-
-  Future<String?> _saveLegacy(
-    String subDir,
-    String fileName,
-    List<int> bytes,
-  ) async {
-    try {
-      final granted = await Permission.storage.request().isGranted;
-      if (!granted) return null;
-
-      const base = '/storage/emulated/0/Gyawun Music';
-
-      final dir = Directory('$base/$subDir');
-      if (!await dir.exists()) {
-        await dir.create(recursive: true);
-      }
-
-      final file = File('${dir.path}/$fileName');
-      await file.writeAsBytes(bytes);
-
-      return file.path;
-    } catch (_) {
-      return null;
-    }
-  }
-
-  /* ------------------------------------------------------------ */
-  /* Platform logic                                               */
-  /* ------------------------------------------------------------ */
-
-  Future<bool> _shouldUseSaf() async {
-    if (!Platform.isAndroid) return false;
-    final info = await DeviceInfoPlugin().androidInfo;
-    return info.version.sdkInt >= 29;
   }
 }
