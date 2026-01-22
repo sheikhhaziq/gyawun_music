@@ -128,7 +128,7 @@ jobs:
       # ─────────────────────────────────────────────
       # 4. Send Telegram message (emoji-safe, jq-only)
       # ─────────────────────────────────────────────
-      - name: Send Telegram message with buttons
+      - name: Send Telegram message (simple, safe)
         run: |
           set -e
 
@@ -139,21 +139,8 @@ jobs:
             --arg channel "${{ steps.channel.outputs.name }}" \
             --arg emoji "${{ steps.channel.outputs.emoji }}" \
             --arg note "${{ steps.channel.outputs.note }}" \
-            --arg body "${{ steps.release.outputs.body }}" \
             --argjson keyboard '${{ steps.keyboard.outputs.keyboard }}' \
             '
-            def esc:
-              gsub("&"; "&amp;")
-              | gsub("<"; "&lt;")
-              | gsub(">"; "&gt;");
-
-            def short_notes:
-              esc($body)
-              | split("\n")
-              | map(select(length > 0))
-              | .[:5]
-              | join("\n");
-
             {
               chat_id: ($chat | tonumber),
               message_thread_id: ($thread | tonumber),
@@ -161,19 +148,12 @@ jobs:
               text:
                 (
                   "<b>" + $emoji + " GyawunMusic " + $channel + " Release</b>\n\n"
-
                   + "<b>Version:</b> " + $tag + "\n"
                   + "<b>Channel:</b> " + $channel + "\n\n"
-
-                  + "<b>ℹ️ Notes</b>\n"
-                  + esc($note) + "\n\n"
-
-                  + "<b>📝 What’s new</b>\n"
-                  + short_notes + "\n\n"
-
-                  + "<i>Choose the correct APK for your device below.</i>\n\n"
-
-                  + "<a href=\"https://github.com/${{ github.repository }}/releases/tag/" + $tag + "\">View full release on GitHub</a>"
+                  + "<b>Notes:</b>\n"
+                  + $note + "\n\n"
+                  + "<i>Select the correct APK for your device below.</i>\n\n"
+                  + "<a href=\"https://github.com/${{ github.repository }}/releases/tag/" + $tag + "\">View on GitHub</a>"
                 ),
               reply_markup: {
                 inline_keyboard: $keyboard
