@@ -53,11 +53,13 @@ class DownloadManager {
   }
 
   Future<void> _refreshData() async {
-    // Load downloads from Hive
+    // -----------------------------
+    // 0) LOAD DOWNLOADS FROM HIVE
+    // -----------------------------
     downloads.value = _box.values.toList().cast<Map>();
 
     // -----------------------------
-    // 1) MIGRATE OLD DOWNLOADS
+    // 1) MIGRATE OLD DOWNLOADS → SONGS
     // -----------------------------
     bool needsSave = false;
 
@@ -83,7 +85,25 @@ class DownloadManager {
     }
 
     // -----------------------------
-    // 2) BUILD PLAYLIST MAP
+    // 2) PURGE DELETED DOWNLOADS
+    // -----------------------------
+    bool removedDeleted = false;
+
+    downloads.value.removeWhere((song) {
+      if (song["status"] == "DELETED") {
+        removedDeleted = true;
+        return true;
+      }
+      return false;
+    });
+
+    if (removedDeleted) {
+      await _box.clear();
+      await _box.addAll(downloads.value);
+    }
+
+    // -----------------------------
+    // 3) BUILD PLAYLIST MAP
     // -----------------------------
     final Map<String, Map<String, dynamic>> playlists = {};
 
@@ -110,7 +130,7 @@ class DownloadManager {
             )["songs"]
             .add(Map<String, dynamic>.from(song));
 
-        // ALBUM → PLAYLIST detection (your existing logic, safe)
+        // ALBUM → PLAYLIST upgrade logic (unchanged, but safe)
         if (playlists[id]!["type"] == "ALBUM" &&
             playlists[id]!["title"] != song["album"]?["name"]) {
           playlists[id]!["type"] = "PLAYLIST";
@@ -119,7 +139,7 @@ class DownloadManager {
     }
 
     // -----------------------------
-    // 3) SORT SONGS PER PLAYLIST
+    // 4) SORT SONGS INSIDE PLAYLISTS
     // -----------------------------
     for (final playlist in playlists.values) {
       final String playlistId = playlist["id"];
@@ -132,7 +152,7 @@ class DownloadManager {
     }
 
     // -----------------------------
-    // 4) UPDATE STATE IF CHANGED
+    // 5) UPDATE STATE IF CHANGED
     // -----------------------------
     if (!const DeepCollectionEquality().equals(
       downloadsByPlaylist.value,
