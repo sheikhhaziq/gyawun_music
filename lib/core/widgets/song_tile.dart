@@ -14,9 +14,6 @@ class SongTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (song['thumbnails'] == null) {
-      print(song);
-    }
     List thumbnails = song['thumbnails'];
     double height =
         (song['aspectRatio'] != null ? 50 / song['aspectRatio'] : 50)
