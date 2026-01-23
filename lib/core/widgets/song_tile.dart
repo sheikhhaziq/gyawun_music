@@ -69,9 +69,9 @@ class SongTile extends StatelessWidget {
                   '',
               maxLines: 1,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  fontWeight: FontWeight.w600,
-                  color: Theme.of(context).colorScheme.onSurface.withAlpha(150),
-                ),
+                fontWeight: FontWeight.w600,
+                color: Theme.of(context).colorScheme.onSurface.withAlpha(150),
+              ),
               overflow: TextOverflow.ellipsis,
             ),
           ),
