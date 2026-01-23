@@ -422,10 +422,8 @@ class MediaPlayer extends ChangeNotifier {
     final session = _startSession();
     if (song['videoId'] == null) return;
 
-    // stop and set the tapped song as the single source so it plays immediately
-    // await _player.pause();
-    // await _player.stop();
-    // await _player.clearAudioSources();
+    // clear sources and set the tapped song as the single source so it plays immediately
+    await _player.clearAudioSources();
 
     final source = await _getAudioSource(song);
     if (!_isSessionValid(session)) return;
@@ -466,7 +464,6 @@ class MediaPlayer extends ChangeNotifier {
 
   Future<void> playAll(List songs, {int index = 0}) async {
     final session = _startSession();
-    await _player.stop();
     await _player.clearAudioSources();
 
     // Build full list and set atomically
