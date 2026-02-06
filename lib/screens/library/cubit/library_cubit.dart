@@ -41,7 +41,7 @@ class LibraryCubit extends Cubit<LibraryState> {
       emit(
         LibraryLoaded(
           playlists: libraryService.playlists,
-          favouritesCount: _favouritesBox.length,
+          favourites: _favouritesBox.values.toList(),
           downloadsCount: downloadedCount,
           historyCount: _historyBox.length,
         ),

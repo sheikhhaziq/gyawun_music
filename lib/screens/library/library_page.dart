@@ -56,13 +56,13 @@ class LibraryPage extends StatelessWidget {
                 LibraryError(:final message) => Center(child: Text(message)),
                 LibraryLoaded(
                   :final playlists,
-                  :final favouritesCount,
+                  favourites: final favourites,
                   :final downloadsCount,
                   :final historyCount,
                 ) =>
                   _LibraryBody(
                     playlists: playlists,
-                    favouritesCount: favouritesCount,
+                    favourites: favourites,
                     downloadsCount: downloadsCount,
                     historyCount: historyCount,
                   ),
@@ -78,13 +78,13 @@ class LibraryPage extends StatelessWidget {
 class _LibraryBody extends StatelessWidget {
   const _LibraryBody({
     required this.playlists,
-    this.favouritesCount = 0,
+    required this.favourites,
     this.downloadsCount = 0,
     this.historyCount = 0,
   });
 
   final Map playlists;
-  final int favouritesCount;
+  final List favourites;
   final int downloadsCount;
   final int historyCount;
 
@@ -115,9 +115,20 @@ class _LibraryBody extends StatelessWidget {
                             ).colorScheme.primaryContainer,
                             size: 30,
                           ),
-                          subtitle: Text(S.of(context).nSongs(favouritesCount)),
+                          subtitle: Text(
+                            S.of(context).nSongs(favourites.length),
+                          ),
                           trailing: Icon(FluentIcons.chevron_right_24_filled),
                           onTap: () => context.push('/library/favourites'),
+                          onLongPress: () {
+                            Modals.showFavouritesBottomModal(context, {
+                              'title': "Favourites",
+                              'playlistId': 'FVRTS',
+                              'type': 'PLAYLIST',
+                              'isPredefined': false,
+                              'songs': favourites,
+                            });
+                          },
                         ),
                         ExpressiveListTile(
                           title: Text(S.of(context).Downloads),

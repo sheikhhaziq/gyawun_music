@@ -135,6 +135,20 @@ class _FavouritesBody extends StatelessWidget {
                     icon: const Icon(FluentIcons.arrow_shuffle_24_filled),
                     label: const Text('Shuffle'),
                   ),
+                  SizedBox(width: 8),
+                  IconButton.filled(
+                    enableFeedback: true,
+                    onPressed: () {
+                      Modals.showFavouritesBottomModal(context, {
+                        'title': "Favourites",
+                        'playlistId': 'FVRTS',
+                        'type': 'PLAYLIST',
+                        'isPredefined': false,
+                        'songs': songs,
+                      });
+                    },
+                    icon: Icon(Icons.more_vert),
+                  ),
                 ],
               ),
             ),

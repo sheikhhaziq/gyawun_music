@@ -119,6 +119,17 @@ class Modals {
     );
   }
 
+  static void showFavouritesBottomModal(BuildContext context, Map playlist) {
+    showModalBottomSheet(
+      useRootNavigator: false,
+      backgroundColor: Colors.transparent,
+      useSafeArea: true,
+      isScrollControlled: true,
+      context: context,
+      builder: (context) => _favouritesBottomModal(context, playlist),
+    );
+  }
+
   static void showDownloadBottomModal(BuildContext context) {
     showModalBottomSheet(
       useRootNavigator: false,
@@ -1290,6 +1301,66 @@ BottomModalLayout _playlistBottomModal(BuildContext context, Map playlist) {
                 extra: {'endpoint': playlist['album']['endpoint']},
               ),
             ),
+        ],
+      ),
+    ),
+  );
+}
+
+BottomModalLayout _favouritesBottomModal(BuildContext context, Map playlist) {
+  return BottomModalLayout(
+    title: AdaptiveListTile(
+      contentPadding: EdgeInsets.zero,
+      title: Text(
+        S.of(context).Favourites,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+      ),
+      leading: Container(
+        height: 50,
+        width: 50,
+        decoration: BoxDecoration(
+          color: greyColor,
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Icon(
+          AdaptiveIcons.heart_fill,
+          color: context.isDarkMode ? Colors.white : Colors.black,
+        ),
+      ),
+    ),
+    child: SingleChildScrollView(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          AdaptiveListTile(
+            dense: true,
+            title: Text(S.of(context).Play_Next),
+            leading: Icon(AdaptiveIcons.playlist_play),
+            onTap: () async {
+              Navigator.pop(context);
+              await GetIt.I<MediaPlayer>().playNext(Map.from(playlist));
+            },
+          ),
+          AdaptiveListTile(
+            dense: true,
+            title: Text(S.of(context).Add_To_Queue),
+            leading: Icon(AdaptiveIcons.queue_add),
+            onTap: () async {
+              Navigator.pop(context);
+              await GetIt.I<MediaPlayer>().addToQueue(Map.from(playlist));
+            },
+          ),
+          AdaptiveListTile(
+            dense: true,
+            title: Text(S.of(context).Download),
+            leading: Icon(AdaptiveIcons.download),
+            onTap: () async {
+              Navigator.pop(context);
+              BottomMessage.showText(context, S.of(context).Download_Started);
+              GetIt.I<DownloadManager>().downloadPlaylist(playlist);
+            },
+          ),
         ],
       ),
     ),
