@@ -11,6 +11,8 @@ import 'package:gyawun/services/media_player.dart';
 import 'package:gyawun/themes/text_styles.dart';
 import '../../../../../generated/l10n.dart';
 import '../../../../../utils/bottom_modals.dart';
+import '../../../../services/download_manager.dart';
+import '../../../../services/favourites_manager.dart';
 import 'cubit/download_playlist_cubit.dart';
 
 class DownloadPlaylistPage extends StatelessWidget {
@@ -70,7 +72,9 @@ class _PlaylistView extends StatelessWidget {
                   expandedHeight: 120,
                   leading: BackButton(
                     style: ButtonStyle(
-                      backgroundColor: WidgetStatePropertyAll(Theme.of(context).colorScheme.surfaceContainer)
+                      backgroundColor: WidgetStatePropertyAll(
+                        Theme.of(context).colorScheme.surfaceContainer,
+                      ),
                     ),
                   ),
                   flexibleSpace: LayoutBuilder(
@@ -81,7 +85,6 @@ class _PlaylistView extends StatelessWidget {
                       final paddingLeft = lerpDouble(100, 16, t)!;
 
                       return FlexibleSpaceBar(
-                        
                         titlePadding: EdgeInsets.only(
                           left: paddingLeft,
                           bottom: 8,
@@ -91,9 +94,17 @@ class _PlaylistView extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              playlist['type'] == 'SONGS'
+                              playlist.isNotEmpty &&
+                                      playlist['id'] ==
+                                          DownloadManager.songsPlaylistId
                                   ? S.of(context).Songs
-                                  : playlist['title'],
+                                  : playlist.isNotEmpty &&
+                                        playlist['id'] ==
+                                            FavouritesManager.playlistId
+                                  ? S.of(context).Favourites
+                                  : playlist.isNotEmpty
+                                  ? playlist['title']
+                                  : null,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: textStyle(context).copyWith(fontSize: 16),
@@ -110,8 +121,7 @@ class _PlaylistView extends StatelessWidget {
                             ),
                           ],
                         ),
-                        background:
-                            playlist['thumbnails']!=null
+                        background: playlist['thumbnails'] != null
                             ? Container(
                                 height: 120,
                                 width: double.infinity,
@@ -221,7 +231,7 @@ class _PlaylistView extends StatelessWidget {
                     final song = songs[index];
 
                     return Padding(
-                        padding: const .symmetric(horizontal: 8, vertical: 4),
+                      padding: const .symmetric(horizontal: 8, vertical: 4),
                       child: SwipeActionCell(
                         key: ObjectKey(song['videoId']),
                         backgroundColor: Colors.transparent,

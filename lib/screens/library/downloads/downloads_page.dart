@@ -6,10 +6,12 @@ import 'package:go_router/go_router.dart';
 import 'package:gyawun/core/widgets/expressive_app_bar.dart';
 import 'package:gyawun/core/widgets/expressive_list_tile.dart';
 import 'package:gyawun/services/download_manager.dart';
+import 'package:gyawun/utils/adaptive_widgets/icons.dart';
 
 import '../../../../generated/l10n.dart';
 import '../../../../utils/bottom_modals.dart';
 import '../../../../utils/playlist_thumbnail.dart';
+import '../../../services/favourites_manager.dart';
 import 'cubit/downloads_cubit.dart';
 
 class DownloadsPage extends StatelessWidget {
@@ -48,13 +50,11 @@ class _DownloadsBody extends StatelessWidget {
     List<MapEntry> sortedEntries = playlists.entries.toList();
 
     sortedEntries.sort((a, b) {
-      if (a.key == DownloadManager.songsPlaylistId) {
-        return -1;
-      } else if (b.key == DownloadManager.songsPlaylistId) {
-        return 1;
-      } else {
-        return a.value['title'].compareTo(b.value['title']);
-      }
+      if (a.key == DownloadManager.songsPlaylistId) return -1;
+      if (b.key == DownloadManager.songsPlaylistId) return 1;
+      if (a.key == FavouritesManager.playlistId) return -1;
+      if (b.key == FavouritesManager.playlistId) return 1;
+      return a.value['title'].compareTo(b.value['title']);
     });
 
     return NestedScrollView(
@@ -81,8 +81,10 @@ class _DownloadsBody extends StatelessWidget {
         itemBuilder: (context, index) {
           final playlist = sortedEntries[index].value;
           return ExpressiveListTile(
-            title: playlist['type'] == 'SONGS'
+            title: playlist['id'] == DownloadManager.songsPlaylistId
                 ? Text(S.of(context).Songs)
+                : playlist['id'] == FavouritesManager.playlistId
+                ? Text(S.of(context).Favourites)
                 : Text(playlist['title']),
             leading: _leading(context, playlist),
             subtitle: Text(S.of(context).nSongs(playlist['songs'].length)),
@@ -104,7 +106,8 @@ class _DownloadsBody extends StatelessWidget {
   }
 
   Widget _leading(BuildContext context, Map playlist) {
-    if (playlist['type'] == 'SONGS') {
+    if (playlist['id'] == DownloadManager.songsPlaylistId ||
+        playlist['id'] == FavouritesManager.playlistId) {
       return Container(
         height: 40,
         width: 40,
@@ -113,7 +116,9 @@ class _DownloadsBody extends StatelessWidget {
           borderRadius: BorderRadius.circular(8),
         ),
         child: Icon(
-          CupertinoIcons.music_note_list,
+          playlist['id'] == DownloadManager.songsPlaylistId
+              ? CupertinoIcons.music_note_list
+              : AdaptiveIcons.heart_fill,
           color: Theme.of(context).colorScheme.onPrimaryContainer,
         ),
       );

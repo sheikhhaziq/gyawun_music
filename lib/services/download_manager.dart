@@ -12,6 +12,7 @@ import 'package:yt_music/ytmusic.dart';
 
 import 'file_storage.dart';
 import 'settings_manager.dart';
+import 'favourites_manager.dart';
 import 'stream_client.dart';
 
 Box _box = Hive.box('DOWNLOADS');
@@ -22,7 +23,7 @@ class DownloadManager {
   ValueNotifier<List<Map>> downloads = ValueNotifier([]);
   ValueNotifier<Map<String, Map>> downloadsByPlaylist = ValueNotifier({});
   final Map<String, ValueNotifier<double>> _activeDownloadProgress = {};
-  static const String songsPlaylistId = 'songs';
+  static const String songsPlaylistId = 'SNGS';
   final int maxConcurrentDownloads = 3; // Limit concurrent downloads
   final Queue<String> _activeDownloads =
       Queue<String>(); // Currently active downloads
@@ -124,7 +125,10 @@ class DownloadManager {
               () => {
                 "id": id,
                 "title": title,
-                "type": id == songsPlaylistId ? "SONGS" : "ALBUM",
+                "type":
+                    id == songsPlaylistId || id == FavouritesManager.playlistId
+                    ? "PLAYLIST"
+                    : "ALBUM",
                 "songs": <Map<String, dynamic>>[],
               },
             )["songs"]

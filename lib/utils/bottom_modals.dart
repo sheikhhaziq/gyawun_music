@@ -1314,12 +1314,12 @@ BottomModalLayout _favouritesBottomModal(BuildContext context, Map playlist) {
         height: 50,
         width: 50,
         decoration: BoxDecoration(
-          color: greyColor,
+          color: Theme.of(context).colorScheme.primaryContainer,
           borderRadius: BorderRadius.circular(10),
         ),
         child: Icon(
           AdaptiveIcons.heart_fill,
-          color: context.isDarkMode ? Colors.white : Colors.black,
+          color: Theme.of(context).colorScheme.onPrimaryContainer,
         ),
       ),
     ),
@@ -1459,7 +1459,10 @@ BottomModalLayout _downloadDetailsBottomModal(
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
       ),
-      leading: (playlist['songs']?.length > 0 && playlist['type'] != "SONGS")
+      leading:
+          (playlist['songs']?.length > 0 &&
+              playlist['id'] != DownloadManager.songsPlaylistId &&
+              playlist['id'] != FavouritesManager.playlistId)
           ? (playlist['type'] == "ALBUM")
                 ? PlaylistThumbnail(
                     playlist: [playlist['songs'][0]],
@@ -1479,7 +1482,9 @@ BottomModalLayout _downloadDetailsBottomModal(
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Icon(
-                CupertinoIcons.music_note_list,
+                playlist['id'] == FavouritesManager.playlistId
+                    ? AdaptiveIcons.heart_fill
+                    : CupertinoIcons.music_note_list,
                 color: Theme.of(context).colorScheme.onPrimaryContainer,
               ),
             ),
