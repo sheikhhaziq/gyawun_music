@@ -136,6 +136,17 @@ class _PlaylistView extends StatelessWidget {
                       icon: const Icon(FluentIcons.arrow_shuffle_24_filled),
                       label: const Text('Shuffle'),
                     ),
+                    SizedBox(width: 8),
+                    IconButton.filled(
+                      enableFeedback: true,
+                      onPressed: () {
+                        Modals.showPlaylistBottomModal(context, {
+                          ...playlist,
+                          'playlistId': playlistKey,
+                        });
+                      },
+                      icon: Icon(Icons.more_vert),
+                    ),
                   ],
                 ),
               ),
