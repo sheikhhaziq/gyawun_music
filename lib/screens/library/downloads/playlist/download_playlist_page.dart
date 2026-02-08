@@ -240,11 +240,19 @@ class _PlaylistView extends StatelessWidget {
                             title: S.of(context).Remove,
                             color: Colors.red,
                             onTap: (handler) async {
-                              await Modals.showConfirmBottomModal(
-                                context,
-                                message: S.of(context).Remove_Message,
-                                isDanger: true,
-                              );
+                              final confirm =
+                                  await Modals.showConfirmBottomModal(
+                                    context,
+                                    message: S.of(context).Remove_Message,
+                                    isDanger: true,
+                                  );
+                              if (confirm && context.mounted) {
+                                await context
+                                    .read<DownloadPlaylistCubit>()
+                                    .removeSong(song);
+                              } else {
+                                handler(false);
+                              }
                             },
                           ),
                         ],

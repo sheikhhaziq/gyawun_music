@@ -1,5 +1,3 @@
-import 'dart:ui';
-
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -157,11 +155,18 @@ class _PlaylistView extends StatelessWidget {
                           title: S.of(context).Remove,
                           color: Colors.red,
                           onTap: (handler) async {
-                            await Modals.showConfirmBottomModal(
+                            final confirm = await Modals.showConfirmBottomModal(
                               context,
                               message: S.of(context).Remove_Message,
                               isDanger: true,
                             );
+                            if (confirm && context.mounted) {
+                              await context
+                                  .read<PlaylistDetailsCubit>()
+                                  .removeSong(song);
+                            } else {
+                              handler(false);
+                            }
                           },
                         ),
                       ],

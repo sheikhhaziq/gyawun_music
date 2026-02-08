@@ -169,9 +169,10 @@ class _FavouritesBody extends StatelessWidget {
                             message: S.of(context).Remove_Message,
                             isDanger: true,
                           );
-
                           if (confirm && context.mounted) {
                             await context.read<FavouritesCubit>().remove(song);
+                          } else {
+                            handler(false);
                           }
                         },
                       ),

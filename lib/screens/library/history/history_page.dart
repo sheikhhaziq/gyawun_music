@@ -121,6 +121,8 @@ class _HistoryBody extends StatelessWidget {
                               context.read<HistoryCubit>().remove(
                                 song['videoId'],
                               );
+                            } else {
+                              handler(false);
                             }
                           },
                         ),
