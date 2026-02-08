@@ -2,6 +2,7 @@ import 'package:audiotags/audiotags.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:gyawun/utils/enhanced_image.dart';
+import 'package:hive/hive.dart';
 
 class SongThumbnail extends StatefulWidget {
   final Map song;
@@ -46,10 +47,8 @@ class _SongThumbnailState extends State<SongThumbnail> {
 
     final oldId = oldWidget.song['videoId'] ?? '';
     final newId = widget.song['videoId'] ?? '';
-    final oldPath = oldWidget.song['path'] ?? '';
-    final newPath = widget.song['path'] ?? '';
 
-    if (oldId != newId || oldPath != newPath) {
+    if (oldId != newId) {
       _lastNotifiedProvider = null;
       _checkLocalThumbnail();
     }
@@ -58,9 +57,12 @@ class _SongThumbnailState extends State<SongThumbnail> {
   Future<void> _checkLocalThumbnail() async {
     if (!_isCheckingLocal) setState(() => _isCheckingLocal = true);
     MemoryImage? foundImage;
-    if (widget.song['status'] == "DOWNLOADED" && widget.song['path'] != null) {
+    final downloadSong = Hive.box('DOWNLOADS').toMap()[widget.song['videoId']];
+    if (downloadSong != null &&
+        downloadSong['status'] == "DOWNLOADED" &&
+        downloadSong['path'] != null) {
       try {
-        final Tag? tag = await AudioTags.read(widget.song['path']);
+        final Tag? tag = await AudioTags.read(downloadSong['path']);
         if (tag?.pictures.isNotEmpty == true) {
           foundImage = MemoryImage(tag!.pictures.first.bytes);
         }
@@ -105,10 +107,8 @@ class _SongThumbnailState extends State<SongThumbnail> {
         fit: widget.fit,
         filterQuality: widget.filterQuality,
         imageBuilder: (context, provider) => _buildDisplayImage(provider),
-        placeholder: (context, url) => SizedBox(
-          height: widget.height,
-          width: widget.width,
-        ),
+        placeholder: (context, url) =>
+            SizedBox(height: widget.height, width: widget.width),
         errorWidget: (index + 1 < urls.length)
             ? (context, url, error) => _buildCachedNetworkImage(urls, index + 1)
             : widget.errorWidget,
@@ -119,10 +119,7 @@ class _SongThumbnailState extends State<SongThumbnail> {
   @override
   Widget build(BuildContext context) {
     if (_isCheckingLocal) {
-      return SizedBox(
-        height: widget.height,
-        width: widget.width,
-      );
+      return SizedBox(height: widget.height, width: widget.width);
     }
     if (_localImageProvider != null) {
       return _buildDisplayImage(_localImageProvider!);
