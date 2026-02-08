@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:get_it/get_it.dart';
 import 'package:gyawun/services/yt_audio_stream.dart';
+import 'package:hive/hive.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:just_audio_background/just_audio_background.dart';
 import 'package:rxdart/rxdart.dart';
@@ -22,15 +23,17 @@ class MediaPlayer extends ChangeNotifier {
   List<IndexedAudioSource> _songList = [];
   final ValueNotifier<MediaItem?> _currentSongNotifier = ValueNotifier(null);
   final ValueNotifier<int?> _currentIndex = ValueNotifier(null);
-  final ValueNotifier<ButtonState> _buttonState =
-      ValueNotifier(ButtonState.loading);
+  final ValueNotifier<ButtonState> _buttonState = ValueNotifier(
+    ButtonState.loading,
+  );
   Timer? _timer;
   final ValueNotifier<Duration?> _timerDuration = ValueNotifier(null);
 
   final ValueNotifier<LoopMode> _loopMode = ValueNotifier(LoopMode.off);
 
-  final ValueNotifier<ProgressBarState> _progressBarState =
-      ValueNotifier(ProgressBarState());
+  final ValueNotifier<ProgressBarState> _progressBarState = ValueNotifier(
+    ProgressBarState(),
+  );
 
   bool _shuffleModeEnabled = false;
 
@@ -67,36 +70,39 @@ class MediaPlayer extends ChangeNotifier {
   ValueNotifier<Duration?> get timerDuration => _timerDuration;
 
   Stream<
-      ({
-        List<IndexedAudioSource>? sequence,
-        int? currentIndex,
-        MediaItem? currentItem
-      })> get currentTrackStream => Rx.combineLatest2<
-          List<IndexedAudioSource>?,
-          int?,
-          ({
-            List<IndexedAudioSource>? sequence,
-            int? currentIndex,
-            MediaItem? currentItem
-          })>(
-        _player.sequenceStream,
-        _player.currentIndexStream,
-        (sequence, currentIndex) {
-          MediaItem? currentItem;
-          if (sequence != null &&
-              currentIndex != null &&
-              currentIndex >= 0 &&
-              currentIndex < sequence.length) {
-            final tag = sequence[currentIndex].tag;
-            if (tag is MediaItem) currentItem = tag;
-          }
-          return (
-            sequence: sequence,
-            currentIndex: currentIndex,
-            currentItem: currentItem,
-          );
-        },
-      );
+    ({
+      List<IndexedAudioSource>? sequence,
+      int? currentIndex,
+      MediaItem? currentItem,
+    })
+  >
+  get currentTrackStream =>
+      Rx.combineLatest2<
+        List<IndexedAudioSource>?,
+        int?,
+        ({
+          List<IndexedAudioSource>? sequence,
+          int? currentIndex,
+          MediaItem? currentItem,
+        })
+      >(_player.sequenceStream, _player.currentIndexStream, (
+        sequence,
+        currentIndex,
+      ) {
+        MediaItem? currentItem;
+        if (sequence != null &&
+            currentIndex != null &&
+            currentIndex >= 0 &&
+            currentIndex < sequence.length) {
+          final tag = sequence[currentIndex].tag;
+          if (tag is MediaItem) currentItem = tag;
+        }
+        return (
+          sequence: sequence,
+          currentIndex: currentIndex,
+          currentItem: currentItem,
+        );
+      });
 
   Future<void> _init() async {
     await _loadLoudnessEnhancer();
@@ -116,18 +122,22 @@ class MediaPlayer extends ChangeNotifier {
 
     Timer.periodic(const Duration(seconds: 10), (timer) {
       if (currentSongNotifier.value != null && _player.playing) {
-        GetIt.I<YTMusic>()
-            .addPlayingStats(currentSongNotifier.value!.id, _player.position);
+        GetIt.I<YTMusic>().addPlayingStats(
+          currentSongNotifier.value!.id,
+          _player.position,
+        );
       }
     });
   }
 
   Future<void> _loadLoudnessEnhancer() async {
-    await _loudnessEnhancer
-        .setEnabled(GetIt.I<SettingsManager>().loudnessEnabled);
+    await _loudnessEnhancer.setEnabled(
+      GetIt.I<SettingsManager>().loudnessEnabled,
+    );
 
-    await _loudnessEnhancer
-        .setTargetGain(GetIt.I<SettingsManager>().loudnessTargetGain);
+    await _loudnessEnhancer.setTargetGain(
+      GetIt.I<SettingsManager>().loudnessTargetGain,
+    );
   }
 
   Future<void> _loadEqualizer() async {
@@ -137,15 +147,18 @@ class MediaPlayer extends ChangeNotifier {
       _equalizerParams ??= value;
       final List<AndroidEqualizerBand> bands = _equalizerParams!.bands;
       if (GetIt.I<SettingsManager>().equalizerBandsGain.isEmpty) {
-        GetIt.I<SettingsManager>().equalizerBandsGain =
-            List.generate(bands.length, (index) => 0.0);
+        GetIt.I<SettingsManager>().equalizerBandsGain = List.generate(
+          bands.length,
+          (index) => 0.0,
+        );
       }
 
       List<double> equalizerBandsGain =
           GetIt.I<SettingsManager>().equalizerBandsGain;
       for (var e in bands) {
-        final gain =
-            equalizerBandsGain.isNotEmpty ? equalizerBandsGain[e.index] : 0.0;
+        final gain = equalizerBandsGain.isNotEmpty
+            ? equalizerBandsGain[e.index]
+            : 0.0;
         _equalizerParams!.bands[e.index].setGain(gain);
       }
     });
@@ -168,8 +181,8 @@ class MediaPlayer extends ChangeNotifier {
 
   void _listenToChangesInPlaylist() {
     _player.sequenceStream.listen((playlist) {
-      final List<IndexedAudioSource> newList =
-          (playlist).cast<IndexedAudioSource>();
+      final List<IndexedAudioSource> newList = (playlist)
+          .cast<IndexedAudioSource>();
 
       if (listEquals(newList, _songList)) return;
 
@@ -185,8 +198,8 @@ class MediaPlayer extends ChangeNotifier {
         _currentIndex.value ??= 0;
         _currentSongNotifier.value =
             (_songList.length > (_currentIndex.value ?? 0))
-                ? _songList[_currentIndex.value ?? 0].tag
-                : null;
+            ? _songList[_currentIndex.value ?? 0].tag
+            : null;
       }
 
       if (shouldAdd == true && _currentSongNotifier.value != null) {
@@ -267,8 +280,8 @@ class MediaPlayer extends ChangeNotifier {
         _currentIndex.value = index;
         _currentSongNotifier.value =
             index != null && _songList.isNotEmpty && index < _songList.length
-                ? _songList[index].tag
-                : null;
+            ? _songList[index].tag
+            : null;
         if (_songList.isNotEmpty && _currentIndex.value != null) {
           final MediaItem item = _songList[_currentIndex.value!].tag;
           addHistory(item.extras!);
@@ -304,17 +317,20 @@ class MediaPlayer extends ChangeNotifier {
       title: song['title'] ?? 'Title',
       album: song['album']?['name'],
       artUri: Uri.parse(
-          song['thumbnails']?.first['url'].replaceAll('w60-h60', 'w225-h225')),
+        song['thumbnails']?.first['url'].replaceAll('w60-h60', 'w225-h225'),
+      ),
       artist: song['artists']?.map((artist) => artist['name']).join(','),
       extras: song,
     );
 
-    final bool isDownloaded = song['status'] == 'DOWNLOADED' &&
-        song['path'] != null &&
-        (await File(song['path']).exists());
-
+    final downloadSong = Hive.box('DOWNLOADS').toMap()[song['videoId']];
+    final bool isDownloaded =
+        downloadSong != null &&
+        downloadSong['status'] == 'DOWNLOADED' &&
+        downloadSong['path'] != null &&
+        (await File(downloadSong['path']).exists());
     if (isDownloaded) {
-      return AudioSource.file(song['path'], tag: tag);
+      return AudioSource.file(downloadSong['path'], tag: tag);
     } else {
       return YouTubeAudioSource(
         videoId: song['videoId'],
@@ -326,12 +342,10 @@ class MediaPlayer extends ChangeNotifier {
 
   Future<List<AudioSource>> _getAudioSources(List songs) async {
     return await Future.wait(
-      songs.map(
-        (song) async {
-          final mapSong = Map<String, dynamic>.from(song);
-          return await _getAudioSource(mapSong);
-        },
-      ),
+      songs.map((song) async {
+        final mapSong = Map<String, dynamic>.from(song);
+        return await _getAudioSource(mapSong);
+      }),
     );
   }
 
@@ -342,8 +356,9 @@ class MediaPlayer extends ChangeNotifier {
     } else {
       // Get Online Playlist songs
       return mediaItem['type'] == 'ARTIST'
-          ? await GetIt.I<YTMusic>()
-              .getNextSongList(playlistId: mediaItem['playlistId'])
+          ? await GetIt.I<YTMusic>().getNextSongList(
+              playlistId: mediaItem['playlistId'],
+            )
           : await GetIt.I<YTMusic>().getPlaylistSongs(mediaItem['playlistId']);
     }
   }
@@ -412,17 +427,22 @@ class MediaPlayer extends ChangeNotifier {
     }
   }
 
-  Future<void> startRelated(Map<String, dynamic> song,
-      {bool radio = false, bool shuffle = false, bool isArtist = false}) async {
+  Future<void> startRelated(
+    Map<String, dynamic> song, {
+    bool radio = false,
+    bool shuffle = false,
+    bool isArtist = false,
+  }) async {
     await _player.clearAudioSources();
     if (!isArtist) {
       await addToQueue(song);
     }
     List songs = await GetIt.I<YTMusic>().getNextSongList(
-        videoId: song['videoId'],
-        playlistId: song['playlistRadioId'],
-        radio: radio,
-        shuffle: shuffle);
+      videoId: song['videoId'],
+      playlistId: song['playlistRadioId'],
+      radio: radio,
+      shuffle: shuffle,
+    );
     if (songs.isNotEmpty) songs.removeAt(0);
     await _addSongListToQueue(songs, isNext: false);
     await _player.play();
@@ -431,7 +451,9 @@ class MediaPlayer extends ChangeNotifier {
   Future<void> startPlaylistSongs(Map endpoint) async {
     await _player.clearAudioSources();
     List songs = await GetIt.I<YTMusic>().getNextSongList(
-        playlistId: endpoint['playlistId'], params: endpoint['params']);
+      playlistId: endpoint['playlistId'],
+      params: endpoint['params'],
+    );
 
     if (songs.isNotEmpty && songs.first['videoId'] == null) {
       // if API returned a placeholder, convert or handle accordingly
@@ -481,8 +503,9 @@ class MediaPlayer extends ChangeNotifier {
           GetIt.I<SettingsManager>().autofetchSongs &&
           autoFetching == false) {
         autoFetching = true;
-        List nextSongs = await GetIt.I<YTMusic>()
-            .getNextSongList(videoId: player.sequence[index].tag.id);
+        List nextSongs = await GetIt.I<YTMusic>().getNextSongList(
+          videoId: player.sequence[index].tag.id,
+        );
         if (nextSongs.isNotEmpty) nextSongs.removeAt(0);
         await _addSongListToQueue(nextSongs);
         autoFetching = false;
@@ -519,8 +542,9 @@ class ProgressBarState {
   Duration current;
   Duration buffered;
   Duration total;
-  ProgressBarState(
-      {this.current = Duration.zero,
-      this.buffered = Duration.zero,
-      this.total = Duration.zero});
+  ProgressBarState({
+    this.current = Duration.zero,
+    this.buffered = Duration.zero,
+    this.total = Duration.zero,
+  });
 }
