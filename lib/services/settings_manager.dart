@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
-
 Box _box = Hive.box('SETTINGS');
 
 class SettingsManager extends ChangeNotifier {
@@ -9,14 +8,14 @@ class SettingsManager extends ChangeNotifier {
   final List<ThemeMode> _themeModes = [
     ThemeMode.system,
     ThemeMode.light,
-    ThemeMode.dark
+    ThemeMode.dark,
   ];
   late Map<String, String> _location;
   late Map<String, String> _language;
   bool _autofetchSongs = true;
   final List<AudioQuality> _audioQualities = [
     AudioQuality.high,
-    AudioQuality.low
+    AudioQuality.low,
   ];
 
   AudioQuality _streamingQuality = AudioQuality.high;
@@ -26,7 +25,7 @@ class SettingsManager extends ChangeNotifier {
   bool _amoledBlack = true;
   bool _dynamicColors = false;
   bool _equalizerEnabled = false;
-  List<double> _equalizerBandsGain = [];
+  Map _equalizerParameters = {};
   bool _loudnessEnabled = false;
   double _loudnessTargetGain = 0.0;
 
@@ -45,10 +44,15 @@ class SettingsManager extends ChangeNotifier {
   Color? get accentColor => _accentColor;
   bool get amoledBlack => _amoledBlack;
   bool get dynamicColors => _dynamicColors;
-  bool get equalizerEnabled => _equalizerEnabled;
-  List<double> get equalizerBandsGain => _equalizerBandsGain;
   bool get loudnessEnabled => _loudnessEnabled;
   double get loudnessTargetGain => _loudnessTargetGain;
+  bool get equalizerEnabled => _equalizerEnabled;
+  Map get equalizerParameters => _equalizerParameters;
+  List<double> get equalizerBandsGain =>
+      (equalizerParameters['bands'] as List?)
+          ?.map<double>((e) => (e['gain'] as num).toDouble())
+          .toList() ??
+      [];
 
   Map get settings => _box.toMap();
   SettingsManager() {
@@ -56,8 +60,10 @@ class SettingsManager extends ChangeNotifier {
   }
   void _init() {
     _themeMode = _themeModes[_box.get('THEME_MODE', defaultValue: 0)];
-    _language = _languages.firstWhere((language) =>
-        language['value'] == _box.get('LANGUAGE', defaultValue: 'en-IN'));
+    _language = _languages.firstWhere(
+      (language) =>
+          language['value'] == _box.get('LANGUAGE', defaultValue: 'en-IN'),
+    );
     _autofetchSongs = _box.get('AUTOFETCH_SONGS', defaultValue: true);
     _accentColor = _box.get('ACCENT_COLOR') != null
         ? Color(_box.get('ACCENT_COLOR'))
@@ -65,8 +71,9 @@ class SettingsManager extends ChangeNotifier {
     _amoledBlack = _box.get('AMOLED_BLACK', defaultValue: true);
     _dynamicColors = _box.get('DYNAMIC_COLORS', defaultValue: false);
 
-    _location = _countries.firstWhere((country) =>
-        country['value'] == _box.get('LOCATION', defaultValue: 'IN'));
+    _location = _countries.firstWhere(
+      (country) => country['value'] == _box.get('LOCATION', defaultValue: 'IN'),
+    );
 
     _streamingQuality =
         _audioQualities[_box.get('STREAMING_QUALITY', defaultValue: 0)];
@@ -76,8 +83,7 @@ class SettingsManager extends ChangeNotifier {
     _equalizerEnabled = _box.get('EQUALIZER_ENABLED', defaultValue: false);
     _loudnessEnabled = _box.get('LOUDNESS_ENABLED', defaultValue: false);
     _loudnessTargetGain = _box.get('LOUDNESS_TARGET_GAIN', defaultValue: 0.0);
-    _equalizerBandsGain =
-        _box.get('EQUALIZER_BANDS_GAIN', defaultValue: []).cast<double>();
+    _equalizerParameters = _box.get('EQUALIZER_PARAMETERS', defaultValue: {});
   }
 
   Future<void> setThemeMode(ThemeMode mode) async {
@@ -148,17 +154,15 @@ class SettingsManager extends ChangeNotifier {
     notifyListeners();
   }
 
-  set equalizerBandsGain(List<double>? value) {
-    if (value != null) {
-      _box.put('EQUALIZER_BANDS_GAIN', value);
-      _equalizerBandsGain = value;
-      notifyListeners();
-    }
+  Future<void> setEqualizerParameters(Map value) async {
+    await _box.put('EQUALIZER_PARAMETERS', value);
+    _equalizerParameters = value;
+    notifyListeners();
   }
 
   Future<void> setEqualizerBandsGain(int index, double value) async {
-    _equalizerBandsGain[index] = value;
-    await _box.put('EQUALIZER_BANDS_GAIN', equalizerBandsGain);
+    _equalizerParameters['bands'][index]['gain'] = value;
+    await _box.put('EQUALIZER_PARAMETERS', _equalizerParameters);
     notifyListeners();
   }
 
@@ -187,8 +191,8 @@ class SettingsManager extends ChangeNotifier {
 bool getDarkness(int themeMode) {
   if (themeMode == 0) {
     return MediaQueryData.fromView(
-                    WidgetsBinding.instance.platformDispatcher.views.first)
-                .platformBrightness ==
+              WidgetsBinding.instance.platformDispatcher.views.first,
+            ).platformBrightness ==
             Brightness.dark
         ? true
         : false;
@@ -310,7 +314,7 @@ List<Map<String, String>> _countries = [
   {"name": "Venezuela", "value": "VE"},
   {"name": "Vietnam", "value": "VN"},
   {"name": "Yemen", "value": "YE"},
-  {"name": "Zimbabwe", "value": "ZW"}
+  {"name": "Zimbabwe", "value": "ZW"},
 ];
 
 List<Map<String, String>> _languages = [
@@ -396,5 +400,5 @@ List<Map<String, String>> _languages = [
   {"name": "中文 (繁體)", "value": "zh-TW"},
   {"name": "中文 (香港)", "value": "zh-HK"},
   {"name": "日本語", "value": "ja"},
-  {"name": "한국어", "value": "ko"}
+  {"name": "한국어", "value": "ko"},
 ];
