@@ -1,4 +1,6 @@
 import 'package:bloc/bloc.dart';
+import 'package:get_it/get_it.dart';
+import 'package:gyawun/services/settings_manager.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
 part 'privacy_state.dart';
@@ -8,26 +10,26 @@ class PrivacyCubit extends Cubit<PrivacyState> {
     _load();
   }
 
-  final Box _settings = Hive.box('SETTINGS');
+  final SettingsManager _settingsManager = GetIt.I<SettingsManager>();
   final Box _songHistory = Hive.box('SONG_HISTORY');
   final Box _searchHistory = Hive.box('SEARCH_HISTORY');
 
   void _load() {
     emit(
       state.copyWith(
-        playbackHistory: _settings.get('PLAYBACK_HISTORY', defaultValue: true),
-        searchHistory: _settings.get('SEARCH_HISTORY', defaultValue: true),
+        playbackHistory: _settingsManager.playbackHistory,
+        searchHistory: _settingsManager.searchHistory,
       ),
     );
   }
 
   Future<void> togglePlaybackHistory(bool value) async {
-    await _settings.put('PLAYBACK_HISTORY', value);
+    _settingsManager.playbackHistory = value;
     emit(state.copyWith(playbackHistory: value));
   }
 
   Future<void> toggleSearchHistory(bool value) async {
-    await _settings.put('SEARCH_HISTORY', value);
+    _settingsManager.searchHistory = value;
     emit(state.copyWith(searchHistory: value));
   }
 

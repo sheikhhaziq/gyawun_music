@@ -12,39 +12,31 @@ import '../../../../services/download_manager.dart';
 part 'backup_storage_state.dart';
 
 class BackupStorageCubit extends Cubit<BackupStorageState> {
-  final Box _settingsBox = Hive.box('SETTINGS');
+  final SettingsManager _settingsManager = GetIt.I<SettingsManager>();
   final FileStorage _fileStorage = GetIt.I<FileStorage>();
 
   late final VoidCallback _listener;
 
   BackupStorageCubit()
     : super(
-        BackupStorageState(
-          appFolder: Hive.box('SETTINGS').get(
-            'APP_FOLDER',
-            defaultValue: GetIt.I<FileStorage>().storagePaths.basePath,
-          ),
-        ),
+        BackupStorageState(appFolder: GetIt.I<SettingsManager>().appFolder),
       ) {
     _listener = _emit;
-    _settingsBox.listenable(keys: ['APP_FOLDER']).addListener(_listener);
+    _settingsManager.addListener(_listener);
   }
 
   void _emit() {
     if (isClosed) return;
     emit(
       state.copyWith(
-        appFolder: _settingsBox.get(
-          'APP_FOLDER',
-          defaultValue: GetIt.I<FileStorage>().storagePaths.basePath,
-        ),
+        appFolder: _settingsManager.appFolder,
         lastResult: null, // clear one-shot result
       ),
     );
   }
 
   Future<void> setAppFolder(String path) async {
-    await _settingsBox.put('APP_FOLDER', path);
+    _settingsManager.appFolder = path;
     await _fileStorage.updateDirectories();
   }
 
@@ -109,7 +101,7 @@ class BackupStorageCubit extends Cubit<BackupStorageState> {
 
   @override
   Future<void> close() {
-    _settingsBox.listenable(keys: ['APP_FOLDER']).removeListener(_listener);
+    _settingsManager.removeListener(_listener);
     return super.close();
   }
 }

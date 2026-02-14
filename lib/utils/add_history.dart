@@ -3,15 +3,14 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:yt_music/ytmusic.dart';
 
 import '../services/download_manager.dart';
-
-Box _box = Hive.box('SETTINGS');
+import '../services/settings_manager.dart';
 
 Future<void> addHistory(Map song) async {
-  if (_box.get('PLAYBACK_HISTORY', defaultValue: true)) {
+  if (GetIt.I<SettingsManager>().playbackHistory) {
     await addLocalHistory(song);
   }
   final downloadSong = GetIt.I<DownloadManager>().downloads[song['videoId']];
-  if (_box.get('PERSONALISED_CONTENT', defaultValue: true) &&
+  if (GetIt.I<SettingsManager>().personalisedContent &&
       (downloadSong == null || downloadSong['status'] != 'DOWNLOADED')) {
     GetIt.I<YTMusic>().addYoutubeHistory(song['videoId']);
   }

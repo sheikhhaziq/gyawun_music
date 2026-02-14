@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:gyawun/services/file_storage.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
-Box _box = Hive.box('SETTINGS');
-
 class SettingsManager extends ChangeNotifier {
+  final Box _box;
+
   ThemeMode _themeMode = ThemeMode.system;
   final List<ThemeMode> _themeModes = [
     ThemeMode.system,
@@ -28,6 +29,15 @@ class SettingsManager extends ChangeNotifier {
   Map _equalizerParameters = {};
   bool _loudnessEnabled = false;
   double _loudnessTargetGain = 0.0;
+  bool _searchHistory = true;
+  bool _translateLyrics = false;
+  bool _playbackHistory = true;
+  bool _personalisedContent = true;
+  String? _visitorId;
+  String? _apiKey;
+  String? _clientName;
+  String? _clientVersion;
+  String _appFolder = FileStorage.defaultPath;
 
   ThemeMode get themeMode => _themeMode;
   List<ThemeMode> get themeModes => _themeModes;
@@ -54,10 +64,29 @@ class SettingsManager extends ChangeNotifier {
           .toList() ??
       [];
 
+  bool get searchHistory => _searchHistory;
+  bool get translateLyrics => _translateLyrics;
+  bool get playbackHistory => _playbackHistory;
+  bool get personalisedContent => _personalisedContent;
+  String? get visitorId => _visitorId;
+  String? get apiKey => _apiKey;
+  String? get clientName => _clientName;
+  String? get clientVersion => _clientVersion;
+  String get appFolder => _appFolder;
+
   Map get settings => _box.toMap();
-  SettingsManager() {
+
+  SettingsManager._(this._box) {
     _init();
   }
+
+  static Future<SettingsManager> create() async {
+    final boxName = 'SETTINGS';
+    await Hive.openBox(boxName);
+    final instance = SettingsManager._(Hive.box(boxName));
+    return instance;
+  }
+
   void _init() {
     _themeMode = _themeModes[_box.get('THEME_MODE', defaultValue: 0)];
     _language = _languages.firstWhere(
@@ -84,6 +113,15 @@ class SettingsManager extends ChangeNotifier {
     _loudnessEnabled = _box.get('LOUDNESS_ENABLED', defaultValue: false);
     _loudnessTargetGain = _box.get('LOUDNESS_TARGET_GAIN', defaultValue: 0.0);
     _equalizerParameters = _box.get('EQUALIZER_PARAMETERS', defaultValue: {});
+    _searchHistory = _box.get('SEARCH_HISTORY', defaultValue: true);
+    _translateLyrics = _box.get('TRANSLATE_LYRICS', defaultValue: false);
+    _playbackHistory = _box.get('PLAYBACK_HISTORY', defaultValue: true);
+    _personalisedContent = _box.get('PERSONALISED_CONTENT', defaultValue: true);
+    _visitorId = _box.get('YT_VISITOR_ID');
+    _apiKey = _box.get('YT_API_KEY');
+    _clientName = _box.get('YT_CLIENT_NAME');
+    _clientVersion = _box.get('YT_CLIENT_VERSION');
+    _appFolder = _box.get('APP_FOLDER', defaultValue: FileStorage.defaultPath);
   }
 
   Future<void> setThemeMode(ThemeMode mode) async {
@@ -93,14 +131,68 @@ class SettingsManager extends ChangeNotifier {
     notifyListeners();
   }
 
+  set searchHistory(bool value) {
+    _box.put('SEARCH_HISTORY', value);
+    _searchHistory = value;
+    notifyListeners();
+  }
+
+  set translateLyrics(bool value) {
+    _box.put('TRANSLATE_LYRICS', value);
+    _translateLyrics = value;
+    notifyListeners();
+  }
+
+  set playbackHistory(bool value) {
+    _box.put('PLAYBACK_HISTORY', value);
+    _playbackHistory = value;
+    notifyListeners();
+  }
+
+  set personalisedContent(bool value) {
+    _box.put('PERSONALISED_CONTENT', value);
+    _personalisedContent = value;
+    notifyListeners();
+  }
+
+  set visitorId(String? value) {
+    _box.put('YT_VISITOR_ID', value);
+    _visitorId = value;
+    notifyListeners();
+  }
+
+  set apiKey(String? value) {
+    _box.put('YT_API_KEY', value);
+    _apiKey = value;
+    notifyListeners();
+  }
+
+  set clientName(String? value) {
+    _box.put('YT_CLIENT_NAME', value);
+    _clientName = value;
+    notifyListeners();
+  }
+
+  set clientVersion(String? value) {
+    _box.put('YT_CLIENT_VERSION', value);
+    _clientVersion = value;
+    notifyListeners();
+  }
+
+  set appFolder(String value) {
+    _box.put('APP_FOLDER', value);
+    _appFolder = value;
+    notifyListeners();
+  }
+
   set location(Map<String, String> value) {
-    _box.put('YT_LOCATION', value['value']);
+    _box.put('LOCATION', value['value']);
     _location = value;
     notifyListeners();
   }
 
   set language(Map<String, String> value) {
-    _box.put('YT_LANGUAGE', value['value']);
+    _box.put('LANGUAGE', value['value']);
     _language = value;
     notifyListeners();
   }
