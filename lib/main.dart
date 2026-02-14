@@ -70,7 +70,10 @@ void main() async {
   MediaPlayer mediaPlayer = MediaPlayer();
   GetIt.I.registerSingleton<MediaPlayer>(mediaPlayer);
   LibraryService libraryService = LibraryService();
-  GetIt.I.registerSingleton<DownloadManager>(DownloadManager());
+
+  DownloadManager downloadManager = await DownloadManager.create();
+  GetIt.I.registerSingleton<DownloadManager>(downloadManager);
+
   GetIt.I.registerSingleton(panelKey);
   GetIt.I.registerSingleton<YTMusic>(ytMusic);
 
@@ -169,7 +172,6 @@ Future<void> initialiseHive() async {
   await Hive.openBox('LIBRARY');
   await Hive.openBox('SEARCH_HISTORY');
   await Hive.openBox('SONG_HISTORY');
-  await Hive.openBox('DOWNLOADS');
 }
 
 Future<YTConfig?>? getYtConfig() async {

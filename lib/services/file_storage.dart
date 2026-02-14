@@ -4,6 +4,7 @@ import 'package:audiotags/audiotags.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/services.dart';
 import 'package:get_it/get_it.dart';
+import 'package:gyawun/services/download_manager.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:http/http.dart';
 import 'package:intl/intl.dart';
@@ -198,9 +199,7 @@ class FileStorage {
       });
     }
     if (downloads != null) {
-      await Future.forEach(downloads.entries, (entry) async {
-        Hive.box('DOWNLOADS').put(entry.key, entry.value);
-      });
+      await GetIt.I<DownloadManager>().setDownloads(downloads);
     }
     return true;
   }

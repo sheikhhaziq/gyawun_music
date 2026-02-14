@@ -17,7 +17,7 @@ class DownloadsCubit extends Cubit<DownloadsState> {
       }
     };
 
-    _manager.downloadsByPlaylist.addListener(_listener);
+    _manager.playlistsNotifier.addListener(_listener);
   }
 
   void load() {
@@ -28,7 +28,7 @@ class DownloadsCubit extends Cubit<DownloadsState> {
     if (isClosed) return;
 
     try {
-      emit(DownloadsLoaded(_manager.downloadsByPlaylist.value));
+      emit(DownloadsLoaded(_manager.playlistsNotifier.value));
     } catch (e) {
       if (!isClosed) {
         emit(DownloadsError(e.toString()));
@@ -38,7 +38,7 @@ class DownloadsCubit extends Cubit<DownloadsState> {
 
   @override
   Future<void> close() {
-    _manager.downloadsByPlaylist.removeListener(_listener);
+    _manager.playlistsNotifier.removeListener(_listener);
     return super.close();
   }
 }

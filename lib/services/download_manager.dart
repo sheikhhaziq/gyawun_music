@@ -15,15 +15,15 @@ import 'settings_manager.dart';
 import 'favourites_manager.dart';
 import 'stream_client.dart';
 
-Box _box = Hive.box('DOWNLOADS');
 YoutubeExplode ytExplode = YoutubeExplode();
 
 class DownloadCanceledException implements Exception {}
 
 class DownloadManager {
+  final Box _box;
   Client client = Client();
-  ValueNotifier<List<Map>> downloads = ValueNotifier([]);
-  ValueNotifier<Map<String, Map>> downloadsByPlaylist = ValueNotifier({});
+  ValueNotifier<List<Map>> downloadsNotifier = ValueNotifier([]);
+  ValueNotifier<Map<String, Map>> playlistsNotifier = ValueNotifier({});
   final Map<String, ValueNotifier<double>> _activeDownloadProgress = {};
   static const String songsPlaylistId = 'SNGS';
   final int maxConcurrentDownloads = 3; // Limit concurrent downloads
@@ -31,7 +31,17 @@ class DownloadManager {
       Queue<String>(); // Currently active downloads
   final Queue<Map> _downloadQueue = Queue<Map>(); // Queue for pending downloads
 
-  DownloadManager() {
+  Map get downloads => _box.toMap();
+
+  Listenable songListenable(String songId) {
+    return _box.listenable(keys: [songId]);
+  }
+
+  Map? getDownload(String songId) {
+    return _box.get(songId);
+  }
+
+  DownloadManager._(this._box) {
     _refreshData();
     _cleanupDownloads();
     _box.listenable().addListener(() {
@@ -39,10 +49,17 @@ class DownloadManager {
     });
   }
 
+  static Future<DownloadManager> create() async {
+    final boxName = 'DOWNLOADS';
+    await Hive.openBox(boxName);
+    final instance = DownloadManager._(Hive.box(boxName));
+    return instance;
+  }
+
   void _cleanupDownloads() async {
     final activeIds = _activeDownloads.toSet();
     final queuedIds = _downloadQueue.map((e) => e['videoId']).toSet();
-    for (Map song in downloads.value) {
+    for (Map song in downloadsNotifier.value) {
       final id = song['videoId'];
       final status = song['status'];
       final isInvalidDownloading =
@@ -59,14 +76,14 @@ class DownloadManager {
     // -----------------------------
     // 0) LOAD DOWNLOADS FROM HIVE
     // -----------------------------
-    downloads.value = _box.values.toList().cast<Map>();
+    downloadsNotifier.value = _box.values.toList().cast<Map>();
 
     // -----------------------------
     // 1) MIGRATE OLD DOWNLOADS → SONGS
     // -----------------------------
     bool needsSave = false;
 
-    for (final song in downloads.value) {
+    for (final song in downloadsNotifier.value) {
       if (song["playlists"] == null || song["playlists"] is! Map) {
         song["playlists"] = {
           songsPlaylistId: {
@@ -84,7 +101,7 @@ class DownloadManager {
 
     if (needsSave) {
       await _box.clear();
-      await _box.addAll(downloads.value);
+      await _box.addAll(downloadsNotifier.value);
     }
 
     // -----------------------------
@@ -92,7 +109,7 @@ class DownloadManager {
     // -----------------------------
     bool removedDeleted = false;
 
-    downloads.value.removeWhere((song) {
+    downloadsNotifier.value.removeWhere((song) {
       if (song["status"] == "DELETED") {
         removedDeleted = true;
         return true;
@@ -102,7 +119,7 @@ class DownloadManager {
 
     if (removedDeleted) {
       await _box.clear();
-      await _box.addAll(downloads.value);
+      await _box.addAll(downloadsNotifier.value);
     }
 
     // -----------------------------
@@ -110,7 +127,7 @@ class DownloadManager {
     // -----------------------------
     final Map<String, Map<String, dynamic>> playlists = {};
 
-    for (final song in downloads.value) {
+    for (final song in downloadsNotifier.value) {
       final Map songPlaylists = Map.from(song["playlists"] ?? {});
 
       for (final entry in songPlaylists.entries) {
@@ -161,10 +178,10 @@ class DownloadManager {
     // 5) UPDATE STATE IF CHANGED
     // -----------------------------
     if (!const DeepCollectionEquality().equals(
-      downloadsByPlaylist.value,
+      playlistsNotifier.value,
       playlists,
     )) {
-      downloadsByPlaylist.value = playlists;
+      playlistsNotifier.value = playlists;
     }
   }
 
@@ -193,7 +210,7 @@ class DownloadManager {
   }
 
   Future<void> restoreDownloads({List? songs}) async {
-    final songsToRestore = songs ?? downloads.value;
+    final songsToRestore = songs ?? downloadsNotifier.value;
     for (var song in songsToRestore) {
       if (_box.get(song['videoId']) != null) {
         final status = song['status'];
@@ -207,6 +224,12 @@ class DownloadManager {
         }
       }
     }
+  }
+
+  Future<void> setDownloads(Map downloads) async {
+    await Future.forEach(downloads.entries, (entry) async {
+      _box.put(entry.key, entry.value);
+    });
   }
 
   Future<void> downloadSong(Map songToDownaload) async {

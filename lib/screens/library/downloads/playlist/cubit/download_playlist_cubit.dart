@@ -21,7 +21,7 @@ class DownloadPlaylistCubit extends Cubit<DownloadPlaylistState> {
       }
     };
 
-    _manager.downloadsByPlaylist.addListener(_listener);
+    _manager.playlistsNotifier.addListener(_listener);
   }
 
   void load() {
@@ -32,7 +32,7 @@ class DownloadPlaylistCubit extends Cubit<DownloadPlaylistState> {
   void _emitState() {
     if (isClosed) return;
 
-    final allPlaylists = _manager.downloadsByPlaylist.value;
+    final allPlaylists = _manager.playlistsNotifier.value;
     final playlist = allPlaylists[playlistId];
 
     if (playlist == null || playlist['songs'] == null) {
@@ -56,7 +56,7 @@ class DownloadPlaylistCubit extends Cubit<DownloadPlaylistState> {
   }
 
   Future<void> _verifyPlaylistIntegrity() async {
-    final allPlaylists = _manager.downloadsByPlaylist.value;
+    final allPlaylists = _manager.playlistsNotifier.value;
     final playlist = allPlaylists[playlistId];
     if (playlist == null) return;
 
@@ -81,7 +81,7 @@ class DownloadPlaylistCubit extends Cubit<DownloadPlaylistState> {
 
   @override
   Future<void> close() {
-    _manager.downloadsByPlaylist.removeListener(_listener);
+    _manager.playlistsNotifier.removeListener(_listener);
     return super.close();
   }
 }

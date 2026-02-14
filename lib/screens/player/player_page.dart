@@ -574,12 +574,13 @@ class NameAndControls extends StatelessWidget {
               children: [
                 if (song != null)
                   RepaintBoundary(
-                    child: ValueListenableBuilder(
-                      valueListenable: Hive.box(
-                        'DOWNLOADS',
-                      ).listenable(keys: [song!.id]),
-                      builder: (context, box, child) {
-                        final Map? item = box.get(song!.id);
+                    child: ListenableBuilder(
+                      listenable: GetIt.I<DownloadManager>().songListenable(
+                        song!.id,
+                      ),
+                      builder: (context, child) {
+                        final Map? item = GetIt.I<DownloadManager>()
+                            .getDownload(song!.id);
                         if (item != null) {
                           if (item['status'] == 'DOWNLOADING') {
                             final notifier =

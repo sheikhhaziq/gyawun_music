@@ -7,6 +7,7 @@ import '../../../../../../services/file_storage.dart';
 import '../../../../../../services/library.dart';
 import '../../../../../../services/settings_manager.dart';
 import '../../../../../../services/favourites_manager.dart';
+import '../../../../services/download_manager.dart';
 
 part 'backup_storage_state.dart';
 
@@ -86,7 +87,8 @@ class BackupStorageCubit extends Cubit<BackupStorageState> {
     }
 
     if (items.contains('downloads')) {
-      backup['data']['downloads'] = Hive.box('DOWNLOADS').toMap();
+      Map downloads = GetIt.I<DownloadManager>().downloads;
+      backup['data']['downloads'] = downloads;
     }
 
     String? path;
