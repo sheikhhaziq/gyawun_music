@@ -13,6 +13,8 @@ import '../../../../../generated/l10n.dart';
 import '../../../../../utils/bottom_modals.dart';
 import '../../../../services/download_manager.dart';
 import '../../../../services/favourites_manager.dart';
+import '../../../../utils/adaptive_widgets/appbar.dart';
+import '../../../../utils/adaptive_widgets/scaffold.dart';
 import 'cubit/download_playlist_cubit.dart';
 
 class DownloadPlaylistPage extends StatelessWidget {
@@ -30,8 +32,8 @@ class DownloadPlaylistPage extends StatelessWidget {
             DownloadPlaylistLoading() => const Scaffold(
               body: Center(child: CircularProgressIndicator()),
             ),
-            DownloadPlaylistError() => Scaffold(
-              appBar: AppBar(),
+            DownloadPlaylistError() => AdaptiveScaffold(
+              appBar: AdaptiveAppBar(),
               body: Center(child: Text(S.of(context).Playlist_Not_Available)),
             ),
             DownloadPlaylistLoaded(:final playlist, :final songs) =>

@@ -10,6 +10,8 @@ import 'package:gyawun/themes/text_styles.dart';
 
 import '../../../../../generated/l10n.dart';
 import '../../../../../utils/bottom_modals.dart';
+import '../../../utils/adaptive_widgets/appbar.dart';
+import '../../../utils/adaptive_widgets/scaffold.dart';
 import 'cubit/playlist_details_cubit.dart';
 
 class PlaylistDetailsPage extends StatelessWidget {
@@ -27,8 +29,9 @@ class PlaylistDetailsPage extends StatelessWidget {
             PlaylistDetailsLoading() => const Scaffold(
               body: Center(child: CircularProgressIndicator()),
             ),
-            PlaylistDetailsError() => const Scaffold(
-              body: Center(child: Text('Not available')),
+            PlaylistDetailsError() => AdaptiveScaffold(
+              appBar: AdaptiveAppBar(),
+              body: Center(child: Text(S.of(context).Playlist_Not_Available)),
             ),
             PlaylistDetailsLoaded(:final playlist) => _PlaylistView(
               playlist: playlist,
