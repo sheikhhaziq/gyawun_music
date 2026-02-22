@@ -11,6 +11,7 @@ import 'package:gyawun/utils/adaptive_widgets/icons.dart';
 import '../../../../generated/l10n.dart';
 import '../../../../utils/bottom_modals.dart';
 import '../../../../utils/playlist_thumbnail.dart';
+import '../../../core/widgets/expressive_list_group.dart';
 import '../../../services/favourites_manager.dart';
 import 'cubit/downloads_cubit.dart';
 
@@ -74,33 +75,34 @@ class _DownloadsBody extends StatelessWidget {
           ),
         ];
       },
-      body: ListView.separated(
-        itemCount: sortedEntries.length,
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-        separatorBuilder: (context, index) => SizedBox(height: 4),
-        itemBuilder: (context, index) {
-          final playlist = sortedEntries[index].value;
-          return ExpressiveListTile(
-            title: playlist['id'] == DownloadManager.songsPlaylistId
-                ? Text(S.of(context).Songs)
-                : playlist['id'] == FavouritesManager.playlistId
-                ? Text(S.of(context).Favourites)
-                : Text(playlist['title']),
-            leading: _leading(context, playlist),
-            subtitle: Text(S.of(context).nSongs(playlist['songs'].length)),
-            trailing: const Icon(FluentIcons.chevron_right_24_filled),
-            onTap: () {
-              context.push(
-                '/library/downloads/download_playlist',
-                extra: {'playlistId': playlist['id']},
+      body: Padding(
+        padding: const .symmetric(vertical: 4, horizontal: 16),
+        child: ExpressiveListGroup(
+          children: [
+            ...sortedEntries.map((entry) {
+              final playlist = entry.value;
+              return ExpressiveListTile(
+                title: playlist['id'] == DownloadManager.songsPlaylistId
+                    ? Text(S.of(context).Songs)
+                    : playlist['id'] == FavouritesManager.playlistId
+                    ? Text(S.of(context).Favourites)
+                    : Text(playlist['title']),
+                leading: _leading(context, playlist),
+                subtitle: Text(S.of(context).nSongs(playlist['songs'].length)),
+                trailing: const Icon(FluentIcons.chevron_right_24_filled),
+                onTap: () {
+                  context.push(
+                    '/library/downloads/download_playlist',
+                    extra: {'playlistId': playlist['id']},
+                  );
+                },
+                onLongPress: () {
+                  Modals.showDownloadDetailsBottomModal(context, playlist);
+                },
               );
-            },
-
-            onLongPress: () {
-              Modals.showDownloadDetailsBottomModal(context, playlist);
-            },
-          );
-        },
+            }),
+          ],
+        ),
       ),
     );
   }
