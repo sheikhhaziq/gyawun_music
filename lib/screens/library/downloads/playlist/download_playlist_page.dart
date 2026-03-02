@@ -114,13 +114,6 @@ class _PlaylistView extends StatelessWidget {
                 SliverAppBar(
                   pinned: true,
                   expandedHeight: 120,
-                  leading: BackButton(
-                    style: ButtonStyle(
-                      backgroundColor: WidgetStatePropertyAll(
-                        Theme.of(context).colorScheme.surfaceContainer,
-                      ),
-                    ),
-                  ),
                   flexibleSpace: LayoutBuilder(
                     builder: (context, constraints) {
                       final maxHeight = 120.0;

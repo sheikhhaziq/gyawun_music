@@ -75,7 +75,10 @@ class _BrowsePageState extends State<_BrowsePage> {
         builder: (context, state) {
           switch (state) {
             case BrowseLoading():
-              return Center(child: LoadingIndicatorM3E());
+              return Scaffold(
+                backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+                body: const Center(child: LoadingIndicatorM3E()),
+              );
             case BrowseError():
               return Center(child: Text(state.message ?? ''));
             case BrowseSuccess():
