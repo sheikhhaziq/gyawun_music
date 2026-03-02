@@ -5,18 +5,18 @@ import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:gyawun/core/extensions/random_material_shape.dart';
 import 'package:gyawun/core/widgets/expressive_app_bar.dart';
 import 'package:gyawun/core/widgets/expressive_list_group.dart';
 import 'package:gyawun/core/widgets/expressive_list_tile.dart';
 import 'package:gyawun/core/widgets/internet_guard.dart';
 import 'package:gyawun/core/utils/service_locator.dart';
-import 'package:gyawun/core/widgets/rounded_polygon_icon.dart';
 import 'package:gyawun/screens/settings/widgets/color_icon.dart';
 import '../../../../generated/l10n.dart';
 import '../../../../services/library.dart';
 import '../../../../utils/adaptive_widgets/adaptive_widgets.dart';
 import '../../../../utils/bottom_modals.dart';
+import '../../utils/playlist_icon_widget.dart';
+import '../../utils/playlist_icons.dart';
 import 'cubit/library_cubit.dart';
 
 class LibraryPage extends StatelessWidget {
@@ -252,7 +252,10 @@ class _LibraryBody extends StatelessWidget {
         color: Theme.of(context).colorScheme.primaryContainer,
         borderRadius: BorderRadius.circular(8),
       ),
-      child: RoundedPolygonIcon(polygon: RandomMaterialShape.random, size: 30),
+      child: PlaylistIconWidget(
+        data: PlaylistIcons.byId(item['iconId']),
+        size: 30,
+      ),
     );
   }
 

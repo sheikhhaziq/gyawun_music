@@ -277,5 +277,11 @@
   "View_Equalizer": "Play a song to see the equalizer.",
   "@View_Equalizer": {},
   "No_Offline_Songs": "No offline songs available",
-  "@No_Offline_Songs": {}
+  "@No_Offline_Songs": {},
+  "Edit": "Edit",
+  "@Edit": {},
+  "Edit_Playlist": "Edit Playlist",
+  "@Edit_Playlist": {},
+  "Select_Playlist_Icon": "Select Playlist Icon",
+  "@Select_Playlist_Icon": {}
 }

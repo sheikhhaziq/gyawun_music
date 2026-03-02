@@ -15,6 +15,7 @@ class LibraryService extends ChangeNotifier {
     final boxName = 'LIBRARY';
     await Hive.openBox(boxName);
     final instance = LibraryService._(Hive.box(boxName));
+    await instance._migrateLibIcons();
     return instance;
   }
 
@@ -32,12 +33,27 @@ class LibraryService extends ChangeNotifier {
   );
   Map? getPlaylist(String playlistId) => _box.get(playlistId);
 
-  Future<String> createPlaylist(String title, {Map? item}) async {
+  Future<void> _migrateLibIcons() async {
+    for (final entry in userPlaylists.entries) {
+      final id = entry.key;
+      final item = entry.value;
+      if (!item.keys.contains("iconId")) {
+        await _box.put(id, {...item, 'iconId': 'musicNoteList'});
+      }
+    }
+  }
+
+  Future<String> createPlaylist(
+    String title,
+    String iconId, {
+    Map? item,
+  }) async {
     if (title.trim().isEmpty) {
       return "Playlist name can't be empty";
     }
     await _box.put("CSTMPL${DateTime.now().millisecondsSinceEpoch}", {
       'title': title,
+      'iconId': iconId,
       'isPredefined': false,
       'songs': item != null ? [item] : [],
       'createdAt': DateTime.now().millisecondsSinceEpoch,
@@ -71,6 +87,7 @@ class LibraryService extends ChangeNotifier {
       } else {
         await _box.put(id, {
           ...playlist,
+          'iconId': 'musicNoteList',
           'isPredefined': true,
           'createdAt': DateTime.now().millisecondsSinceEpoch,
         });
@@ -99,9 +116,10 @@ class LibraryService extends ChangeNotifier {
     }
   }
 
-  Future<String> renamePlaylist({
+  Future<String> editPlaylist({
     String? title,
     required String playlistId,
+    required String iconId,
   }) async {
     if (_playlists[playlistId] == null) {
       return 'Playlist does not exist';
@@ -111,9 +129,10 @@ class LibraryService extends ChangeNotifier {
     }
     Map playlist = await _box.get(playlistId);
     playlist['title'] = title;
+    playlist['iconId'] = iconId;
     await _box.put(playlistId, playlist);
     notifyListeners();
-    return 'Playlist renamed';
+    return 'Playlist updated';
   }
 
   Future<String> removeFromLibrary(String key) async {

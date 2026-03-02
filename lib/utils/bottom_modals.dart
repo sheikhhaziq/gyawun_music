@@ -8,12 +8,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:get_it/get_it.dart';
 import 'package:go_router/go_router.dart';
-import 'package:gyawun/core/extensions/random_material_shape.dart';
-import 'package:gyawun/core/widgets/rounded_polygon_icon.dart';
 import 'package:gyawun/screens/settings/player/equalizer/equalizer_page.dart';
 import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
 
+import 'playlist_icon.dart';
+import 'playlist_icons.dart';
+import 'playlist_icon_widget.dart';
 import '../generated/l10n.dart';
 import '../screens/settings/widgets/color_icon.dart';
 import '../services/bottom_message.dart';
@@ -178,13 +179,39 @@ class Modals {
   }
 
   static void showCreateplaylistModal(BuildContext context, {Map? item}) {
+    PlaylistIcon selectedIcon = PlaylistIcons.musicNoteList;
     showModalBottomSheet(
       useRootNavigator: false,
       backgroundColor: Colors.transparent,
       useSafeArea: true,
       isScrollControlled: true,
       context: context,
-      builder: (context) => _createPlaylistModal(context, item),
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return _createPlaylistModal(
+              context,
+              item,
+              selectedIcon,
+              (icon) => setState(() => selectedIcon = icon),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  static Future<PlaylistIcon?> showSelectPlaylistIconModal(
+    BuildContext context, {
+    Map? item,
+  }) async {
+    return await showModalBottomSheet(
+      useRootNavigator: false,
+      backgroundColor: Colors.transparent,
+      useSafeArea: true,
+      isScrollControlled: true,
+      context: context,
+      builder: (context) => _selectPlaylistIconModal(context),
     );
   }
 
@@ -199,22 +226,32 @@ class Modals {
     );
   }
 
-  static void showPlaylistRenameBottomModal(
+  static void showEditPlaylistBottomModal(
     BuildContext context, {
     required String playlistId,
+    required String iconId,
     String? name,
   }) {
+    PlaylistIcon selectedIcon = PlaylistIcons.byId(iconId);
     showModalBottomSheet(
       useRootNavigator: false,
       backgroundColor: Colors.transparent,
       useSafeArea: true,
       isScrollControlled: true,
       context: context,
-      builder: (context) => _playlistRenameBottomModal(
-        context,
-        name: name,
-        playlistId: playlistId,
-      ),
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return _editPlaylistBottomModal(
+              context,
+              playlistId: playlistId,
+              name: name,
+              selectedIcon: selectedIcon,
+              onIconChanged: (icon) => setState(() => selectedIcon = icon),
+            );
+          },
+        );
+      },
     );
   }
 
@@ -309,19 +346,21 @@ BottomModalLayout _confirmBottomModal(
   );
 }
 
-Widget _playlistRenameBottomModal(
+Widget _editPlaylistBottomModal(
   BuildContext context, {
   String? name,
   required String playlistId,
+  required PlaylistIcon selectedIcon,
+  required Function(PlaylistIcon) onIconChanged,
 }) {
-  final bool blockInput = context.isKeyboardSpaceLimited;
   return TextControllerBuilder(
     initialText: name,
     builder: (context, controller) {
+      final bool blockInput = context.isKeyboardSpaceLimited;
       return BottomModalLayout(
         title: Center(
           child: Text(
-            S.of(context).Rename_Playlist,
+            S.of(context).Edit_Playlist,
             style: mediumTextStyle(context),
           ),
         ),
@@ -331,8 +370,9 @@ Widget _playlistRenameBottomModal(
               String text = controller.text;
               context
                   .read<LibraryService>()
-                  .renamePlaylist(
+                  .editPlaylist(
                     playlistId: playlistId,
+                    iconId: selectedIcon.toId(),
                     title: text.trim().isNotEmpty ? text : null,
                   )
                   .then((String message) {
@@ -342,44 +382,64 @@ Widget _playlistRenameBottomModal(
                     }
                   });
             },
-            child: Text(S.of(context).Rename),
+            child: Text(S.of(context).Edit),
           ),
         ],
-        child: SingleChildScrollView(
-          child: Column(
-            children: [
-              Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16.0,
-                  vertical: 16,
-                ),
-                child: Column(
-                  children: [
-                    AdaptiveTextField(
-                      controller: controller,
-                      fillColor: greyColor,
-                      contentPadding: const EdgeInsets.symmetric(
-                        vertical: 2,
-                        horizontal: 16,
-                      ),
-                      hintText: S.of(context).Playlist_Name,
-                      prefix: const Icon(Icons.title),
-                      readOnly: blockInput,
-                      onTap: () {
-                        if (blockInput) {
-                          FocusScope.of(context).unfocus();
-                          BottomMessage.showText(
-                            context,
-                            S.of(context).Rotate_Device,
-                          );
-                        }
-                      },
+        child: Row(
+          spacing: 10,
+          children: [
+            GestureDetector(
+              onTap: () async {
+                final icon = await Modals.showSelectPlaylistIconModal(context);
+                if (icon != null) {
+                  onIconChanged(icon);
+                }
+              },
+              child: Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(6),
+                      color: Theme.of(context).colorScheme.primaryContainer,
                     ),
-                  ],
-                ),
+                    child: PlaylistIconWidget(data: selectedIcon, size: 36),
+                  ),
+                  Positioned(
+                    right: -4,
+                    bottom: -4,
+                    child: CircleAvatar(
+                      radius: 10,
+                      backgroundColor: Theme.of(context).colorScheme.primary,
+                      child: Icon(
+                        Icons.edit,
+                        size: 15,
+                        color: Theme.of(context).colorScheme.onPrimary,
+                      ),
+                    ),
+                  ),
+                ],
               ),
-            ],
-          ),
+            ),
+            Expanded(
+              child: AdaptiveTextField(
+                controller: controller,
+                fillColor: Platform.isAndroid ? greyColor : null,
+                hintText: S.of(context).Playlist_Name,
+                readOnly: blockInput,
+                onTap: () {
+                  if (blockInput) {
+                    FocusScope.of(context).unfocus();
+                    BottomMessage.showText(
+                      context,
+                      S.of(context).Rotate_Device,
+                    );
+                  }
+                },
+              ),
+            ),
+          ],
         ),
       );
     },
@@ -434,7 +494,12 @@ BottomModalLayout _artistsBottomModal(
   );
 }
 
-Widget _createPlaylistModal(BuildContext context, Map<dynamic, dynamic>? item) {
+Widget _createPlaylistModal(
+  BuildContext context,
+  Map<dynamic, dynamic>? item,
+  PlaylistIcon selectedIcon,
+  Function(PlaylistIcon) onIconChanged,
+) {
   return TextControllerBuilder(
     builder: (context, controller) {
       final bool blockInput = context.isKeyboardSpaceLimited;
@@ -443,29 +508,28 @@ Widget _createPlaylistModal(BuildContext context, Map<dynamic, dynamic>? item) {
           bottom: MediaQuery.of(context).viewInsets.bottom,
         ),
         child: BottomModalLayout(
-          title: Center(
-            child: Text(
-              S.of(context).Create_Playlist,
-              style: mediumTextStyle(context),
-            ),
+          title: Text(
+            S.of(context).Create_Playlist,
+            style: mediumTextStyle(context),
           ),
           actions: [
             AdaptiveButton(
-              onPressed: () async {
-                Navigator.pop(context);
-              },
+              onPressed: () => Navigator.pop(context),
               child: Text(S.of(context).Cancel),
             ),
             AdaptiveFilledButton(
               color: Theme.of(context).colorScheme.primary,
               onPressed: () async {
-                context
+                final message = await context
                     .read<LibraryService>()
-                    .createPlaylist(controller.text, item: item)
-                    .then((String message) {
-                      Navigator.pop(context);
-                      BottomMessage.showText(context, message);
-                    });
+                    .createPlaylist(
+                      controller.text,
+                      selectedIcon.toId(),
+                      item: item,
+                    );
+                if (!context.mounted) return;
+                Navigator.pop(context);
+                BottomMessage.showText(context, message);
               },
               child: Text(
                 S.of(context).Create,
@@ -475,35 +539,93 @@ Widget _createPlaylistModal(BuildContext context, Map<dynamic, dynamic>? item) {
               ),
             ),
           ],
-          child: Column(
+          child: Row(
+            spacing: 10,
             children: [
-              AdaptiveTextField(
-                controller: controller,
-                fillColor: Platform.isAndroid ? greyColor : null,
-                hintText: S.of(context).Playlist_Name,
-                prefix: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 4,
-                  ),
-                  child: Icon(Icons.title),
-                ),
-                readOnly: blockInput,
-                onTap: () {
-                  if (blockInput) {
-                    FocusScope.of(context).unfocus();
-                    BottomMessage.showText(
-                      context,
-                      S.of(context).Rotate_Device,
-                    );
+              GestureDetector(
+                onTap: () async {
+                  final icon = await Modals.showSelectPlaylistIconModal(
+                    context,
+                  );
+                  if (icon != null) {
+                    onIconChanged(icon);
                   }
                 },
+                child: Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(6),
+                        color: Theme.of(context).colorScheme.primaryContainer,
+                      ),
+                      child: PlaylistIconWidget(data: selectedIcon, size: 36),
+                    ),
+                    Positioned(
+                      right: -4,
+                      bottom: -4,
+                      child: CircleAvatar(
+                        radius: 10,
+                        backgroundColor: Theme.of(context).colorScheme.primary,
+                        child: Icon(
+                          Icons.edit,
+                          size: 15,
+                          color: Theme.of(context).colorScheme.onPrimary,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Expanded(
+                child: AdaptiveTextField(
+                  controller: controller,
+                  fillColor: Platform.isAndroid ? greyColor : null,
+                  hintText: S.of(context).Playlist_Name,
+                  readOnly: blockInput,
+                  onTap: () {
+                    if (blockInput) {
+                      FocusScope.of(context).unfocus();
+                      BottomMessage.showText(
+                        context,
+                        S.of(context).Rotate_Device,
+                      );
+                    }
+                  },
+                ),
               ),
             ],
           ),
         ),
       );
     },
+  );
+}
+
+Widget _selectPlaylistIconModal(BuildContext context) {
+  return BottomModalLayout(
+    title: Text(
+      S.of(context).Select_Playlist_Icon,
+      style: mediumTextStyle(context),
+    ),
+    child: Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: GridView.builder(
+        shrinkWrap: true,
+        itemCount: PlaylistIcons.values.length,
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 5,
+        ),
+        itemBuilder: (context, index) {
+          final icon = PlaylistIcons.values[index];
+          return GestureDetector(
+            onTap: () => Navigator.pop(context, icon),
+            child: Center(child: PlaylistIconWidget(data: icon, size: 36)),
+          );
+        },
+      ),
+    ),
   );
 }
 
@@ -630,24 +752,17 @@ BottomModalLayout _addToPlaylist(BuildContext context, Map item) {
                                 width: 50,
                               ),
                             )
-                          : (playlist['songs'] != null &&
-                                playlist['songs']?.length > 0)
-                          ? PlaylistThumbnail(
-                              playlist: playlist['songs'],
-                              size: 50,
-                            )
                           : Container(
-                              height: 50,
-                              width: 50,
+                              padding: const EdgeInsets.all(6),
                               decoration: BoxDecoration(
-                                color: greyColor,
-                                borderRadius: BorderRadius.circular(3),
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.primaryContainer,
+                                borderRadius: BorderRadius.circular(8),
                               ),
-                              child: Icon(
-                                CupertinoIcons.music_note_list,
-                                color: context.isDarkMode
-                                    ? Colors.white
-                                    : Colors.black,
+                              child: PlaylistIconWidget(
+                                data: PlaylistIcons.byId(playlist['iconId']),
+                                size: 30,
                               ),
                             ),
                       onTap: () async {
@@ -1175,8 +1290,8 @@ BottomModalLayout _playlistBottomModal(BuildContext context, Map playlist) {
                 color: Theme.of(context).colorScheme.primaryContainer,
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: RoundedPolygonIcon(
-                polygon: RandomMaterialShape.random,
+              child: PlaylistIconWidget(
+                data: PlaylistIcons.byId(playlist['iconId']),
                 size: 30,
               ),
             ),
@@ -1235,14 +1350,15 @@ BottomModalLayout _playlistBottomModal(BuildContext context, Map playlist) {
           if (playlist['isPredefined'] == false)
             AdaptiveListTile(
               dense: true,
-              leading: const Icon(Icons.title),
-              title: Text(S.of(context).Rename),
+              leading: const Icon(Icons.edit),
+              title: Text(S.of(context).Edit),
               onTap: () {
                 Navigator.pop(context);
-                Modals.showPlaylistRenameBottomModal(
+                Modals.showEditPlaylistBottomModal(
                   context,
                   playlistId: playlist['playlistId'],
                   name: playlist['title'],
+                  iconId: playlist['iconId'],
                 );
               },
             ),
