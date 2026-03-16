@@ -22,6 +22,10 @@ class AudioStreamClient {
     'upgrade-insecure-requests': '1',
   };
 
+  void close() {
+    _httpClient.close();
+  }
+
   Stream<List<int>> getAudioStream(StreamInfo streamInfo,
           {required int start, required int end}) =>
       _getStream(streamInfo, streamClient: this, start: start, end: end);

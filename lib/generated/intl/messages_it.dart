@@ -135,6 +135,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "Inserisci Visitor ID",
     ),
     "Equalizer": MessageLookupByLibrary.simpleMessage("Equalizzatore"),
+    "Failed": MessageLookupByLibrary.simpleMessage("Fallito"),
     "Favourites": MessageLookupByLibrary.simpleMessage("Preferiti"),
     "Feature_Request": MessageLookupByLibrary.simpleMessage(
       "Richiesta funzionalità",
@@ -224,6 +225,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "Ripristino brani mancanti...",
     ),
     "Retry": MessageLookupByLibrary.simpleMessage("Riprova"),
+    "Retry_All": MessageLookupByLibrary.simpleMessage("Riprova tutto"),
     "Save": MessageLookupByLibrary.simpleMessage("Salva"),
     "Saved": MessageLookupByLibrary.simpleMessage("Salvati"),
     "Search_Gyawun": MessageLookupByLibrary.simpleMessage("Cerca in Gyawun"),

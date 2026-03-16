@@ -57,7 +57,23 @@ void main() async {
   ]);
 
   final ytConfig = await getYtConfig();
-  YTMusic ytMusic = YTMusic(config: ytConfig!);
+  if (ytConfig == null) {
+    // Config fetch failed (no network). Launch app anyway, retry later.
+    runApp(
+      const MaterialApp(
+        home: Scaffold(
+          body: Center(
+            child: Text(
+              'Unable to connect. Please check your internet and restart the app.',
+              textAlign: TextAlign.center,
+            ),
+          ),
+        ),
+      ),
+    );
+    return;
+  }
+  YTMusic ytMusic = YTMusic(config: ytConfig);
 
   final GlobalKey<NavigatorState> panelKey = GlobalKey<NavigatorState>();
 
@@ -182,17 +198,25 @@ Future<YTConfig?>? getYtConfig() async {
   ).get('YT_CLIENT_VERSION', defaultValue: null);
 
   if (visitorData == null || apikey == null || clientVersion == null) {
-    final config = await YTClient.getConfig();
-    final box = Hive.box('SETTINGS');
-    await box.putAll({
-      'VISITOR_ID': visitorData ?? config?.visitorData,
-      'YT_LOCATION': location,
-      'YT_LANGUAGE': language,
-      'YT_API_KEY': config?.apiKey,
-      'YT_CLIENT_NAME': config?.clientName,
-      'YT_CLIENT_VERSION': config?.clientVersion,
-    });
-    return config;
+    try {
+      final config = await YTClient.getConfig().timeout(
+        const Duration(seconds: 10),
+      );
+      if (config == null) return null;
+      final box = Hive.box('SETTINGS');
+      await box.putAll({
+        'VISITOR_ID': visitorData ?? config.visitorData,
+        'YT_LOCATION': location,
+        'YT_LANGUAGE': language,
+        'YT_API_KEY': config.apiKey,
+        'YT_CLIENT_NAME': config.clientName,
+        'YT_CLIENT_VERSION': config.clientVersion,
+      });
+      return config;
+    } catch (e) {
+      debugPrint('Failed to fetch YT config: $e');
+      return null;
+    }
   } else {
     return YTConfig(
       visitorData: visitorData,

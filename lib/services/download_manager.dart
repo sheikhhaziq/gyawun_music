@@ -21,12 +21,13 @@ class DownloadManager {
   Client client = Client();
   ValueNotifier<List<Map>> downloads = ValueNotifier([]);
   ValueNotifier<Map<String, Map>> downloadsByPlaylist = ValueNotifier({});
+  ValueNotifier<List<Map>> downloadQueue = ValueNotifier([]);
   final Map<String, ValueNotifier<double>> _activeDownloadProgress = {};
+  final Map<String, AudioStreamClient> _activeStreamClients = {};
   static const String songsPlaylistId = 'songs';
-  final int maxConcurrentDownloads = 3; // Limit concurrent downloads
-  final Queue<String> _activeDownloads =
-      Queue<String>(); // Currently active downloads
-  final Queue<Map> _downloadQueue = Queue<Map>(); // Queue for pending downloads
+  final int maxConcurrentDownloads = 3;
+  final Queue<String> _activeDownloads = Queue<String>();
+  final Queue<Map> _downloadQueue = Queue<Map>();
 
   DownloadManager() {
     _refreshData();
@@ -47,7 +48,7 @@ class DownloadManager {
       final isInvalidQueued = status == 'QUEUED' && !queuedIds.contains(id);
       if (isInvalidDownloading || isInvalidQueued) {
         debugPrint("Cleaning up interrupted download: ${song['title']}");
-        await _updateSongMetadata(id, {'status': 'DELETED'});
+        await _updateSongMetadata(id, {'status': 'FAILED'});
       }
     }
   }
@@ -166,6 +167,27 @@ class DownloadManager {
     return _downloadQueue.toList();
   }
 
+  void _notifyQueueChange() {
+    downloadQueue.value = List<Map>.from(_downloadQueue);
+  }
+
+  Future<void> cancelDownload(String videoId) async {
+    // Remove from queue if queued
+    _downloadQueue.removeWhere((song) => song['videoId'] == videoId);
+    _notifyQueueChange();
+
+    // Cancel active download by closing its stream client
+    if (_activeStreamClients.containsKey(videoId)) {
+      _activeStreamClients[videoId]!.close();
+      _activeStreamClients.remove(videoId);
+    }
+
+    _activeDownloads.remove(videoId);
+    _stopTrackingProgress(videoId);
+    await _updateSongMetadata(videoId, {'status': 'DELETED'});
+    _downloadNext();
+  }
+
   ValueNotifier<double>? getProgressNotifier(String videoId) {
     return _activeDownloadProgress[videoId];
   }
@@ -196,7 +218,8 @@ class DownloadManager {
             status == 'DOWNLOADED' &&
             (path == null || !(await File(path).exists()));
         final isDeleted = status == 'DELETED';
-        if (isDeleted || isFileMissing) {
+        final isFailed = status == 'FAILED';
+        if (isDeleted || isFailed || isFileMissing) {
           downloadSong(song);
         }
       }
@@ -268,7 +291,10 @@ class DownloadManager {
       int total = audioSource.size.totalBytes;
       BytesBuilder received = BytesBuilder();
 
-      Stream<List<int>> stream = AudioStreamClient().getAudioStream(
+      final streamClient = AudioStreamClient();
+      _activeStreamClients[song['videoId']] = streamClient;
+
+      Stream<List<int>> stream = streamClient.getAudioStream(
         audioSource,
         start: 0,
         end: total,
@@ -278,6 +304,7 @@ class DownloadManager {
         received.add(data);
         _updateTrackingProgress(song['videoId'], received.length / total);
       }
+      _activeStreamClients.remove(song['videoId']);
       File? file = await GetIt.I<FileStorage>().saveMusic(
         received.takeBytes(),
         song,
@@ -292,7 +319,7 @@ class DownloadManager {
       }
     } catch (e) {
       debugPrint("Error in _downloadSong: $e");
-      await _updateSongMetadata(song['videoId'], {'status': 'DELETED'});
+      await _updateSongMetadata(song['videoId'], {'status': 'FAILED'});
     } finally {
       _stopTrackingProgress(song['videoId']);
     }
@@ -323,6 +350,7 @@ class DownloadManager {
   Future<bool> _downloadStart(Map song) async {
     if (_activeDownloads.length >= maxConcurrentDownloads) {
       _downloadQueue.add(song);
+      _notifyQueueChange();
       await _updateSongMetadata(song['videoId'], {...song, 'status': 'QUEUED'});
       return false;
     }
@@ -339,7 +367,9 @@ class DownloadManager {
   void _downloadNext() {
     if (_downloadQueue.isNotEmpty &&
         _activeDownloads.length < maxConcurrentDownloads) {
-      downloadSong(_downloadQueue.removeFirst());
+      final next = _downloadQueue.removeFirst();
+      _notifyQueueChange();
+      downloadSong(next);
     }
   }
 

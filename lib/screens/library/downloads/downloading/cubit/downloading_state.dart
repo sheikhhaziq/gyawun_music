@@ -12,10 +12,12 @@ class DownloadingLoading extends DownloadingState {
 class DownloadingLoaded extends DownloadingState {
   final List downloading;
   final List queued;
+  final List failed;
 
   const DownloadingLoaded({
     required this.downloading,
     required this.queued,
+    this.failed = const [],
   });
 }
 

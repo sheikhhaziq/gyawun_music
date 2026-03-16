@@ -972,6 +972,16 @@ class S {
     return Intl.message('Retry', name: 'Retry', desc: '', args: []);
   }
 
+  /// `Retry All`
+  String get Retry_All {
+    return Intl.message('Retry All', name: 'Retry_All', desc: '', args: []);
+  }
+
+  /// `Failed`
+  String get Failed {
+    return Intl.message('Failed', name: 'Failed', desc: '', args: []);
+  }
+
   /// `Playlist not available`
   String get Playlist_Not_Available {
     return Intl.message(

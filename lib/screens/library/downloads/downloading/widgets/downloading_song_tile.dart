@@ -1,15 +1,19 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:expandable_text/expandable_text.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
 import 'package:gyawun/generated/l10n.dart';
 import 'package:gyawun/services/download_manager.dart';
 import 'package:gyawun/utils/adaptive_widgets/listtile.dart';
 import 'package:gyawun/utils/extensions.dart';
 
+import '../cubit/downloading_cubit.dart';
+
 class DownloadingSongTile extends StatelessWidget {
-  const DownloadingSongTile({required this.song, super.key});
+  const DownloadingSongTile({required this.song, this.isFailed = false, super.key});
   final Map song;
+  final bool isFailed;
   @override
   Widget build(BuildContext context) {
     List thumbnails = song['thumbnails'];
@@ -30,7 +34,36 @@ class DownloadingSongTile extends StatelessWidget {
           fit: BoxFit.cover,
         ),
       ),
-      subtitle: (notifier != null)
+      trailing: isFailed
+          ? Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.refresh, size: 20),
+                  onPressed: () {
+                    context.read<DownloadingCubit>().retryDownload(song);
+                  },
+                ),
+                IconButton(
+                  icon: const Icon(Icons.close, size: 20),
+                  onPressed: () {
+                    context.read<DownloadingCubit>().cancelDownload(song['videoId']);
+                  },
+                ),
+              ],
+            )
+          : IconButton(
+              icon: const Icon(Icons.close, size: 20),
+              onPressed: () {
+                context.read<DownloadingCubit>().cancelDownload(song['videoId']);
+              },
+            ),
+      subtitle: isFailed
+          ? Text(
+              S.of(context).Failed,
+              style: TextStyle(color: Theme.of(context).colorScheme.error),
+            )
+          : (notifier != null)
           ? ValueListenableBuilder(
               valueListenable: notifier,
               builder: (context, progress, child) => LinearProgressIndicator(

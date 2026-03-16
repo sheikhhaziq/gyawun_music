@@ -27,6 +27,7 @@ class DownloadingPage extends StatelessWidget {
               DownloadingLoaded(
                 :final downloading,
                 :final queued,
+                :final failed,
               ) =>
                 CustomScrollView(
                   slivers: [
@@ -57,6 +58,30 @@ class DownloadingPage extends StatelessWidget {
                             song: queued[index],
                           ),
                           childCount: queued.length,
+                        ),
+                      ),
+                    ],
+                    if (failed.isNotEmpty) ...[
+                      SliverToBoxAdapter(
+                        child: DownloadingSectionTile(
+                          title: '${S.of(context).Failed} (${failed.length})',
+                          trailing: TextButton(
+                            onPressed: () {
+                              context
+                                  .read<DownloadingCubit>()
+                                  .retryAllFailed();
+                            },
+                            child: Text(S.of(context).Retry_All),
+                          ),
+                        ),
+                      ),
+                      SliverList(
+                        delegate: SliverChildBuilderDelegate(
+                          (context, index) => DownloadingSongTile(
+                            song: failed[index],
+                            isFailed: true,
+                          ),
+                          childCount: failed.length,
                         ),
                       ),
                     ],

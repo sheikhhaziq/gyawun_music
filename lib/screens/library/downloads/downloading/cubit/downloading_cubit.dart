@@ -18,6 +18,7 @@ class DownloadingCubit extends Cubit<DownloadingState> {
     };
 
     _manager.downloads.addListener(_listener);
+    _manager.downloadQueue.addListener(_listener);
   }
 
   void load() {
@@ -35,10 +36,14 @@ class DownloadingCubit extends Cubit<DownloadingState> {
 
       final queued = _manager.getDownloadQueue();
 
+      final failed =
+          allSongs.where((s) => s['status'] == 'FAILED').toList();
+
       emit(
         DownloadingLoaded(
           downloading: downloading,
           queued: queued,
+          failed: failed,
         ),
       );
     } catch (e) {
@@ -48,9 +53,26 @@ class DownloadingCubit extends Cubit<DownloadingState> {
     }
   }
 
+  void cancelDownload(String videoId) {
+    _manager.cancelDownload(videoId);
+  }
+
+  void retryDownload(Map song) {
+    _manager.downloadSong(song);
+  }
+
+  void retryAllFailed() {
+    _manager.restoreDownloads(
+      songs: _manager.downloads.value
+          .where((s) => s['status'] == 'FAILED')
+          .toList(),
+    );
+  }
+
   @override
   Future<void> close() {
     _manager.downloads.removeListener(_listener);
+    _manager.downloadQueue.removeListener(_listener);
     return super.close();
   }
 }
