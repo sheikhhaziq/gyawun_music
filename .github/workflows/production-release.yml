@@ -7,6 +7,7 @@ on:
 
 jobs:
   production-release:
+    if: "!contains(github.ref, '-beta.')"
     runs-on: ubuntu-latest
     outputs:
       release_tag: ${{ steps.app_version.outputs.version }}
