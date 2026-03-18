@@ -132,8 +132,22 @@ class LibraryService extends ChangeNotifier {
       {required Map item, required String playlistId}) async {
     Map? playlist = await _box.get(playlistId);
     if (playlist == null) return 'Playlist does not exist';
-    List songs = playlist['songs'] ?? [];
-    if (songs.remove(item)) {
+    final List songs = List.from(playlist['songs'] ?? const []);
+
+    final String? videoId = (item['videoId'] ?? item['id'])?.toString();
+    final int beforeLength = songs.length;
+
+    if (videoId != null && videoId.isNotEmpty) {
+      songs.removeWhere((s) {
+        if (s is! Map) return false;
+        final sid = (s['videoId'] ?? s['id'])?.toString();
+        return sid == videoId;
+      });
+    } else {
+      songs.remove(item);
+    }
+
+    if (songs.length != beforeLength) {
       playlist['songs'] = songs;
       await _box.put(playlistId, playlist);
       return 'Removed from Playlist';

@@ -1,5 +1,3 @@
-import 'dart:ui';
-
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -7,6 +5,7 @@ import 'package:flutter_swipe_action_cell/core/cell.dart';
 import 'package:get_it/get_it.dart';
 import 'package:gyawun/core/widgets/expressive_app_bar.dart';
 import 'package:gyawun/core/widgets/song_tile.dart';
+import 'package:gyawun/services/bottom_message.dart';
 import 'package:gyawun/services/media_player.dart';
 import 'package:gyawun/themes/text_styles.dart';
 
@@ -157,11 +156,21 @@ class _PlaylistView extends StatelessWidget {
                           title: S.of(context).Remove,
                           color: Colors.red,
                           onTap: (handler) async {
-                            await Modals.showConfirmBottomModal(
+                            final confirm = await Modals.showConfirmBottomModal(
                               context,
                               message: S.of(context).Remove_Message,
                               isDanger: true,
                             );
+
+                            if (confirm && context.mounted) {
+                              final message = await context
+                                  .read<PlaylistDetailsCubit>()
+                                  .removeSong(song);
+
+                              if (context.mounted) {
+                                BottomMessage.showText(context, message);
+                              }
+                            }
                           },
                         ),
                       ],

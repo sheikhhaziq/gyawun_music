@@ -899,9 +899,11 @@ BottomModalLayout _playerOptionsModal(BuildContext context, Map song) {
             leading: Icon(AdaptiveIcons.share),
             onTap: () {
               Navigator.pop(context);
-              Share.shareUri(
-                Uri.parse(
-                  'https://music.youtube.com/watch?v=${song['videoId']}',
+              SharePlus.instance.share(
+                ShareParams(
+                  uri: Uri.parse(
+                    'https://music.youtube.com/watch?v=${song['videoId']}',
+                  ),
                 ),
               );
             },
@@ -954,8 +956,10 @@ BottomModalLayout _songBottomModal(BuildContext context, Map song) {
           ? Text(song['subtitle'], maxLines: 1, overflow: TextOverflow.ellipsis)
           : null,
       trailing: IconButton(
-        onPressed: () => Share.shareUri(
-          Uri.parse('https://music.youtube.com/watch?v=${song['videoId']}'),
+        onPressed: () => SharePlus.instance.share(
+          ShareParams(
+            uri: Uri.parse('https://music.youtube.com/watch?v=${song['videoId']}'),
+          ),
         ),
         icon: const Icon(CupertinoIcons.share),
       ),
@@ -1133,11 +1137,13 @@ BottomModalLayout _playlistBottomModal(BuildContext context, Map playlist) {
           : null,
       trailing: playlist['isPredefined'] != false
           ? IconButton(
-              onPressed: () => Share.shareUri(
-                Uri.parse(
-                  playlist['type'] == 'ARTIST'
-                      ? 'https://music.youtube.com/channel/${playlist['endpoint']['browseId']}'
-                      : 'https://music.youtube.com/playlist?list=${playlist['playlistId']}',
+              onPressed: () => SharePlus.instance.share(
+                ShareParams(
+                  uri: Uri.parse(
+                    playlist['type'] == 'ARTIST'
+                        ? 'https://music.youtube.com/channel/${playlist['endpoint']['browseId']}'
+                        : 'https://music.youtube.com/playlist?list=${playlist['playlistId']}',
+                  ),
                 ),
               ),
               icon: const Icon(CupertinoIcons.share),
