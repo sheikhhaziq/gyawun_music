@@ -111,9 +111,12 @@ class _LibraryBody extends StatelessWidget {
                           title: Text(S.of(context).Favourites),
                           leading: ColorIcon(
                             icon: FluentIcons.heart_24_filled,
-                            color: Theme.of(
+                            boxColor: Theme.of(
                               context,
                             ).colorScheme.primaryContainer,
+                            iconColor: Theme.of(
+                              context,
+                            ).colorScheme.onPrimaryContainer,
                             size: 30,
                           ),
                           subtitle: Text(S.of(context).nSongs(favSongs.length)),
@@ -130,9 +133,12 @@ class _LibraryBody extends StatelessWidget {
                           title: Text(S.of(context).Downloads),
                           leading: ColorIcon(
                             icon: FluentIcons.cloud_arrow_down_24_filled,
-                            color: Theme.of(
+                            boxColor: Theme.of(
                               context,
                             ).colorScheme.primaryContainer,
+                            iconColor: Theme.of(
+                              context,
+                            ).colorScheme.onPrimaryContainer,
                             size: 30,
                           ),
                           subtitle: Text(S.of(context).nSongs(downloadsCount)),
@@ -146,9 +152,12 @@ class _LibraryBody extends StatelessWidget {
                           title: Text(S.of(context).History),
                           leading: ColorIcon(
                             icon: FluentIcons.history_24_filled,
-                            color: Theme.of(
+                            boxColor: Theme.of(
                               context,
                             ).colorScheme.primaryContainer,
+                            iconColor: Theme.of(
+                              context,
+                            ).colorScheme.onPrimaryContainer,
                             size: 30,
                           ),
                           subtitle: Text(S.of(context).nSongs(historyCount)),

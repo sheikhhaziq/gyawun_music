@@ -1471,7 +1471,8 @@ BottomModalLayout _favouritesBottomModal(BuildContext context, Map playlist) {
       ),
       leading: ColorIcon(
         icon: FluentIcons.heart_24_filled,
-        color: Theme.of(context).colorScheme.primaryContainer,
+        boxColor: Theme.of(context).colorScheme.primaryContainer,
+        iconColor: Theme.of(context).colorScheme.onPrimaryContainer,
         size: 30,
       ),
     ),
@@ -1524,7 +1525,8 @@ BottomModalLayout _downloadBottomModal(BuildContext context) {
       ),
       leading: ColorIcon(
         icon: FluentIcons.cloud_arrow_down_24_filled,
-        color: Theme.of(context).colorScheme.primaryContainer,
+        boxColor: Theme.of(context).colorScheme.primaryContainer,
+        iconColor: Theme.of(context).colorScheme.onPrimaryContainer,
         size: 30,
       ),
     ),
