@@ -1058,20 +1058,95 @@ class S {
   }
 
   /// `Queued ({count})`
-  String QueuedCount(Object count) {
+  String Queued_Count(Object count) {
     return Intl.message(
       'Queued ($count)',
-      name: 'QueuedCount',
+      name: 'Queued_Count',
       desc: '',
       args: [count],
     );
   }
 
   /// `File not found`
-  String get FileNotFound {
+  String get File_Not_Found {
     return Intl.message(
       'File not found',
-      name: 'FileNotFound',
+      name: 'File_Not_Found',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Play All`
+  String get Play_All {
+    return Intl.message('Play All', name: 'Play_All', desc: '', args: []);
+  }
+
+  /// `Rotate your device to type.`
+  String get Rotate_Device {
+    return Intl.message(
+      'Rotate your device to type.',
+      name: 'Rotate_Device',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Play a song to see the equalizer.`
+  String get View_Equalizer {
+    return Intl.message(
+      'Play a song to see the equalizer.',
+      name: 'View_Equalizer',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `No offline songs available`
+  String get No_Offline_Songs {
+    return Intl.message(
+      'No offline songs available',
+      name: 'No_Offline_Songs',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Edit`
+  String get Edit {
+    return Intl.message('Edit', name: 'Edit', desc: '', args: []);
+  }
+
+  /// `Edit Playlist`
+  String get Edit_Playlist {
+    return Intl.message(
+      'Edit Playlist',
+      name: 'Edit_Playlist',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Select Playlist Icon`
+  String get Select_Playlist_Icon {
+    return Intl.message(
+      'Select Playlist Icon',
+      name: 'Select_Playlist_Icon',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Top Results`
+  String get Top_Results {
+    return Intl.message('Top Results', name: 'Top_Results', desc: '', args: []);
+  }
+
+  /// `Other Results`
+  String get Other_Results {
+    return Intl.message(
+      'Other Results',
+      name: 'Other_Results',
       desc: '',
       args: [],
     );
@@ -1085,6 +1160,7 @@ class AppLocalizationDelegate extends LocalizationsDelegate<S> {
     return const <Locale>[
       Locale.fromSubtags(languageCode: 'en'),
       Locale.fromSubtags(languageCode: 'es'),
+      Locale.fromSubtags(languageCode: 'fr'),
       Locale.fromSubtags(languageCode: 'hi'),
       Locale.fromSubtags(languageCode: 'it'),
       Locale.fromSubtags(languageCode: 'tr'),

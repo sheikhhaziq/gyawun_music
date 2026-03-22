@@ -1,5 +1,5 @@
 import 'dart:convert';
-import 'dart:typed_data';
+import 'package:flutter/widgets.dart';
 import 'package:http/http.dart';
 import 'package:translator/translator.dart';
 import 'package:language_detector/language_detector.dart';
@@ -55,6 +55,15 @@ class Lyrics {
     return {'success': false};
   }
 
+  void fixLrcFormat(Map lrc) {
+    if (lrc.containsKey('syncedLyrics') && lrc['syncedLyrics'] != null) {
+      lrc['syncedLyrics'] = (lrc['syncedLyrics'] as String)
+          .replaceAllMapped(RegExp(r'\[(\d{2}):(\d{2}):(\d{2,3})\]'), (match) {
+        return '[${match.group(1)}:${match.group(2)}.${match.group(3)}]';
+      });
+    }
+  }
+
   Future<Map> fetchLyrics({
     required String videoId,
     required String title,
@@ -62,74 +71,87 @@ class Lyrics {
     String? artist,
     String? album,
   }) async {
-    String url =
-        'http://lrclib.net/api/search?track_name=${title.replaceAll(' ', '+')}';
-    Map lyric;
-    if (artist != null && album != null) {
-      url =
-          'http://lrclib.net/api/get?artist_name=${artist.replaceAll(' ', '+')}&track_name=${title.replaceAll(' ', '+')}&album_name=${album.replaceAll(' ', '+')}&duration=$durationInSeconds';
-      Uri uri = Uri.parse(url);
-      Uint8List bodyBytes = (await get(uri)).bodyBytes;
-      Map decoded = jsonDecode(utf8.decode(bodyBytes));
-      lyric = decoded;
-    } else {
-      if (artist != null) {
-        url += '&artist_name=${artist.replaceAll(' ', '+')}';
+    try {
+      Uri uri;
+      bool isSpecificSearch = false;
+      if (artist != null && album != null) {
+        uri = Uri.https('lrclib.net', '/api/get', {
+          'artist_name': artist,
+          'track_name': title,
+          'album_name': album,
+          'duration': durationInSeconds.toString(),
+        });
+        isSpecificSearch = true;
+      } else {
+        final params = {'track_name': title};
+        if (artist != null) params['artist_name'] = artist;
+        if (album != null) params['album_name'] = album;
+        uri = Uri.https('lrclib.net', '/api/search', params);
       }
-      if (album != null) {
-        url += '&album_name=${album.replaceAll(' ', '+')}';
+      final response = await get(uri).timeout(const Duration(seconds: 20));
+      if (response.statusCode != 200) {
+        debugPrint("Error in lrclib get : ${response.statusCode}");
+        return {};
       }
-      Uri uri = Uri.parse(url);
-      Uint8List bodyBytes = (await get(uri)).bodyBytes;
-      List decoded = jsonDecode(utf8.decode(bodyBytes));
-      decoded.sort((a, b) {
-        double dif1 =
-            ((a['duration'] as double) - durationInSeconds.toDouble()).abs();
-        double dif2 =
-            ((b['duration'] as double) - durationInSeconds.toDouble()).abs();
-        return dif1.compareTo(dif2);
-      });
-      lyric = decoded.isNotEmpty ? decoded.first : {};
+      final decoded = jsonDecode(utf8.decode(response.bodyBytes));
+      Map lyric = {};
+      if (isSpecificSearch) {
+        if (decoded is Map) lyric = decoded;
+      } else {
+        if (decoded is List && decoded.isNotEmpty) {
+          decoded.sort((a, b) {
+            final durA = (a['duration'] as num).toDouble();
+            final durB = (b['duration'] as num).toDouble();
+            final target = durationInSeconds.toDouble();
+            return (durA - target).abs().compareTo((durB - target).abs());
+          });
+          lyric = decoded.first;
+        }
+      }
+      fixLrcFormat(lyric);
+      return lyric;
+    } catch (e) {
+      debugPrint("Error in fetchLyrics: $e");
+      return {};
     }
-    return lyric;
   }
-}
 
-Future<String?> translateSyncLyrics(
-    String lyric, String from, String to) async {
-  try {
-    Translation trans = await lyric.translate(from: from, to: to);
-    final transLines = trans.text.split("\n");
-    final lyricLines = lyric.split("\n");
-    if (lyricLines.length != transLines.length) {
-      throw Exception("Translation lines do not match original lines");
+  Future<String?> translateSyncLyrics(
+      String lyric, String from, String to) async {
+    try {
+      Translation trans = await lyric.translate(from: from, to: to);
+      final transLines = trans.text.split("\n");
+      final lyricLines = lyric.split("\n");
+      if (lyricLines.length != transLines.length) {
+        throw Exception("Translation lines do not match original lines");
+      }
+      String transLyric = "";
+      for (int i = 0; i < transLines.length; i++) {
+        transLyric +=
+            "${lyricLines[i].split("]")[0]}]${transLines[i].split("]")[1]}\n";
+      }
+      return transLyric;
+    } catch (e) {
+      return "";
     }
-    String transLyric = "";
-    for (int i = 0; i < transLines.length; i++) {
-      transLyric +=
-          "${lyricLines[i].split("]")[0]}]${transLines[i].split("]")[1]}\n";
-    }
-    return transLyric;
-  } catch (e) {
-    return "";
   }
-}
 
-Future<String?> translatePlainLyrics(
-    String lyric, String from, String to) async {
-  try {
-    Translation trans = await lyric.translate(from: from, to: to);
-    final lines = lyric.split("\n");
-    final transLines = trans.text.split("\n");
-    if (lines.length != transLines.length) {
-      throw Exception("Translation lines do not match original lines");
+  Future<String?> translatePlainLyrics(
+      String lyric, String from, String to) async {
+    try {
+      Translation trans = await lyric.translate(from: from, to: to);
+      final lines = lyric.split("\n");
+      final transLines = trans.text.split("\n");
+      if (lines.length != transLines.length) {
+        throw Exception("Translation lines do not match original lines");
+      }
+      String transLyric = '';
+      for (int i = 0; i < lines.length; i++) {
+        transLyric += "${lines[i]}\n[${transLines[i]}]\n\n";
+      }
+      return transLyric;
+    } catch (e) {
+      return "";
     }
-    String transLyric = '';
-    for (int i = 0; i < lines.length; i++) {
-      transLyric += "${lines[i]}\n[${transLines[i]}]\n\n";
-    }
-    return transLyric;
-  } catch (e) {
-    return "";
   }
 }

@@ -14,25 +14,25 @@ class DownloadPlaylistCubit extends Cubit<DownloadPlaylistState> {
   late final VoidCallback _listener;
 
   DownloadPlaylistCubit(this.playlistId)
-      : super(const DownloadPlaylistLoading()) {
+    : super(const DownloadPlaylistLoading()) {
     _listener = () {
       if (!isClosed) {
         _emitState();
       }
     };
 
-    _manager.downloadsByPlaylist.addListener(_listener);
+    _manager.playlistsNotifier.addListener(_listener);
   }
 
   void load() {
-    _emitState();
     _verifyPlaylistIntegrity();
+    _emitState();
   }
 
   void _emitState() {
     if (isClosed) return;
 
-    final allPlaylists = _manager.downloadsByPlaylist.value;
+    final allPlaylists = _manager.playlistsNotifier.value;
     final playlist = allPlaylists[playlistId];
 
     if (playlist == null || playlist['songs'] == null) {
@@ -49,7 +49,7 @@ class DownloadPlaylistCubit extends Cubit<DownloadPlaylistState> {
   }
 
   Future<void> _verifyPlaylistIntegrity() async {
-    final allPlaylists = _manager.downloadsByPlaylist.value;
+    final allPlaylists = _manager.playlistsNotifier.value;
     final playlist = allPlaylists[playlistId];
     if (playlist == null) return;
 
@@ -62,23 +62,31 @@ class DownloadPlaylistCubit extends Cubit<DownloadPlaylistState> {
       final exists = await File(path).exists();
       final status = song['status'];
 
-      if (!exists && status != 'DELETED') {
+      if (!exists && status == 'DOWNLOADED') {
         await _manager.updateStatus(song['videoId'], 'DELETED');
       }
     }
   }
 
   Future<void> removeSong(Map song) async {
-    await _manager.deleteSong(
-      key: song['videoId'],
-      path: song['path'],
-      playlistId: playlistId,
-    );
+    await _manager.deleteSong(key: song['videoId'], playlistId: playlistId);
+  }
+
+  Map getCleanSong(Map song) {
+    return _manager.getCleanSong(song);
+  }
+
+  List? getDownloadedSongs(String? playlistId) {
+    return _manager.getDownloadedSongs(playlistId);
+  }
+
+  Future<void> restoreDownloads(List<Map> songs) async {
+    await _manager.restoreDownloads(songs: songs);
   }
 
   @override
   Future<void> close() {
-    _manager.downloadsByPlaylist.removeListener(_listener);
+    _manager.playlistsNotifier.removeListener(_listener);
     return super.close();
   }
 }

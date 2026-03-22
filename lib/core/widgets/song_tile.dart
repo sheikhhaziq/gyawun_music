@@ -1,4 +1,3 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
@@ -7,30 +6,57 @@ import 'package:gyawun/core/widgets/library_tile.dart';
 import 'package:gyawun/services/media_player.dart';
 import 'package:gyawun/utils/bottom_modals.dart';
 
+import '../../utils/song_thumbnail.dart';
+
 class SongTile extends StatelessWidget {
-  const SongTile({required this.song, this.playlistId, super.key});
-  final String? playlistId;
+  const SongTile({
+    required this.song,
+    this.playlistId,
+    this.onTap,
+    this.onLongPress,
+    this.icon,
+    this.onIconPress,
+    this.isFirst = true,
+    this.isLast = true,
+    super.key,
+  });
   final Map song;
+  final String? playlistId;
+  final Function? onTap;
+  final Function? onLongPress;
+  final IconData? icon;
+  final Function? onIconPress;
+  final bool isFirst;
+  final bool isLast;
+
+  void _onTap(BuildContext context, Map song) async {
+    if (song['endpoint'] != null && song['videoId'] == null) {
+      context.push('/browse', extra: {'endpoint': song['endpoint']});
+    } else {
+      await GetIt.I<MediaPlayer>().playSong(Map.from(song));
+    }
+  }
+
+  void _onLongPress(BuildContext context, Map song) {
+    if (song['videoId'] != null) {
+      Modals.showSongBottomModal(context, song);
+    }
+  }
+
+  void _onIconPress(BuildContext context, Map song) {
+    if (song['videoId'] != null) {
+      Modals.showSongBottomModal(context, song);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    List thumbnails = song['thumbnails'];
     double height =
         (song['aspectRatio'] != null ? 50 / song['aspectRatio'] : 50)
             .toDouble();
     return LibraryTile(
-      onTap: () async {
-        if (song['endpoint'] != null && song['videoId'] == null) {
-          context.push('/browse', extra: {'endpoint': song['endpoint']});
-        } else {
-          await GetIt.I<MediaPlayer>().playSong(Map.from(song));
-        }
-      },
-      onLongPress: () {
-        if (song['videoId'] != null) {
-          Modals.showSongBottomModal(context, song);
-        }
-      },
+      onTap: () => (onTap ?? _onTap)(context, song),
+      onLongPress: () => (onLongPress ?? _onLongPress)(context, song),
       title: Text(
         song['title'] ?? "",
         maxLines: 1,
@@ -40,11 +66,8 @@ class SongTile extends StatelessWidget {
       ),
       leading: ClipRRect(
         borderRadius: BorderRadius.circular(8),
-        child: CachedNetworkImage(
-          imageUrl: thumbnails
-              .where((el) => el['width'] >= 50)
-              .toList()
-              .first['url'],
+        child: SongThumbnail(
+          song: song,
           height: height,
           width: 50,
           fit: BoxFit.cover,
@@ -80,13 +103,11 @@ class SongTile extends StatelessWidget {
       trailing: song['videoId'] == null
           ? null
           : IconButton.filledTonal(
-              onPressed: () {
-                if (song['videoId'] != null) {
-                  Modals.showSongBottomModal(context, song);
-                }
-              },
-              icon: Icon(FluentIcons.more_vertical_24_filled),
+              onPressed: () => (onIconPress ?? _onIconPress)(context, song),
+              icon: Icon(icon ?? FluentIcons.more_vertical_24_filled),
             ),
+      isFirst: isFirst,
+      isLast: isLast,
     );
   }
 }

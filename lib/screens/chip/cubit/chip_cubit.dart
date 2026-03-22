@@ -46,7 +46,7 @@ class ChipCubit extends Cubit<ChipState> {
           additionalParams: current.continuation!);
       emit(
         ChipSuccess(
-          sections: [...current.sections, ...feed['sections']],
+          sections: [...current.sections, ...feed['sections'] ?? []],
           continuation: feed['continuation'],
           loadingMore: false,
         ),

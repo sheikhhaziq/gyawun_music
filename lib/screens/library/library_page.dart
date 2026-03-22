@@ -5,18 +5,18 @@ import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:gyawun/core/extensions/random_material_shape.dart';
 import 'package:gyawun/core/widgets/expressive_app_bar.dart';
 import 'package:gyawun/core/widgets/expressive_list_group.dart';
 import 'package:gyawun/core/widgets/expressive_list_tile.dart';
 import 'package:gyawun/core/widgets/internet_guard.dart';
 import 'package:gyawun/core/utils/service_locator.dart';
-import 'package:gyawun/core/widgets/rounded_polygon_icon.dart';
 import 'package:gyawun/screens/settings/widgets/color_icon.dart';
 import '../../../../generated/l10n.dart';
 import '../../../../services/library.dart';
 import '../../../../utils/adaptive_widgets/adaptive_widgets.dart';
 import '../../../../utils/bottom_modals.dart';
+import '../../utils/playlist_icon_widget.dart';
+import '../../utils/playlist_icons.dart';
 import 'cubit/library_cubit.dart';
 
 class LibraryPage extends StatelessWidget {
@@ -56,13 +56,13 @@ class LibraryPage extends StatelessWidget {
                 LibraryError(:final message) => Center(child: Text(message)),
                 LibraryLoaded(
                   :final playlists,
-                  :final favouritesCount,
+                  favourites: final favourites,
                   :final downloadsCount,
                   :final historyCount,
                 ) =>
                   _LibraryBody(
                     playlists: playlists,
-                    favouritesCount: favouritesCount,
+                    favourites: favourites,
                     downloadsCount: downloadsCount,
                     historyCount: historyCount,
                   ),
@@ -78,18 +78,19 @@ class LibraryPage extends StatelessWidget {
 class _LibraryBody extends StatelessWidget {
   const _LibraryBody({
     required this.playlists,
-    this.favouritesCount = 0,
+    required this.favourites,
     this.downloadsCount = 0,
     this.historyCount = 0,
   });
 
   final Map playlists;
-  final int favouritesCount;
+  final Map favourites;
   final int downloadsCount;
   final int historyCount;
 
   @override
   Widget build(BuildContext context) {
+    final favSongs = favourites['songs'];
     return NestedScrollView(
       headerSliverBuilder: (context, innerBoxIsScrolled) {
         return [ExpressiveAppBar(title: "Library")];
@@ -115,9 +116,15 @@ class _LibraryBody extends StatelessWidget {
                             ).colorScheme.primaryContainer,
                             size: 30,
                           ),
-                          subtitle: Text(S.of(context).nSongs(favouritesCount)),
+                          subtitle: Text(S.of(context).nSongs(favSongs.length)),
                           trailing: Icon(FluentIcons.chevron_right_24_filled),
                           onTap: () => context.push('/library/favourites'),
+                          onLongPress: () {
+                            Modals.showFavouritesBottomModal(
+                              context,
+                              favourites,
+                            );
+                          },
                         ),
                         ExpressiveListTile(
                           title: Text(S.of(context).Downloads),
@@ -131,6 +138,9 @@ class _LibraryBody extends StatelessWidget {
                           subtitle: Text(S.of(context).nSongs(downloadsCount)),
                           trailing: Icon(FluentIcons.chevron_right_24_filled),
                           onTap: () => context.push('/library/downloads'),
+                          onLongPress: () {
+                            Modals.showDownloadBottomModal(context);
+                          },
                         ),
                         ExpressiveListTile(
                           title: Text(S.of(context).History),
@@ -242,7 +252,10 @@ class _LibraryBody extends StatelessWidget {
         color: Theme.of(context).colorScheme.primaryContainer,
         borderRadius: BorderRadius.circular(8),
       ),
-      child: RoundedPolygonIcon(polygon: RandomMaterialShape.random, size: 30),
+      child: PlaylistIconWidget(
+        data: PlaylistIcons.byId(item['iconId']),
+        size: 30,
+      ),
     );
   }
 

@@ -4,7 +4,8 @@ import 'package:get_it/get_it.dart';
 import 'package:go_router/go_router.dart';
 import 'package:gyawun/core/widgets/sections/section_multi_column.dart';
 import 'package:gyawun/core/widgets/sections/section_row.dart';
-import 'package:gyawun/core/widgets/song_tile.dart';
+import 'package:gyawun/core/widgets/tiles/section_list_tile.dart';
+import 'package:m3e_collection/m3e_collection.dart';
 import 'package:yt_music/ytmusic.dart';
 
 import '../../generated/l10n.dart';
@@ -77,7 +78,7 @@ class _SectionItemState extends State<SectionItem> {
                 SingleColumnList(songs: widget.section['contents'])
               else
                 SectionRow(items: widget.section['contents']),
-              if (loadingMore) const AdaptiveProgressRing(),
+              if (loadingMore) const ExpressiveLoadingIndicator(),
               if (widget.section['continuation'] != null && !loadingMore)
                 AdaptiveButton(
                   onPressed: loadMoreItems,
@@ -155,13 +156,21 @@ class SingleColumnList extends StatelessWidget {
   final List songs;
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: songs.map((song) {
+    return ListView.builder(
+      shrinkWrap: true,
+      padding: EdgeInsets.zero,
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: songs.length,
+      itemBuilder: (context, index) {
         return Padding(
-          padding: const .symmetric(horizontal: 8, vertical: 4),
-          child: SongTile(song: song),
+          padding: const EdgeInsets.symmetric(vertical: 1, horizontal: 4),
+          child: SectionListTile(
+            item: songs[index],
+            isFirst: index == 0,
+            isLast: index == (songs.length - 1),
+          ),
         );
-      }).toList(),
+      },
     );
   }
 }

@@ -1,7 +1,6 @@
 import 'package:bloc/bloc.dart';
 import 'package:flutter/foundation.dart';
 import 'package:get_it/get_it.dart';
-import 'package:hive_flutter/hive_flutter.dart';
 import 'package:yt_music/client.dart';
 import 'package:yt_music/ytmusic.dart';
 
@@ -10,17 +9,13 @@ import '../../../../../../services/settings_manager.dart';
 part 'ytmusic_state.dart';
 
 class YTMusicCubit extends Cubit<YTMusicState> {
-  final SettingsManager _settings = GetIt.I<SettingsManager>();
-  final YTMusic _ytmusic = GetIt.I<YTMusic>();
-  final Box _box = Hive.box('SETTINGS');
-
-  List<Map<String, String>> get locations => _settings.locations;
-  List<Map<String, String>> get languages => _settings.languages;
-
-  List<AudioQuality> get audioQualities => _settings.audioQualities;
-
+  late final SettingsManager _settingsManager;
+  late final YTMusic _ytmusic;
   late final VoidCallback _settingsListener;
-  late final VoidCallback _hiveListener;
+
+  List<Map<String, String>> get locations => _settingsManager.locations;
+  List<Map<String, String>> get languages => _settingsManager.languages;
+  List<AudioQuality> get audioQualities => _settingsManager.audioQualities;
 
   YTMusicCubit()
     : super(
@@ -30,20 +25,16 @@ class YTMusicCubit extends Cubit<YTMusicState> {
           autofetchSongs: GetIt.I<SettingsManager>().autofetchSongs,
           streamingQuality: GetIt.I<SettingsManager>().streamingQuality,
           downloadQuality: GetIt.I<SettingsManager>().downloadQuality,
-          translateLyrics: Hive.box(
-            'SETTINGS',
-          ).get('TRANSLATE_LYRICS', defaultValue: false),
-          personalisedContent: Hive.box(
-            'SETTINGS',
-          ).get('PERSONALISED_CONTENT', defaultValue: true),
-          visitorId: Hive.box('SETTINGS').get('VISITOR_ID', defaultValue: ''),
+          translateLyrics: GetIt.I<SettingsManager>().translateLyrics,
+          personalisedContent: GetIt.I<SettingsManager>().personalisedContent,
+          visitorId: GetIt.I<SettingsManager>().visitorId!,
         ),
       ) {
+    _settingsManager = GetIt.I<SettingsManager>();
+    _ytmusic = GetIt.I<YTMusic>();
     _settingsListener = _emit;
-    _hiveListener = _emit;
 
-    _settings.addListener(_settingsListener);
-    _box.listenable().addListener(_hiveListener);
+    _settingsManager.addListener(_settingsListener);
   }
 
   void _emit() {
@@ -51,69 +42,65 @@ class YTMusicCubit extends Cubit<YTMusicState> {
 
     emit(
       state.copyWith(
-        location: _settings.location,
-        language: _settings.language,
-        autofetchSongs: _settings.autofetchSongs,
-        streamingQuality: _settings.streamingQuality,
-        downloadQuality: _settings.downloadQuality,
-        translateLyrics: _box.get('TRANSLATE_LYRICS', defaultValue: false),
-        personalisedContent: _box.get(
-          'PERSONALISED_CONTENT',
-          defaultValue: true,
-        ),
-        visitorId: _box.get('VISITOR_ID', defaultValue: ''),
+        location: _settingsManager.location,
+        language: _settingsManager.language,
+        autofetchSongs: _settingsManager.autofetchSongs,
+        streamingQuality: _settingsManager.streamingQuality,
+        downloadQuality: _settingsManager.downloadQuality,
+        translateLyrics: _settingsManager.translateLyrics,
+        personalisedContent: _settingsManager.personalisedContent,
+        visitorId: _settingsManager.visitorId,
       ),
     );
   }
 
   void setLocation(Map<String, String> location) {
-    _settings.location = location;
+    _settingsManager.location = location;
   }
 
   void setLanguage(Map<String, String> language) {
-    _settings.language = language;
+    _settingsManager.language = language;
   }
 
   void setAutofetchSongs(bool value) {
-    _settings.autofetchSongs = value;
+    _settingsManager.autofetchSongs = value;
   }
 
   void setStreamingQuality(AudioQuality quality) {
-    _settings.streamingQuality = quality;
+    _settingsManager.streamingQuality = quality;
   }
 
   void setDownloadQuality(AudioQuality quality) {
-    _settings.downloadQuality = quality;
+    _settingsManager.downloadQuality = quality;
   }
 
   Future<void> setTranslateLyrics(bool value) async {
-    await _box.put('TRANSLATE_LYRICS', value);
+    _settingsManager.translateLyrics = value;
   }
 
   Future<void> setPersonalisedContent(bool value) async {
-    await _box.put('PERSONALISED_CONTENT', value);
+    _settingsManager.personalisedContent = value;
     final config = await YTClient.getConfig();
     if (config != null) {
-      await _box.put('VISITOR_ID', config.visitorData);
+      _settingsManager.visitorId = config.visitorData;
     }
   }
 
   Future<void> setVisitorId(String id) async {
-    await _box.put('VISITOR_ID', id);
+    _settingsManager.visitorId = id;
     _ytmusic.updateConfig(visitorData: id);
   }
 
   Future<void> resetVisitorId() async {
     final config = await YTClient.getConfig();
     if (config != null) {
-      await _box.put('VISITOR_ID', config.visitorData);
+      _settingsManager.visitorId = config.visitorData;
     }
   }
 
   @override
   Future<void> close() {
-    _settings.removeListener(_settingsListener);
-    _box.listenable().removeListener(_hiveListener);
+    _settingsManager.removeListener(_settingsListener);
     return super.close();
   }
 }

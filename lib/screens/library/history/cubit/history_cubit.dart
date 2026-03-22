@@ -1,15 +1,17 @@
 import 'package:bloc/bloc.dart';
 import 'package:flutter/foundation.dart';
-import 'package:hive_flutter/hive_flutter.dart';
+import 'package:get_it/get_it.dart';
+
+import '../../../../services/history_manager.dart';
 
 part 'history_state.dart';
 
 class HistoryCubit extends Cubit<HistoryState> {
-  late final Box _box;
+  late final SongHistory _songHistory;
   late final VoidCallback _listener;
 
   HistoryCubit() : super(const HistoryLoading()) {
-    _box = Hive.box('SONG_HISTORY');
+    _songHistory = GetIt.I<HistoryManager>().songs;
 
     _listener = () {
       if (!isClosed) {
@@ -17,7 +19,7 @@ class HistoryCubit extends Cubit<HistoryState> {
       }
     };
 
-    _box.listenable().addListener(_listener);
+    _songHistory.listenable.addListener(_listener);
   }
 
   void load() {
@@ -28,12 +30,7 @@ class HistoryCubit extends Cubit<HistoryState> {
     if (isClosed) return;
 
     try {
-      final songs = _box.values.toList();
-
-      songs.sort(
-        (a, b) => (b['updatedAt'] ?? 0).compareTo(a['updatedAt'] ?? 0),
-      );
-
+      final songs = _songHistory.getList();
       emit(HistoryLoaded(songs));
     } catch (e) {
       if (!isClosed) {
@@ -42,14 +39,13 @@ class HistoryCubit extends Cubit<HistoryState> {
     }
   }
 
-  Future<void> remove(dynamic videoId) async {
-    await _box.delete(videoId);
-    // listener will re-emit safely
+  Future<void> remove(Map song) async {
+    await _songHistory.remove(song);
   }
 
   @override
   Future<void> close() {
-    _box.listenable().removeListener(_listener);
+    _songHistory.listenable.removeListener(_listener);
     return super.close();
   }
 }

@@ -3,14 +3,11 @@ import 'package:flutter_lyric/lyrics_reader.dart';
 import 'package:get_it/get_it.dart';
 import 'package:gyawun/services/lyrics.dart';
 import 'package:gyawun/services/media_player.dart';
-import 'package:hive/hive.dart';
 import 'package:just_audio_background/just_audio_background.dart';
 import 'package:gyawun/services/settings_manager.dart';
 import 'package:loading_indicator_m3e/loading_indicator_m3e.dart';
 import 'package:provider/provider.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
-
-Box _box = Hive.box('SETTINGS');
 
 class LyricsBox extends StatefulWidget {
   const LyricsBox({required this.currentSong, required this.size, super.key});
@@ -80,19 +77,22 @@ class _LyricsBoxState extends State<LyricsBox> {
           album: widget.currentSong.album,
           durationInSeconds:
               GetIt.I<MediaPlayer>().progressBarState.value.total.inSeconds,
-          translation: _box.get('TRANSLATE_LYRICS', defaultValue: false)
-              ? context.read<SettingsManager>().language['value']!
+          translation: context.read<SettingsManager>().translateLyrics
+              ? context.read<SettingsManager>().language['value']
               : null,
         );
         _lyricsLoaded = false;
-        _fetchLyricsFuture!.then((lyrics) {
-          _lyricsLoaded =
-              lyrics['syncedLyrics'] != null || lyrics['plainLyrics'] != null;
-          _updateWakelock();
-        }).catchError((_) {
-          _lyricsLoaded = false;
-          _updateWakelock();
-        });
+        _fetchLyricsFuture!
+            .then((lyrics) {
+              _lyricsLoaded =
+                  lyrics['syncedLyrics'] != null ||
+                  lyrics['plainLyrics'] != null;
+              _updateWakelock();
+            })
+            .catchError((_) {
+              _lyricsLoaded = false;
+              _updateWakelock();
+            });
       });
     }
   }
@@ -129,20 +129,39 @@ class _LyricsBoxState extends State<LyricsBox> {
                           valueListenable:
                               GetIt.I<MediaPlayer>().progressBarState,
                           builder: (context, progress, child) {
-                            return LyricsReader(
-                              padding: EdgeInsets.zero,
-                              position: progress.current.inMilliseconds,
-                              playing:
-                                  context.watch<MediaPlayer>().player.playing,
-                              lyricUi: UINetease(
-                                highlight: false,
-                                defaultSize: 19,
-                              ),
-                              model: LyricsModelBuilder.create()
-                                  .bindLyricToMain(lyrics['syncedLyrics'])
-                                  .bindLyricToExt(lyrics['transLyrics'])
-                                  .getModel(),
-                              emptyBuilder: () => SingleChildScrollView(
+                            try {
+                              return LyricsReader(
+                                padding: EdgeInsets.zero,
+                                position: progress.current.inMilliseconds,
+                                playing: context
+                                    .watch<MediaPlayer>()
+                                    .player
+                                    .playing,
+                                lyricUi: UINetease(
+                                  highlight: false,
+                                  defaultSize: 19,
+                                ),
+                                model: LyricsModelBuilder.create()
+                                    .bindLyricToMain(lyrics['syncedLyrics'])
+                                    .bindLyricToExt(lyrics['transLyrics'])
+                                    .getModel(),
+                                emptyBuilder: () => SingleChildScrollView(
+                                  child: Center(
+                                    child: Text(
+                                      lyrics['plainLyrics'] ?? "No Lyrics",
+                                      style: UINetease(
+                                        highlight: false,
+                                        defaultSize: 19,
+                                      ).getOtherMainTextStyle(),
+                                      textAlign: TextAlign.center,
+                                    ),
+                                  ),
+                                ),
+                                size: widget.size,
+                              );
+                            } catch (e) {
+                              debugPrint("Error parsing lyrics: $e");
+                              return SingleChildScrollView(
                                 child: Center(
                                   child: Text(
                                     lyrics['plainLyrics'] ?? "No Lyrics",
@@ -153,9 +172,8 @@ class _LyricsBoxState extends State<LyricsBox> {
                                     textAlign: TextAlign.center,
                                   ),
                                 ),
-                              ),
-                              size: widget.size,
-                            );
+                              );
+                            }
                           },
                         );
                       }

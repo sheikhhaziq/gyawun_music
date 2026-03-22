@@ -11,13 +11,13 @@ class LibraryLoading extends LibraryState {
 
 class LibraryLoaded extends LibraryState {
   final Map playlists;
-  final int favouritesCount;
+  final Map favourites;
   final int downloadsCount;
   final int historyCount;
 
   const LibraryLoaded({
     required this.playlists,
-    required this.favouritesCount,
+    required this.favourites,
     required this.downloadsCount,
     required this.historyCount,
   });

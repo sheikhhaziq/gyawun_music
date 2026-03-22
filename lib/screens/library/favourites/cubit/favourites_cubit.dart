@@ -1,15 +1,16 @@
 import 'package:bloc/bloc.dart';
 import 'package:flutter/foundation.dart';
-import 'package:hive_flutter/hive_flutter.dart';
+import 'package:get_it/get_it.dart';
+import 'package:gyawun/services/favourites_manager.dart';
 
 part 'favourites_state.dart';
 
 class FavouritesCubit extends Cubit<FavouritesState> {
-  late final Box _box;
+  late final FavouritesManager _manager;
   late final VoidCallback _listener;
 
   FavouritesCubit() : super(const FavouritesLoading()) {
-    _box = Hive.box('FAVOURITES');
+    _manager = GetIt.I<FavouritesManager>();
 
     _listener = () {
       if (!isClosed) {
@@ -17,7 +18,7 @@ class FavouritesCubit extends Cubit<FavouritesState> {
       }
     };
 
-    _box.listenable().addListener(_listener);
+    _manager.listenable.addListener(_listener);
   }
 
   void load() {
@@ -28,7 +29,7 @@ class FavouritesCubit extends Cubit<FavouritesState> {
     if (isClosed) return;
 
     try {
-      emit(FavouritesLoaded(_box.values.toList()));
+      emit(FavouritesLoaded(_manager.playlist));
     } catch (e) {
       if (!isClosed) {
         emit(FavouritesError(e.toString()));
@@ -37,13 +38,12 @@ class FavouritesCubit extends Cubit<FavouritesState> {
   }
 
   Future<void> remove(dynamic key) async {
-    await _box.delete(key);
-    // Hive listener will trigger emit safely
+    await _manager.remove(key);
   }
 
   @override
   Future<void> close() {
-    _box.listenable().removeListener(_listener);
+    _manager.listenable.removeListener(_listener);
     return super.close();
   }
 }

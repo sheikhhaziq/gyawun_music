@@ -1,14 +1,19 @@
 import 'package:bloc/bloc.dart';
 import 'package:flutter/widgets.dart';
-import 'package:hive/hive.dart';
+import 'package:get_it/get_it.dart';
 import 'package:yt_music/ytmusic.dart';
+
+import '../../../services/history_manager.dart';
 
 part 'search_state.dart';
 
 class SearchCubit extends Cubit<SearchState> {
   final YTMusic _ytmusic;
   Map<String, dynamic>? endpoint;
+  late final SearchHistory _searchHistory;
+
   SearchCubit(this._ytmusic, {this.endpoint}) : super(SearchInitial()) {
+    _searchHistory = GetIt.I<HistoryManager>().searches;
     if (endpoint != null) {
       search('');
     }
@@ -17,15 +22,15 @@ class SearchCubit extends Cubit<SearchState> {
   Future<void> search(String query) async {
     emit(const SearchLoading());
     try {
-      if (Hive.box('SETTINGS').get('SEARCH_HISTORY', defaultValue: true)) {
-        await Hive.box('SEARCH_HISTORY').delete(query.toLowerCase());
-        await Hive.box('SEARCH_HISTORY').put(query.toLowerCase(), query);
-      }
+      await _searchHistory.add(query);
       final feed = await _ytmusic.search(query, endpoint: endpoint);
-      emit(SearchSuccess(
+      emit(
+        SearchSuccess(
           sections: feed['sections'],
           continuation: feed['continuation'],
-          loadingMore: false));
+          loadingMore: false,
+        ),
+      );
     } catch (e, st) {
       debugPrint(e.toString());
       debugPrint(st.toString());
@@ -39,8 +44,11 @@ class SearchCubit extends Cubit<SearchState> {
     if (current.loadingMore || current.continuation == null) return;
     emit(current.copyWith(loadingMore: true));
     try {
-      final feed = await _ytmusic.search('',
-          endpoint: endpoint, additionalParams: current.continuation!);
+      final feed = await _ytmusic.search(
+        '',
+        endpoint: endpoint,
+        additionalParams: current.continuation!,
+      );
       SearchSuccess(
         sections: [...current.sections, ...feed['sections']],
         continuation: feed['continuation'],
@@ -53,9 +61,9 @@ class SearchCubit extends Cubit<SearchState> {
 
   Future<List<Map<String, dynamic>>> getSuggestions(String query) async {
     try {
-      List<Map<String, dynamic>> suggestions =
-          await _ytmusic.getSearchSuggestions(query);
-      return suggestions;
+      List<Map<String, dynamic>> suggestions = await _ytmusic
+          .getSearchSuggestions(query);
+      return suggestions.isNotEmpty ? suggestions : _searchHistory.getList();
     } catch (e) {
       return [];
     }

@@ -1,3 +1,5 @@
+// ignore_for_file: experimental_member_use
+
 import 'dart:async';
 import 'dart:io';
 
@@ -10,17 +12,17 @@ class YouTubeAudioSource extends StreamAudioSource {
   final String quality; // 'high' or 'low'
   final YoutubeExplode ytExplode;
 
-  YouTubeAudioSource({
-    required this.videoId,
-    required this.quality,
-    super.tag,
-  }) : ytExplode = YoutubeExplode();
+  YouTubeAudioSource({required this.videoId, required this.quality, super.tag})
+    : ytExplode = YoutubeExplode();
 
   @override
   Future<StreamAudioResponse> request([int? start, int? end]) async {
     try {
-      final manifest = await ytExplode.videos.streams.getManifest(videoId,
-          requireWatchPage: true, ytClients: [YoutubeApiClient.androidVr]);
+      final manifest = await ytExplode.videos.streams.getManifest(
+        videoId,
+        requireWatchPage: true,
+        ytClients: [YoutubeApiClient.androidVr],
+      );
       final supportedStreams = manifest.audioOnly.sortByBitrate();
 
       final audioStream = quality == 'high'
@@ -76,7 +78,8 @@ Future<String> createAudioStreamServer() async {
   final url = 'http://$host:$port/audio';
 
   debugPrint(
-      'Generic streaming server started on $url. Use ?id=...&quality=... to stream.');
+    'Generic streaming server started on $url. Use ?id=...&quality=... to stream.',
+  );
 
   // You would typically return the server instance here too, if you needed
   // to close it later (e.g., return {'server': server, 'url': url})
@@ -113,8 +116,11 @@ Future<void> handleAudioRequest(HttpRequest request) async {
 
   try {
     // 2. Get the Stream Manifest and select the audio stream
-    final manifest = await ytExplode.videos.streamsClient.getManifest(videoId,
-        requireWatchPage: true, ytClients: [YoutubeApiClient.androidVr]);
+    final manifest = await ytExplode.videos.streamsClient.getManifest(
+      videoId,
+      requireWatchPage: true,
+      ytClients: [YoutubeApiClient.androidVr],
+    );
 
     final supportedStreams = manifest.audioOnly.sortByBitrate();
     final audioStreamInfo = quality == 'high'
@@ -172,8 +178,11 @@ Future<void> handleAudioRequest(HttpRequest request) async {
     }
 
     // 4. Get the *actual* byte stream from YouTube
-    final stream =
-        ytExplode.videos.streamsClient.get(audioStreamInfo, start, end + 1);
+    final stream = ytExplode.videos.streamsClient.get(
+      audioStreamInfo,
+      start,
+      end + 1,
+    );
 
     // 5. Set the HTTP headers and pipe the stream (same logic)
     final contentLength = end - start + 1;
@@ -185,7 +194,9 @@ Future<void> handleAudioRequest(HttpRequest request) async {
     response.headers.contentLength = contentLength;
     if (isPartial) {
       response.headers.set(
-          HttpHeaders.contentRangeHeader, 'bytes $start-$end/$totalLength');
+        HttpHeaders.contentRangeHeader,
+        'bytes $start-$end/$totalLength',
+      );
     }
     response.bufferOutput = false;
 
@@ -193,7 +204,8 @@ Future<void> handleAudioRequest(HttpRequest request) async {
 
     await response.close();
     debugPrint(
-        '[$videoId] Served ${isPartial ? 'partial' : 'full'} stream: bytes $start-$end');
+      '[$videoId] Served ${isPartial ? 'partial' : 'full'} stream: bytes $start-$end',
+    );
   } catch (e) {
     debugPrint('Error serving audio for ID $videoId: $e');
   }

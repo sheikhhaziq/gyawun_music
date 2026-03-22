@@ -18,7 +18,9 @@ import 'package:yt_music/ytmusic.dart';
 
 import 'generated/l10n.dart';
 import 'services/download_manager.dart';
+import 'services/favourites_manager.dart';
 import 'services/file_storage.dart';
+import 'services/history_manager.dart';
 import 'services/library.dart';
 import 'services/lyrics.dart';
 import 'services/media_player.dart';
@@ -56,27 +58,35 @@ void main() async {
     DeviceOrientation.landscapeRight,
   ]);
 
-  final ytConfig = await getYtConfig();
-  YTMusic ytMusic = YTMusic(config: ytConfig!);
-
-  final GlobalKey<NavigatorState> panelKey = GlobalKey<NavigatorState>();
-
-  await FileStorage.initialise();
-  FileStorage fileStorage = FileStorage();
-  SettingsManager settingsManager = SettingsManager();
-
+  SettingsManager settingsManager = await SettingsManager.create();
   GetIt.I.registerSingleton<SettingsManager>(settingsManager);
-  MediaPlayer mediaPlayer = MediaPlayer();
-  GetIt.I.registerSingleton<MediaPlayer>(mediaPlayer);
-  LibraryService libraryService = LibraryService();
-  GetIt.I.registerSingleton<DownloadManager>(DownloadManager());
-  GetIt.I.registerSingleton(panelKey);
+
+  final ytConfig = await getYtConfig(settingsManager);
+  YTMusic ytMusic = YTMusic(config: ytConfig!);
   GetIt.I.registerSingleton<YTMusic>(ytMusic);
 
+  final GlobalKey<NavigatorState> panelKey = GlobalKey<NavigatorState>();
+  GetIt.I.registerSingleton(panelKey);
+
+  FileStorage fileStorage = await FileStorage.create();
   GetIt.I.registerSingleton<FileStorage>(fileStorage);
 
+  MediaPlayer mediaPlayer = MediaPlayer();
+  GetIt.I.registerSingleton<MediaPlayer>(mediaPlayer);
+
+  LibraryService libraryService = await LibraryService.create();
   GetIt.I.registerSingleton<LibraryService>(libraryService);
+
+  DownloadManager downloadManager = await DownloadManager.create();
+  GetIt.I.registerSingleton<DownloadManager>(downloadManager);
+
+  HistoryManager historyManager = await HistoryManager.create();
+  GetIt.I.registerSingleton<HistoryManager>(historyManager);
+
   GetIt.I.registerSingleton<Lyrics>(Lyrics());
+
+  FavouritesManager favouritesManager = await FavouritesManager.create();
+  GetIt.I.registerSingleton<FavouritesManager>(favouritesManager);
 
   runApp(
     MultiProvider(
@@ -94,15 +104,23 @@ class Gyawun extends StatelessWidget {
   const Gyawun({super.key});
   @override
   Widget build(BuildContext context) {
+    final settings = context.select(
+      (SettingsManager s) => (
+        language: s.language['value']!,
+        themeMode: s.themeMode,
+        dynamicColors: s.dynamicColors,
+        accentColor: s.accentColor,
+        amoledBlack: s.amoledBlack,
+      ),
+    );
     return DynamicColorBuilder(
       builder: (lightScheme, darkScheme) {
         final primaryColor =
-            (context.watch<SettingsManager>().dynamicColors &&
-                    darkScheme != null
+            (settings.dynamicColors && darkScheme != null
                 ? darkScheme.primary
-                : context.watch<SettingsManager>().accentColor) ??
+                : settings.accentColor) ??
             Colors.red;
-        final isPureBlack = context.watch<SettingsManager>().amoledBlack;
+        final isPureBlack = settings.amoledBlack;
         return Shortcuts(
           shortcuts: <LogicalKeySet, Intent>{
             LogicalKeySet(LogicalKeyboardKey.select): const ActivateIntent(),
@@ -110,7 +128,7 @@ class Gyawun extends StatelessWidget {
           child: MaterialApp.router(
             title: 'Gyawun Music',
             routerConfig: router,
-            locale: Locale(context.watch<SettingsManager>().language['value']!),
+            locale: Locale(settings.language),
             localizationsDelegates: const [
               S.delegate,
               GlobalMaterialLocalizations.delegate,
@@ -119,28 +137,21 @@ class Gyawun extends StatelessWidget {
             ],
             supportedLocales: S.delegate.supportedLocales,
             debugShowCheckedModeBanner: false,
-            themeMode: context.watch<SettingsManager>().themeMode,
+            themeMode: settings.themeMode,
             theme: ColorScheme.fromSeed(
               seedColor: primaryColor,
             ).toM3EThemeData(base: AppTheme.light(primary: primaryColor)),
-            darkTheme: ColorScheme.fromSeed(
-              brightness: Brightness.dark,
-              surface: isPureBlack ? Colors.black : null,
-              seedColor: primaryColor,
-            ).toM3EThemeData(base: AppTheme.dark(primary: primaryColor,isPureBlack: isPureBlack)),
-            // theme: AppTheme.light(
-            //   primary: context.watch<SettingsManager>().dynamicColors &&
-            //           lightScheme != null
-            //       ? lightScheme.primary
-            //       : context.watch<SettingsManager>().accentColor,
-            // ),
-            // darkTheme: AppTheme.dark(
-            //   primary: context.watch<SettingsManager>().dynamicColors &&
-            //           darkScheme != null
-            //       ? darkScheme.primary
-            //       : context.watch<SettingsManager>().accentColor,
-            //   isPureBlack: context.watch<SettingsManager>().amoledBlack,
-            // ),
+            darkTheme:
+                ColorScheme.fromSeed(
+                  brightness: Brightness.dark,
+                  surface: isPureBlack ? Colors.black : null,
+                  seedColor: primaryColor,
+                ).toM3EThemeData(
+                  base: AppTheme.dark(
+                    primary: primaryColor,
+                    isPureBlack: isPureBlack,
+                  ),
+                ),
           ),
         );
       },
@@ -155,50 +166,29 @@ Future<void> initialiseHive() async {
         "${(await getApplicationSupportDirectory()).path}/database";
   }
   await Hive.initFlutter(applicationDataDirectoryPath);
-  await Hive.openBox('SETTINGS');
-  await Hive.openBox('LIBRARY');
-  await Hive.openBox('SEARCH_HISTORY');
-  await Hive.openBox('SONG_HISTORY');
-  await Hive.openBox('FAVOURITES');
-  await Hive.openBox('DOWNLOADS');
 }
 
-Future<YTConfig?>? getYtConfig() async {
-  String? visitorData = await Hive.box('SETTINGS').get('VISITOR_ID');
-  String language = await Hive.box(
-    'SETTINGS',
-  ).get('YT_LANGUAGE', defaultValue: 'en');
-  String location = await Hive.box(
-    'SETTINGS',
-  ).get('YT_LOCATION', defaultValue: 'IN');
-  String? apikey = await Hive.box(
-    'SETTINGS',
-  ).get('YT_API_KEY', defaultValue: null);
-  String clientName = await Hive.box(
-    'SETTINGS',
-  ).get('YT_CLIENT_NAME', defaultValue: 'WEB_REMIX');
-  String? clientVersion = await Hive.box(
-    'SETTINGS',
-  ).get('YT_CLIENT_VERSION', defaultValue: null);
-
-  if (visitorData == null || apikey == null || clientVersion == null) {
+Future<YTConfig?>? getYtConfig(SettingsManager settingsManager) async {
+  final visitorId = settingsManager.visitorId;
+  final apiKey = settingsManager.apiKey;
+  final clientName = settingsManager.clientName;
+  final clientVersion = settingsManager.clientVersion;
+  if (visitorId == null ||
+      apiKey == null ||
+      clientName == null ||
+      clientVersion == null) {
     final config = await YTClient.getConfig();
-    final box = Hive.box('SETTINGS');
-    await box.putAll({
-      'VISITOR_ID': visitorData ?? config?.visitorData,
-      'YT_LOCATION': location,
-      'YT_LANGUAGE': language,
-      'YT_API_KEY': config?.apiKey,
-      'YT_CLIENT_NAME': config?.clientName,
-      'YT_CLIENT_VERSION': config?.clientVersion,
-    });
+    settingsManager.visitorId = visitorId ?? config?.visitorData;
+    settingsManager.apiKey = apiKey ?? config?.apiKey;
+    settingsManager.clientName = clientName ?? config?.clientName;
+    settingsManager.clientVersion = clientVersion ?? config?.clientVersion;
     return config;
   } else {
     return YTConfig(
-      visitorData: visitorData,
-      language: language,
-      location: location,
-      apiKey: apikey,
+      visitorData: visitorId,
+      language: settingsManager.language['value']!,
+      location: settingsManager.location['value']!,
+      apiKey: apiKey,
       clientName: clientName,
       clientVersion: clientVersion,
     );

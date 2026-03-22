@@ -1,6 +1,5 @@
 import 'dart:ui';
 
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -11,6 +10,11 @@ import 'package:gyawun/services/media_player.dart';
 import 'package:gyawun/themes/text_styles.dart';
 import '../../../../../generated/l10n.dart';
 import '../../../../../utils/bottom_modals.dart';
+import '../../../../services/bottom_message.dart';
+import '../../../../services/download_manager.dart';
+import '../../../../services/favourites_manager.dart';
+import '../../../../utils/adaptive_widgets/appbar.dart';
+import '../../../../utils/adaptive_widgets/scaffold.dart';
 import 'cubit/download_playlist_cubit.dart';
 
 class DownloadPlaylistPage extends StatelessWidget {
@@ -28,8 +32,8 @@ class DownloadPlaylistPage extends StatelessWidget {
             DownloadPlaylistLoading() => const Scaffold(
               body: Center(child: CircularProgressIndicator()),
             ),
-            DownloadPlaylistError() => Scaffold(
-              appBar: AppBar(),
+            DownloadPlaylistError() => AdaptiveScaffold(
+              appBar: AdaptiveAppBar(),
               body: Center(child: Text(S.of(context).Playlist_Not_Available)),
             ),
             DownloadPlaylistLoaded(:final playlist, :final songs) =>
@@ -46,7 +50,7 @@ class DownloadPlaylistPage extends StatelessWidget {
 }
 
 class _PlaylistView extends StatelessWidget {
-  const _PlaylistView({
+  _PlaylistView({
     required this.playlist,
     required this.songs,
     required this.playlistId,
@@ -56,8 +60,50 @@ class _PlaylistView extends StatelessWidget {
   final List songs;
   final String playlistId;
 
+  final Map<String, _SongStatusConfig> statusMap = {
+    "DELETED": _SongStatusConfig(
+      onTap: (ctx, _) {
+        BottomMessage.showText(ctx, S.of(ctx).File_Not_Found);
+      },
+      onLongPress: (ctx, _) {
+        BottomMessage.showText(ctx, S.of(ctx).File_Not_Found);
+      },
+      icon: FluentIcons.arrow_circle_down_24_regular,
+      onIconPress: (ctx, song) {
+        ctx.read<DownloadPlaylistCubit>().restoreDownloads([song]);
+      },
+    ),
+    "QUEUED": _SongStatusConfig(
+      onTap: (ctx, _) {
+        BottomMessage.showText(ctx, S.of(ctx).Queued);
+      },
+      onLongPress: (ctx, _) {
+        BottomMessage.showText(ctx, S.of(ctx).Queued);
+      },
+      icon: FluentIcons.clock_24_regular,
+      onIconPress: (ctx, _) {
+        BottomMessage.showText(ctx, S.of(ctx).Queued);
+      },
+    ),
+    "DOWNLOADING": _SongStatusConfig(
+      onTap: (ctx, _) {
+        BottomMessage.showText(ctx, S.of(ctx).Downloading);
+      },
+      onLongPress: (ctx, _) {
+        BottomMessage.showText(ctx, S.of(ctx).Downloading);
+      },
+      icon: FluentIcons.arrow_sync_circle_24_regular,
+      onIconPress: (ctx, _) {
+        BottomMessage.showText(ctx, S.of(ctx).Downloading);
+      },
+    ),
+  };
+
   @override
   Widget build(BuildContext context) {
+    final downloadedSongs = context
+        .read<DownloadPlaylistCubit>()
+        .getDownloadedSongs(playlistId);
     return Scaffold(
       body: Center(
         child: Container(
@@ -68,11 +114,6 @@ class _PlaylistView extends StatelessWidget {
                 SliverAppBar(
                   pinned: true,
                   expandedHeight: 120,
-                  leading: BackButton(
-                    style: ButtonStyle(
-                      backgroundColor: WidgetStatePropertyAll(Theme.of(context).colorScheme.surfaceContainer)
-                    ),
-                  ),
                   flexibleSpace: LayoutBuilder(
                     builder: (context, constraints) {
                       final maxHeight = 120.0;
@@ -81,7 +122,6 @@ class _PlaylistView extends StatelessWidget {
                       final paddingLeft = lerpDouble(100, 16, t)!;
 
                       return FlexibleSpaceBar(
-                        
                         titlePadding: EdgeInsets.only(
                           left: paddingLeft,
                           bottom: 8,
@@ -91,9 +131,17 @@ class _PlaylistView extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              playlist['type'] == 'SONGS'
+                              playlist.isNotEmpty &&
+                                      playlist['id'] ==
+                                          DownloadManager.songsPlaylistId
                                   ? S.of(context).Songs
-                                  : playlist['title'],
+                                  : playlist.isNotEmpty &&
+                                        playlist['id'] ==
+                                            FavouritesManager.playlistId
+                                  ? S.of(context).Favourites
+                                  : playlist.isNotEmpty
+                                  ? playlist['title']
+                                  : null,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: textStyle(context).copyWith(fontSize: 16),
@@ -110,31 +158,6 @@ class _PlaylistView extends StatelessWidget {
                             ),
                           ],
                         ),
-                        background:
-                            playlist['thumbnails']!=null
-                            ? Container(
-                                height: 120,
-                                width: double.infinity,
-                                decoration: BoxDecoration(
-                                  image: DecorationImage(
-                                    image: CachedNetworkImageProvider(
-                                      playlist['songs']?[1]?['thumbnails']?[1]?['url'],
-                                    ),
-                                    fit: BoxFit.cover,
-                                  ),
-                                ),
-                                foregroundDecoration: BoxDecoration(
-                                  gradient: LinearGradient(
-                                    begin: .topCenter,
-                                    end: .bottomCenter,
-                                    colors: [
-                                      Colors.transparent,
-                                      Theme.of(context).colorScheme.surface,
-                                    ],
-                                  ),
-                                ),
-                              )
-                            : null,
                       );
                     },
                   ),
@@ -166,12 +189,18 @@ class _PlaylistView extends StatelessWidget {
                             ),
                           ),
                           onPressed: () {
-                            if (songs.isEmpty) return;
-
-                            GetIt.I<MediaPlayer>().playAll(songs);
+                            if (downloadedSongs == null ||
+                                downloadedSongs.isEmpty) {
+                              BottomMessage.showText(
+                                context,
+                                S.of(context).No_Offline_Songs,
+                              );
+                            } else {
+                              GetIt.I<MediaPlayer>().playAll(downloadedSongs);
+                            }
                           },
                           icon: const Icon(FluentIcons.play_24_filled),
-                          label: const Text('Play it'),
+                          label: Text(S.of(context).Play_All),
                         ),
                         SizedBox(width: 4),
                         FilledButton.tonalIcon(
@@ -192,14 +221,20 @@ class _PlaylistView extends StatelessWidget {
                           ),
 
                           onPressed: () {
-                            if (songs.isEmpty) return;
-                            final shuffled = List.from(songs);
-                            shuffled.shuffle();
-
-                            GetIt.I<MediaPlayer>().playAll(shuffled);
+                            if (downloadedSongs == null ||
+                                downloadedSongs.isEmpty) {
+                              BottomMessage.showText(
+                                context,
+                                S.of(context).No_Offline_Songs,
+                              );
+                            } else {
+                              final shuffled = List.from(downloadedSongs);
+                              shuffled.shuffle();
+                              GetIt.I<MediaPlayer>().playAll(shuffled);
+                            }
                           },
                           icon: const Icon(FluentIcons.arrow_shuffle_24_filled),
-                          label: const Text('Shuffle'),
+                          label: Text(S.of(context).Shuffle),
                         ),
                         SizedBox(width: 8),
                         IconButton.filled(
@@ -219,9 +254,9 @@ class _PlaylistView extends StatelessWidget {
                 SliverList(
                   delegate: SliverChildBuilderDelegate((context, index) {
                     final song = songs[index];
-
+                    final config = statusMap[song['status']];
                     return Padding(
-                        padding: const .symmetric(horizontal: 8, vertical: 4),
+                      padding: const .symmetric(horizontal: 8, vertical: 4),
                       child: SwipeActionCell(
                         key: ObjectKey(song['videoId']),
                         backgroundColor: Colors.transparent,
@@ -230,15 +265,33 @@ class _PlaylistView extends StatelessWidget {
                             title: S.of(context).Remove,
                             color: Colors.red,
                             onTap: (handler) async {
-                              await Modals.showConfirmBottomModal(
-                                context,
-                                message: S.of(context).Remove_Message,
-                                isDanger: true,
-                              );
+                              final confirm =
+                                  await Modals.showConfirmBottomModal(
+                                    context,
+                                    message: S.of(context).Remove_Message,
+                                    isDanger: true,
+                                  );
+                              if (confirm && context.mounted) {
+                                await context
+                                    .read<DownloadPlaylistCubit>()
+                                    .removeSong(song);
+                              } else {
+                                handler(false);
+                              }
                             },
                           ),
                         ],
-                        child: SongTile(song: song),
+                        child: SongTile(
+                          song: context
+                              .read<DownloadPlaylistCubit>()
+                              .getCleanSong(song),
+                          onTap: config?.onTap,
+                          onLongPress: config?.onLongPress,
+                          icon: config?.icon,
+                          onIconPress: config?.onIconPress,
+                          isFirst: index == 0,
+                          isLast: index == songs.length - 1,
+                        ),
                       ),
                     );
                   }, childCount: songs.length),
@@ -251,4 +304,18 @@ class _PlaylistView extends StatelessWidget {
       ),
     );
   }
+}
+
+class _SongStatusConfig {
+  final void Function(BuildContext, Map)? onTap;
+  final void Function(BuildContext, Map)? onLongPress;
+  final IconData icon;
+  final void Function(BuildContext, Map)? onIconPress;
+
+  const _SongStatusConfig({
+    required this.onTap,
+    required this.onLongPress,
+    required this.icon,
+    this.onIconPress,
+  });
 }

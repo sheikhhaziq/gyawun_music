@@ -1,5 +1,3 @@
-import 'dart:ui';
-
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -30,7 +28,9 @@ class FavouritesPage extends StatelessWidget {
                 child: AdaptiveProgressRing(),
               ),
               FavouritesError(:final message) => Center(child: Text(message)),
-              FavouritesLoaded(:final songs) => _FavouritesBody(songs: songs),
+              FavouritesLoaded(favourites: final playlist) => _FavouritesBody(
+                playlist: playlist,
+              ),
             };
           },
         ),
@@ -40,12 +40,13 @@ class FavouritesPage extends StatelessWidget {
 }
 
 class _FavouritesBody extends StatelessWidget {
-  const _FavouritesBody({required this.songs});
+  const _FavouritesBody({required this.playlist});
 
-  final List songs;
+  final Map playlist;
 
   @override
   Widget build(BuildContext context) {
+    final songs = playlist['songs'];
     return NestedScrollView(
       headerSliverBuilder: (context, innerBoxIsScrolled) {
         return [
@@ -101,7 +102,6 @@ class _FavouritesBody extends StatelessWidget {
                     ),
                     onPressed: () {
                       if (songs.isEmpty) return;
-
                       GetIt.I<MediaPlayer>().playAll(songs);
                     },
                     icon: const Icon(FluentIcons.play_24_filled),
@@ -135,6 +135,14 @@ class _FavouritesBody extends StatelessWidget {
                     icon: const Icon(FluentIcons.arrow_shuffle_24_filled),
                     label: const Text('Shuffle'),
                   ),
+                  SizedBox(width: 8),
+                  IconButton.filled(
+                    enableFeedback: true,
+                    onPressed: () {
+                      Modals.showFavouritesBottomModal(context, playlist);
+                    },
+                    icon: Icon(Icons.more_vert),
+                  ),
                 ],
               ),
             ),
@@ -160,16 +168,19 @@ class _FavouritesBody extends StatelessWidget {
                             message: S.of(context).Remove_Message,
                             isDanger: true,
                           );
-
                           if (confirm && context.mounted) {
-                            await context.read<FavouritesCubit>().remove(
-                              song['id'] ?? song['videoId'],
-                            );
+                            await context.read<FavouritesCubit>().remove(song);
+                          } else {
+                            handler(false);
                           }
                         },
                       ),
                     ],
-                    child: SongTile(song: song),
+                    child: SongTile(
+                      song: song,
+                      isFirst: index == 0,
+                      isLast: index == songs.length - 1,
+                    ),
                   ),
                 );
               }, childCount: songs.length),

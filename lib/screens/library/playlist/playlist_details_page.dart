@@ -1,5 +1,3 @@
-import 'dart:ui';
-
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -12,6 +10,8 @@ import 'package:gyawun/themes/text_styles.dart';
 
 import '../../../../../generated/l10n.dart';
 import '../../../../../utils/bottom_modals.dart';
+import '../../../utils/adaptive_widgets/appbar.dart';
+import '../../../utils/adaptive_widgets/scaffold.dart';
 import 'cubit/playlist_details_cubit.dart';
 
 class PlaylistDetailsPage extends StatelessWidget {
@@ -29,8 +29,9 @@ class PlaylistDetailsPage extends StatelessWidget {
             PlaylistDetailsLoading() => const Scaffold(
               body: Center(child: CircularProgressIndicator()),
             ),
-            PlaylistDetailsError() => const Scaffold(
-              body: Center(child: Text('Not available')),
+            PlaylistDetailsError() => AdaptiveScaffold(
+              appBar: AdaptiveAppBar(),
+              body: Center(child: Text(S.of(context).Playlist_Not_Available)),
             ),
             PlaylistDetailsLoaded(:final playlist) => _PlaylistView(
               playlist: playlist,
@@ -138,6 +139,17 @@ class _PlaylistView extends StatelessWidget {
                       icon: const Icon(FluentIcons.arrow_shuffle_24_filled),
                       label: const Text('Shuffle'),
                     ),
+                    SizedBox(width: 8),
+                    IconButton.filled(
+                      enableFeedback: true,
+                      onPressed: () {
+                        Modals.showPlaylistBottomModal(context, {
+                          ...playlist,
+                          'playlistId': playlistKey,
+                        });
+                      },
+                      icon: Icon(Icons.more_vert),
+                    ),
                   ],
                 ),
               ),
@@ -157,15 +169,26 @@ class _PlaylistView extends StatelessWidget {
                           title: S.of(context).Remove,
                           color: Colors.red,
                           onTap: (handler) async {
-                            await Modals.showConfirmBottomModal(
+                            final confirm = await Modals.showConfirmBottomModal(
                               context,
                               message: S.of(context).Remove_Message,
                               isDanger: true,
                             );
+                            if (confirm && context.mounted) {
+                              await context
+                                  .read<PlaylistDetailsCubit>()
+                                  .removeSong(song);
+                            } else {
+                              handler(false);
+                            }
                           },
                         ),
                       ],
-                      child: SongTile(song: song),
+                      child: SongTile(
+                        song: song,
+                        isFirst: index == 0,
+                        isLast: index == playlist['songs'].length - 1,
+                      ),
                     ),
                   );
                 }, childCount: playlist['songs'].length),

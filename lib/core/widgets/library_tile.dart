@@ -8,6 +8,8 @@ class LibraryTile extends StatelessWidget {
     this.trailing,
     this.onTap,
     this.onLongPress,
+    this.isFirst = true,
+    this.isLast = true,
     super.key,
   });
   final Widget? title;
@@ -16,24 +18,27 @@ class LibraryTile extends StatelessWidget {
   final Widget? trailing;
   final void Function()? onTap;
   final void Function()? onLongPress;
+  final bool isFirst;
+  final bool isLast;
 
   @override
   Widget build(BuildContext context) {
     return Material(
       color: Theme.of(context).colorScheme.surfaceContainer,
-      borderRadius: BorderRadius.circular(20),
+      borderRadius: BorderRadiusGeometry.only(
+        topLeft: Radius.circular(isFirst ? 20 : 4),
+        topRight: Radius.circular(isFirst ? 20 : 4),
+        bottomLeft: Radius.circular(isLast ? 20 : 4),
+        bottomRight: Radius.circular(isLast ? 20 : 4),
+      ),
       child: InkWell(
-        borderRadius: BorderRadius.circular(20),
         onTap: onTap,
         onLongPress: onLongPress,
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           child: Row(
             children: [
-              if (leading != null) ...[
-                leading!,
-                const SizedBox(width: 16),
-              ],
+              if (leading != null) ...[leading!, const SizedBox(width: 16)],
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -56,10 +61,7 @@ class LibraryTile extends StatelessWidget {
                   ],
                 ),
               ),
-              if (trailing != null) ...[
-                const SizedBox(width: 16),
-                trailing!,
-              ],
+              if (trailing != null) ...[const SizedBox(width: 16), trailing!],
             ],
           ),
         ),

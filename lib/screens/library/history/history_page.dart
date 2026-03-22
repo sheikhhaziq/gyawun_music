@@ -118,14 +118,18 @@ class _HistoryBody extends StatelessWidget {
                             );
 
                             if (confirm && context.mounted) {
-                              context.read<HistoryCubit>().remove(
-                                song['videoId'],
-                              );
+                              context.read<HistoryCubit>().remove(song);
+                            } else {
+                              handler(false);
                             }
                           },
                         ),
                       ],
-                      child: SongTile(song: song),
+                      child: SongTile(
+                        song: song,
+                        isFirst: index == 0,
+                        isLast: index == songs.length - 1,
+                      ),
                     ),
                   );
                 }, childCount: songs.length),

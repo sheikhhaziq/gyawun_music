@@ -170,13 +170,15 @@ class ExpressiveSheet {
                                     width: 2.5,
                                   )
                                 : Border.all(
-                                    color: colorScheme.outline.withOpacity(0.1),
+                                    color: colorScheme.outline.withValues(
+                                      alpha: 0.1,
+                                    ),
                                     width: 1,
                                   ),
                             boxShadow: isSelected
                                 ? [
                                     BoxShadow(
-                                      color: color.withOpacity(0.4),
+                                      color: color.withValues(alpha: 0.4),
                                       blurRadius: 8,
                                       spreadRadius: 1,
                                     ),

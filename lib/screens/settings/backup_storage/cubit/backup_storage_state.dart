@@ -3,21 +3,25 @@ part of 'backup_storage_cubit.dart';
 @immutable
 class BackupStorageState {
   final String appFolder;
+  final String defaultPath;
 
   /// one-shot results
   final BackupResult? lastResult;
 
   const BackupStorageState({
     required this.appFolder,
+    required this.defaultPath,
     this.lastResult,
   });
 
   BackupStorageState copyWith({
     String? appFolder,
+    String? defaultPath,
     BackupResult? lastResult,
   }) {
     return BackupStorageState(
       appFolder: appFolder ?? this.appFolder,
+      defaultPath: defaultPath ?? this.defaultPath,
       lastResult: lastResult,
     );
   }

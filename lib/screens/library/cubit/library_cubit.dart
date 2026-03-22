@@ -1,33 +1,34 @@
 import 'package:bloc/bloc.dart';
 import 'package:flutter/foundation.dart';
-import 'package:hive_flutter/hive_flutter.dart';
+import 'package:get_it/get_it.dart';
+import 'package:gyawun/services/download_manager.dart';
+import 'package:gyawun/services/favourites_manager.dart';
 
 import '../../../../services/library.dart';
+import '../../../services/history_manager.dart';
 
 part 'library_state.dart';
 
 class LibraryCubit extends Cubit<LibraryState> {
   final LibraryService libraryService;
 
-  late final Box _libraryBox;
-  late final Box _favouritesBox;
-  late final Box _downloadsBox;
-  late final Box _historyBox;
+  late final FavouritesManager _favouritesManager;
+  late final DownloadManager _downloadsManager;
+  late final SongHistory _songHistory;
 
   late final VoidCallback _listener;
 
   LibraryCubit(this.libraryService) : super(const LibraryLoading()) {
-    _libraryBox = Hive.box('LIBRARY');
-    _favouritesBox = Hive.box('FAVOURITES');
-    _downloadsBox = Hive.box('DOWNLOADS');
-    _historyBox = Hive.box('SONG_HISTORY');
+    _favouritesManager = GetIt.I<FavouritesManager>();
+    _downloadsManager = GetIt.I<DownloadManager>();
+    _songHistory = GetIt.I<HistoryManager>().songs;
 
     _listener = _emitCurrentState;
 
-    _libraryBox.listenable().addListener(_listener);
-    _favouritesBox.listenable().addListener(_listener);
-    _downloadsBox.listenable().addListener(_listener);
-    _historyBox.listenable().addListener(_listener);
+    libraryService.addListener(_listener);
+    _favouritesManager.listenable.addListener(_listener);
+    _downloadsManager.downloadsNotifier.addListener(_listener);
+    _songHistory.listenable.addListener(_listener);
   }
 
   void loadLibrary() {
@@ -36,15 +37,14 @@ class LibraryCubit extends Cubit<LibraryState> {
 
   void _emitCurrentState() {
     try {
-      final downloadedCount =
-          _downloadsBox.values.where((e) => e['status'] == 'DOWNLOADED').length;
+      final downloadedCount = _downloadsManager.downloads.length;
 
       emit(
         LibraryLoaded(
           playlists: libraryService.playlists,
-          favouritesCount: _favouritesBox.length,
+          favourites: _favouritesManager.playlist,
           downloadsCount: downloadedCount,
-          historyCount: _historyBox.length,
+          historyCount: _songHistory.count,
         ),
       );
     } catch (e) {
@@ -54,10 +54,10 @@ class LibraryCubit extends Cubit<LibraryState> {
 
   @override
   Future<void> close() {
-    _libraryBox.listenable().removeListener(_listener);
-    _favouritesBox.listenable().removeListener(_listener);
-    _downloadsBox.listenable().removeListener(_listener);
-    _historyBox.listenable().removeListener(_listener);
+    libraryService.removeListener(_listener);
+    _favouritesManager.listenable.removeListener(_listener);
+    _downloadsManager.downloadsNotifier.removeListener(_listener);
+    _songHistory.listenable.removeListener(_listener);
     return super.close();
   }
 }

@@ -2,7 +2,6 @@ import 'dart:io';
 
 import 'package:easy_folder_picker/FolderPicker.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gyawun/core/widgets/expressive_app_bar.dart';
@@ -11,6 +10,7 @@ import 'package:gyawun/core/widgets/expressive_list_tile.dart';
 import 'package:gyawun/screens/settings/widgets/color_icon.dart';
 
 import '../../../generated/l10n.dart';
+import '../../../themes/text_styles.dart';
 import '../../../utils/bottom_modals.dart';
 import '../../../services/bottom_message.dart';
 
@@ -90,10 +90,15 @@ class _BackupStoragePage extends StatelessWidget {
                             trailing: FilledButton.tonal(
                               child: const Text('Change'),
                               onPressed: () async {
+                                final appFolder = Directory(state.appFolder);
+                                final rootDirectory = await appFolder.exists()
+                                    ? appFolder
+                                    : Directory(state.defaultPath);
+                                if (!context.mounted) return;
                                 final dir = await FolderPicker.pick(
                                   context: context,
                                   allowFolderCreation: true,
-                                  rootDirectory: Directory(state.appFolder),
+                                  rootDirectory: rootDirectory,
                                 );
                                 if (dir != null) {
                                   cubit.setAppFolder(dir.path);
@@ -148,8 +153,11 @@ class _BackupStoragePage extends StatelessWidget {
 /* ──────────────────────────────────────────────────────────────── */
 
 Future<(String, List)?> showBackupSelector(BuildContext context) async {
-  return await showCupertinoModalPopup<(String, List)?>(
+  return await showModalBottomSheet(
     useRootNavigator: false,
+    backgroundColor: Colors.transparent,
+    useSafeArea: true,
+    isScrollControlled: true,
     context: context,
     builder: (context) {
       final items = ValueNotifier<List<Map<String, dynamic>>>([
@@ -161,15 +169,14 @@ Future<(String, List)?> showBackupSelector(BuildContext context) async {
       ]);
 
       return BottomModalLayout(
+        title: Text(
+          S.of(context).Select_Backup,
+          style: mediumTextStyle(context),
+        ),
         child: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              AppBar(
-                title: Text(S.of(context).Select_Backup),
-                centerTitle: true,
-                automaticallyImplyLeading: false,
-              ),
               const Divider(),
               ValueListenableBuilder(
                 valueListenable: items,

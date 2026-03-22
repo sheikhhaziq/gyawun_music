@@ -18,7 +18,9 @@ class SectionRowTile extends StatelessWidget {
         item['aspectRatio'] != null && item['aspectRatio'] != 1;
     final imageWidth = (isHorizontal ? imageHeight * (16 / 9) : imageHeight)
         .toInt();
-    final thumbnail = item['thumbnails'][1]['url'];
+    final thumbnail = (item['thumbnails'] as List).length > 2
+        ? item['thumbnails'][1]['url']
+        : item['thumbnails'][0]['url'];
     return Material(
       color: Colors.transparent,
       elevation: 0,
@@ -50,7 +52,7 @@ class SectionRowTile extends StatelessWidget {
         },
         child: RepaintBoundary(
           child: SizedBox(
-            height:  216,
+            height: 216,
             width: imageWidth.toDouble() + 16,
             child: Padding(
               padding: const EdgeInsets.all(8.0),

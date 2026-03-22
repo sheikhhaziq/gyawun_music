@@ -4,7 +4,7 @@ import 'package:audiotags/audiotags.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/services.dart';
 import 'package:get_it/get_it.dart';
-import 'package:hive_flutter/hive_flutter.dart';
+import 'package:gyawun/services/download_manager.dart';
 import 'package:http/http.dart';
 import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
@@ -13,33 +13,24 @@ import 'package:path/path.dart' as path;
 import 'package:share_plus/share_plus.dart';
 
 import '../utils/enhanced_image.dart';
+import 'history_manager.dart';
 import 'library.dart';
 import 'settings_manager.dart';
+import 'favourites_manager.dart';
 
 class FileStorage {
-  static bool _initialised = false;
   static final String defaultPath = '/storage/emulated/0/Download/';
-  static late StoragePaths _storagePaths;
-  late StoragePaths storagePaths;
-  FileStorage() {
-    if (!_initialised) {
-      throw 'file Storage is Not Initialised. try calling `await FileStorage.initialise()`';
-    }
-    storagePaths = _storagePaths;
+  late StoragePaths _storagePaths;
+  FileStorage._();
+
+  static Future<FileStorage> create() async {
+    final instance = FileStorage._();
+    await instance.setupPaths();
+    return instance;
   }
 
-  static Future<void> initialise() async {
-    Directory directory = Directory("dir");
-    if (Platform.isAndroid) {
-      directory = Directory(Hive.box('SETTINGS')
-          .get('APP_FOLDER', defaultValue: FileStorage.defaultPath));
-    } else if (Platform.isWindows) {
-      directory =
-          Directory(path.join((await getDownloadsDirectory())!.path, 'Gyawun'));
-    } else {
-      directory = await getApplicationDocumentsDirectory();
-    }
-
+  Future<void> setupPaths() async {
+    Directory directory = await _getAppDirectory();
     _storagePaths = StoragePaths(
       basePath: directory.path,
       backupPath: path.join(directory.path, 'Back Up'),
@@ -47,36 +38,13 @@ class FileStorage {
     );
     await _getDirectory(_storagePaths.backupPath);
     await _getDirectory(_storagePaths.musicPath);
-    _initialised = true;
-  }
-
-  Future<void> updateDirectories() async {
-    Directory directory = Directory("dir");
-    if (Platform.isAndroid) {
-      directory = Directory(Hive.box('SETTINGS')
-              .get('APP_FOLDER', defaultValue: FileStorage.defaultPath) +
-          '/Gyawun');
-    } else if (Platform.isWindows) {
-      directory =
-          Directory(path.join((await getDownloadsDirectory())!.path, 'Gyawun'));
-    } else {
-      directory = await getApplicationDocumentsDirectory();
-    }
-    storagePaths = StoragePaths(
-      basePath: directory.path,
-      backupPath: path.join(directory.path, 'Back Up'),
-      musicPath: path.join(directory.path, 'Music'),
-    );
-    await _getDirectory(_storagePaths.backupPath);
-    await _getDirectory(_storagePaths.musicPath);
-    _initialised = true;
   }
 
   Future<String> saveBackUp(Map data) async {
     String timestamp = DateFormat('yyyyMMdd_HHmmss').format(DateTime.now());
     String fileName = '${timestamp}_backup';
     if (!(await requestPermissions())) return "";
-    Directory directory = await _getDirectory(storagePaths.backupPath);
+    Directory directory = await _getDirectory(_storagePaths.backupPath);
 
     String filePath = path.join(directory.path, '$fileName.json');
     File file = File(filePath);
@@ -95,11 +63,12 @@ class FileStorage {
     String timestamp = DateFormat('yyyyMMdd_HHmmss').format(DateTime.now());
     String fileName = '${timestamp}_backup.json';
     try {
-      final params = ShareParams(files: [
-        XFile.fromData(utf8.encode(jsonEncode(data)), mimeType: 'text/plain')
-      ], fileNameOverrides: [
-        fileName
-      ]);
+      final params = ShareParams(
+        files: [
+          XFile.fromData(utf8.encode(jsonEncode(data)), mimeType: 'text/plain'),
+        ],
+        fileNameOverrides: [fileName],
+      );
       ShareResult result = await SharePlus.instance.share(params);
       return result.raw;
     } catch (e) {
@@ -113,7 +82,7 @@ class FileStorage {
     fileName = fileName.replaceAll(avoid, '').replaceAll("'", '');
     //fileName = Uri.decodeFull(fileName);
     if (!(await requestPermissions())) return null;
-    Directory directory = await _getDirectory(storagePaths.musicPath);
+    Directory directory = await _getDirectory(_storagePaths.musicPath);
 
     File file = File(path.join(directory.path, '$fileName.$extension'));
     int number = 1;
@@ -129,18 +98,18 @@ class FileStorage {
 
       try {
         Response res = await get(
-            Uri.parse(getEnhancedImage(song['thumbnails'].first['url'])));
+          Uri.parse(getEnhancedImage(song['thumbnails'].first['url'])),
+        );
         Tag tag = Tag(
-            title: song['title'],
-            trackArtist:
-                song['artists']?.map((artist) => artist['name']).join(','),
-            album: song['album']?['name'],
-            pictures: [
-              Picture(
-                bytes: res.bodyBytes,
-                pictureType: PictureType.coverFront,
-              )
-            ]);
+          title: song['title'],
+          trackArtist: song['artists']
+              ?.map((artist) => artist['name'])
+              .join(','),
+          album: song['album']?['name'],
+          pictures: [
+            Picture(bytes: res.bodyBytes, pictureType: PictureType.coverFront),
+          ],
+        );
         await AudioTags.write(file.path, tag);
       } catch (e) {
         await file.writeAsBytes(data, flush: true);
@@ -154,7 +123,7 @@ class FileStorage {
   Future<bool> loadBackup() async {
     if (!(await requestPermissions())) return false;
     FilePickerResult? picker = await FilePicker.platform.pickFiles(
-      initialDirectory: storagePaths.backupPath,
+      initialDirectory: _storagePaths.backupPath,
       allowMultiple: false,
       withData: true,
       type: FileType.custom,
@@ -177,27 +146,35 @@ class FileStorage {
       // await GetIt.I<YTMusic>().refreshHeaders();
     }
     if (favourites != null) {
-      await Future.forEach(favourites.entries, (entry) async {
-        Hive.box('FAVOURITES').put(entry.key, entry.value);
-      });
+      await GetIt.I<FavouritesManager>().setFavourites(favourites);
     }
     if (playlists != null) {
       await GetIt.I<LibraryService>().setPlaylists(playlists);
     }
     if (history != null) {
-      await Future.forEach(history.entries, (entry) async {
-        Hive.box('SONG_HISTORY').put(entry.key, entry.value);
-      });
+      await GetIt.I<HistoryManager>().songs.setHistory(history);
     }
     if (downloads != null) {
-      await Future.forEach(downloads.entries, (entry) async {
-        Hive.box('DOWNLOADS').put(entry.key, entry.value);
-      });
+      await GetIt.I<DownloadManager>().setDownloads(downloads);
     }
     return true;
   }
 
-  static Future<Directory> _getDirectory(String pathString) async {
+  Future<Directory> _getAppDirectory() async {
+    if (Platform.isAndroid) {
+      return Directory(
+        path.join(GetIt.I<SettingsManager>().appFolder, 'Gyawun'),
+      );
+    }
+    if (Platform.isWindows) {
+      return Directory(
+        path.join((await getDownloadsDirectory())!.path, 'Gyawun'),
+      );
+    }
+    return await getApplicationDocumentsDirectory();
+  }
+
+  Future<Directory> _getDirectory(String pathString) async {
     Directory dir = Directory(pathString);
     if (!(await dir.exists())) {
       await dir.create(recursive: true);
@@ -205,7 +182,7 @@ class FileStorage {
     return dir;
   }
 
-  static Future<bool> requestPermissions() async {
+  Future<bool> requestPermissions() async {
     if (Platform.isWindows || Platform.isMacOS || Platform.isLinux) {
       // Desktop platforms do not need permission
       return true;
@@ -247,10 +224,11 @@ class FileStorage {
   }
 
   // Helper function to get Android SDK version
-  static Future<int?> _getAndroidSdkInt() async {
+  Future<int?> _getAndroidSdkInt() async {
     try {
-      final String? sdkString = await MethodChannel('flutter/platform')
-          .invokeMethod<String>('SystemNavigator.getPlatformVersion');
+      final String? sdkString = await MethodChannel(
+        'flutter/platform',
+      ).invokeMethod<String>('SystemNavigator.getPlatformVersion');
       if (sdkString != null) {
         final match = RegExp(r'Android (\d+)').firstMatch(sdkString);
         if (match != null) return int.tryParse(match.group(1)!);
@@ -264,8 +242,9 @@ class StoragePaths {
   String basePath;
   String backupPath;
   String musicPath;
-  StoragePaths(
-      {required this.basePath,
-      required this.backupPath,
-      required this.musicPath});
+  StoragePaths({
+    required this.basePath,
+    required this.backupPath,
+    required this.musicPath,
+  });
 }

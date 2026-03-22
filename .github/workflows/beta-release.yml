@@ -1,15 +1,13 @@
 name: Beta Release
 
 on:
-  pull_request:
-    branches:
-      - beta
-    types:
-      - closed
+  push:
+    tags:
+      - 'v*-beta.*'
 
 jobs:
   beta-release:
-    if: github.event.pull_request.merged == true
+    if: "contains(github.ref, '-beta.')"
     runs-on: ubuntu-latest
     outputs:
       release_tag: ${{ steps.app_version.outputs.version }}
@@ -21,6 +19,14 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Validate tag is on beta branch
+        run: |
+          if ! git branch -r --contains "${{ github.ref_name }}" | grep -q 'origin/beta'; then
+            echo "❌ Tag ${{ github.ref_name }} is not on the beta branch"
+            exit 1
+          fi
+          echo "✅ Tag is on beta branch"
+
       - name: Read FVM version
         id: fvm_version
         run: |
@@ -28,31 +34,29 @@ jobs:
           echo "version=$FVM_VERSION" >> $GITHUB_OUTPUT
           echo "Flutter version from FVM: $FVM_VERSION"
 
-      - name: Validate pubspec placeholder version
-        run: |
-          if ! grep -qE '^version: .+\+0$' pubspec.yaml; then
-            echo "❌ Error: pubspec.yaml must use X.Y.Z+0"
-            exit 1
-          fi
-          echo "✅ pubspec.yaml placeholder version confirmed"
-
-      - name: Set beta version
+      - name: Read and validate beta version
         id: app_version
         run: |
-          BASE_VERSION=$(grep '^version:' pubspec.yaml | awk '{print $2}' | cut -d'+' -f1)
+          TAG="${{ github.ref_name }}"       # e.g. v1.2.0-beta.1
+          VERSION="${TAG#v}"                  # e.g. 1.2.0-beta.1
 
-          LEGACY_BASE=100
-          BETA_SEQ=${{ github.run_number }}
-          VERSION_CODE=$((LEGACY_BASE + BETA_SEQ))
+          if [[ ! "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+-beta\.[0-9]+$ ]]; then
+            echo "❌ Tag must follow vX.Y.Z-beta.N format, got: $TAG"
+            exit 1
+          fi
 
-          FINAL_VERSION="$BASE_VERSION-beta.$BETA_SEQ+$VERSION_CODE"
+          VERSION_CODE=$(grep '^version:' pubspec.yaml | awk '{print $2}' | cut -d'+' -f2)
 
-          sed -i "s/^version:.*/version: $FINAL_VERSION/" pubspec.yaml
+          if [[ -z "$VERSION_CODE" || "$VERSION_CODE" == "0" ]]; then
+            echo "❌ pubspec.yaml must have a valid build number (not 0)"
+            exit 1
+          fi
 
-          echo "version=$BASE_VERSION-beta.$BETA_SEQ" >> $GITHUB_OUTPUT
+          sed -i "s/^version:.*/version: $VERSION+$VERSION_CODE/" pubspec.yaml
+
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "build=$VERSION_CODE" >> $GITHUB_OUTPUT
-
-          echo "✅ Beta version set to: $FINAL_VERSION"
+          echo "✅ Beta version: $VERSION+$VERSION_CODE"
 
       - name: Setup Flutter with FVM
         uses: kuhnroyal/flutter-fvm-config-action/setup@v3
@@ -72,38 +76,37 @@ jobs:
 
       - name: Install dependencies
         run: flutter pub get
-        
+
       - name: Generate Splash Screen
         run: dart run flutter_native_splash:create
 
       - name: Build Android APK (Beta - Universal)
         run: flutter build apk --flavor beta --release
-      
+
       - name: Build Android APK (Beta - Split per ABI)
         run: flutter build apk --flavor beta --release --split-per-abi
-      
+
       - name: Rename build artifacts
         run: |
           mkdir -p releases
+          V=${{ steps.app_version.outputs.version }}
 
-          # Universal
           cp build/app/outputs/flutter-apk/app-beta-release.apk \
-             releases/gyawun-beta-v${{ steps.app_version.outputs.version }}-universal.apk
+             releases/gyawun-beta-v${V}-universal.apk
 
-          # Split APKs (consistent ordering with alpha)
           cp build/app/outputs/flutter-apk/app-arm64-v8a-beta-release.apk \
-             releases/gyawun-beta-v${{ steps.app_version.outputs.version }}-arm64-v8a.apk
+             releases/gyawun-beta-v${V}-arm64-v8a.apk
 
           cp build/app/outputs/flutter-apk/app-armeabi-v7a-beta-release.apk \
-             releases/gyawun-beta-v${{ steps.app_version.outputs.version }}-armeabi-v7a.apk
+             releases/gyawun-beta-v${V}-armeabi-v7a.apk
 
           cp build/app/outputs/flutter-apk/app-x86_64-beta-release.apk \
-             releases/gyawun-beta-v${{ steps.app_version.outputs.version }}-x86_64.apk
+             releases/gyawun-beta-v${V}-x86_64.apk
 
       - name: Create Beta Pre-Release
         uses: softprops/action-gh-release@v1
         with:
-          tag_name: v${{ steps.app_version.outputs.version }}
+          tag_name: ${{ github.ref_name }}
           name: Beta v${{ steps.app_version.outputs.version }}
           prerelease: true
           draft: false
@@ -140,11 +143,6 @@ jobs:
             - Beta quality – expect some bugs
             - Please report issues on GitHub
             - Backup your data before testing
-
-            ---
-
-            ### 📝 Changes
-            ${{ github.event.pull_request.body }}
           files: |
             releases/gyawun-beta-v${{ steps.app_version.outputs.version }}-universal.apk
             releases/gyawun-beta-v${{ steps.app_version.outputs.version }}-arm64-v8a.apk
@@ -152,16 +150,3 @@ jobs:
             releases/gyawun-beta-v${{ steps.app_version.outputs.version }}-x86_64.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-  notify-telegram:
-    needs: beta-release
-    uses: ./.github/workflows/notify-telegram.yml
-    with:
-      release_tag: v${{ needs.beta-release.outputs.release_tag }}
-      release_channel: ${{ needs.beta-release.outputs.release_channel }}
-    secrets:
-      TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-      TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
-      TELEGRAM_TOPIC_ALPHA: ${{ secrets.TELEGRAM_TOPIC_ALPHA }}
-      TELEGRAM_TOPIC_BETA: ${{ secrets.TELEGRAM_TOPIC_BETA }}
-      TELEGRAM_TOPIC_STABLE: ${{ secrets.TELEGRAM_TOPIC_STABLE }}

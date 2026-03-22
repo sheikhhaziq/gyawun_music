@@ -1,43 +1,47 @@
 import 'package:bloc/bloc.dart';
-import 'package:hive_flutter/hive_flutter.dart';
+import 'package:get_it/get_it.dart';
+import 'package:gyawun/services/settings_manager.dart';
+
+import '../../../../services/history_manager.dart';
 
 part 'privacy_state.dart';
 
 class PrivacyCubit extends Cubit<PrivacyState> {
+  late final SettingsManager _settingsManager;
+  late final HistoryManager _historyManager;
+
   PrivacyCubit() : super(PrivacyState.initial()) {
+    _settingsManager = GetIt.I<SettingsManager>();
+    _historyManager = GetIt.I<HistoryManager>();
     _load();
   }
-
-  final Box _settings = Hive.box('SETTINGS');
-  final Box _songHistory = Hive.box('SONG_HISTORY');
-  final Box _searchHistory = Hive.box('SEARCH_HISTORY');
 
   void _load() {
     emit(
       state.copyWith(
-        playbackHistory: _settings.get('PLAYBACK_HISTORY', defaultValue: true),
-        searchHistory: _settings.get('SEARCH_HISTORY', defaultValue: true),
+        playbackHistory: _settingsManager.playbackHistory,
+        searchHistory: _settingsManager.searchHistory,
       ),
     );
   }
 
   Future<void> togglePlaybackHistory(bool value) async {
-    await _settings.put('PLAYBACK_HISTORY', value);
+    _settingsManager.playbackHistory = value;
     emit(state.copyWith(playbackHistory: value));
   }
 
   Future<void> toggleSearchHistory(bool value) async {
-    await _settings.put('SEARCH_HISTORY', value);
+    _settingsManager.searchHistory = value;
     emit(state.copyWith(searchHistory: value));
   }
 
   Future<void> clearPlaybackHistory() async {
-    await _songHistory.clear();
+    await _historyManager.songs.clear();
     emit(state.copyWith(lastAction: PrivacyAction.playbackDeleted));
   }
 
   Future<void> clearSearchHistory() async {
-    await _searchHistory.clear();
+    await _historyManager.searches.clear();
     emit(state.copyWith(lastAction: PrivacyAction.searchDeleted));
   }
 

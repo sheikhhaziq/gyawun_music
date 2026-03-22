@@ -6,9 +6,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get_it/get_it.dart';
 import 'package:go_router/go_router.dart';
-import 'package:gyawun/screens/player/widgets/play_pause_buton.dart';
+import 'package:gyawun/screens/player/widgets/play_pause_button.dart';
 import 'package:gyawun/utils/song_thumbnail.dart';
-import 'package:hive_flutter/hive_flutter.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:just_audio_background/just_audio_background.dart';
 import 'package:provider/provider.dart';
@@ -18,6 +17,7 @@ import 'package:yt_music/ytmusic.dart';
 
 import '../../generated/l10n.dart';
 import '../../services/download_manager.dart';
+import '../../services/favourites_manager.dart';
 import '../../services/media_player.dart';
 import '../../themes/colors.dart';
 import '../../themes/dark.dart';
@@ -161,6 +161,7 @@ class _PlayerPageState extends State<PlayerPage> {
                       ),
                     ),
                     child: Scaffold(
+                      resizeToAvoidBottomInset: false,
                       appBar: PreferredSize(
                         preferredSize: AppBar().preferredSize,
                         child: AppBar(
@@ -212,7 +213,9 @@ class _PlayerPageState extends State<PlayerPage> {
                         width: double.maxFinite,
                         child: LayoutBuilder(
                           builder: (context, constraints) {
-                            EdgeInsets padding = MediaQuery.of(context).padding;
+                            EdgeInsets padding = MediaQuery.of(
+                              context,
+                            ).viewPadding;
                             double maxWidth =
                                 constraints.maxWidth -
                                 padding.left -
@@ -280,7 +283,7 @@ class _PlayerPageState extends State<PlayerPage> {
                                   boxShadow: const [],
                                   minHeight:
                                       50 +
-                                      MediaQuery.of(context).padding.bottom,
+                                      MediaQuery.of(context).viewPadding.bottom,
                                   panel: ClipRRect(
                                     borderRadius: const BorderRadius.only(
                                       topLeft: Radius.circular(20),
@@ -311,7 +314,7 @@ class _PlayerPageState extends State<PlayerPage> {
                                                     50 +
                                                     MediaQuery.of(
                                                       context,
-                                                    ).padding.bottom,
+                                                    ).viewPadding.bottom,
                                                 width: double.maxFinite,
                                                 decoration: BoxDecoration(
                                                   color: Theme.of(context)
@@ -399,7 +402,8 @@ class Artwork extends StatelessWidget {
         padding: const EdgeInsets.all(8.0),
         child: song == null
             ? Icon(Icons.music_note, size: width * 0.5)
-            : SafeArea(
+            : Padding(
+                padding: MediaQuery.of(context).viewPadding,
                 child: LayoutBuilder(
                   builder: (context, constraints) {
                     return GestureDetector(
@@ -474,6 +478,7 @@ class NameAndControls extends StatelessWidget {
               children: [
                 TextScroll(
                   song?.title ?? 'Title',
+                  key: Key(song?.title ?? 'Title'),
                   style: bigTextStyle(context, bold: true),
                   mode: TextScrollMode.endless,
                 ),
@@ -506,29 +511,22 @@ class NameAndControls extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
-                    ValueListenableBuilder(
-                      valueListenable: Hive.box('FAVOURITES').listenable(),
-                      builder: (context, value, child) {
-                        Map? item = value.get(song?.extras?['videoId']);
+                    ListenableBuilder(
+                      listenable: GetIt.I<FavouritesManager>().listenable,
+                      builder: (context, child) {
                         return AdaptiveIconButton(
                           icon: Icon(
-                            item == null
-                                ? AdaptiveIcons.heart
-                                : AdaptiveIcons.heart_fill,
+                            GetIt.I<FavouritesManager>().isFavourite(
+                                  song?.extras,
+                                )
+                                ? AdaptiveIcons.heart_fill
+                                : AdaptiveIcons.heart,
                             size: 30,
                           ),
                           onPressed: () async {
-                            if (item == null) {
-                              await Hive.box(
-                                'FAVOURITES',
-                              ).put(song!.extras!['videoId'], {
-                                ...song!.extras!,
-                                'createdAt':
-                                    DateTime.now().millisecondsSinceEpoch,
-                              });
-                            } else {
-                              await value.delete(song!.extras!['videoId']);
-                            }
+                            GetIt.I<FavouritesManager>().addOrRemove(
+                              song?.extras,
+                            );
                           },
                         );
                       },
@@ -575,12 +573,13 @@ class NameAndControls extends StatelessWidget {
               children: [
                 if (song != null)
                   RepaintBoundary(
-                    child: ValueListenableBuilder(
-                      valueListenable: Hive.box(
-                        'DOWNLOADS',
-                      ).listenable(keys: [song!.id]),
-                      builder: (context, box, child) {
-                        final Map? item = box.get(song!.id);
+                    child: ListenableBuilder(
+                      listenable: GetIt.I<DownloadManager>().songListenable(
+                        song!.id,
+                      ),
+                      builder: (context, child) {
+                        final Map? item = GetIt.I<DownloadManager>()
+                            .getDownload(song!.id);
                         if (item != null) {
                           if (item['status'] == 'DOWNLOADING') {
                             final notifier =
@@ -629,7 +628,7 @@ class NameAndControls extends StatelessWidget {
               ],
             ),
             if (song != null && !isRow)
-              SizedBox(height: 55 + MediaQuery.of(context).padding.bottom),
+              SizedBox(height: 55 + MediaQuery.of(context).viewPadding.bottom),
           ],
         ),
       ),

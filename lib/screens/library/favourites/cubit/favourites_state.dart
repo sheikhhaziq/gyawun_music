@@ -10,9 +10,9 @@ class FavouritesLoading extends FavouritesState {
 }
 
 class FavouritesLoaded extends FavouritesState {
-  final List songs;
+  final Map favourites;
 
-  const FavouritesLoaded(this.songs);
+  const FavouritesLoaded(this.favourites);
 }
 
 class FavouritesError extends FavouritesState {
