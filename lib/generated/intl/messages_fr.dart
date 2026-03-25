@@ -20,6 +20,8 @@ typedef String MessageIfAbsent(String messageStr, List<dynamic> args);
 class MessageLookup extends MessageLookupByLibrary {
   String get localeName => 'fr';
 
+  static String m0(count) => "En attente (${count})";
+
   static String m1(count) =>
       "${Intl.plural(count, zero: 'Pas de Titres', one: '1 Titre', other: '${count} Titres')}";
 
@@ -195,6 +197,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "Playlists": MessageLookupByLibrary.simpleMessage("Playlists"),
     "Progress": MessageLookupByLibrary.simpleMessage("Progrès"),
     "Queued": MessageLookupByLibrary.simpleMessage("En attente"),
+    "QueuedCount": m0,
     "Remove": MessageLookupByLibrary.simpleMessage("Supprimer"),
     "Remove_All_History_Message": MessageLookupByLibrary.simpleMessage(
       "Êtes-vous sûr de vouloir effacer tout l\'historique ?",
