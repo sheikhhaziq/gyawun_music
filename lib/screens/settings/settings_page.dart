@@ -189,7 +189,11 @@ class _BatteryWarningTile extends StatelessWidget {
     return ListTile(
       tileColor: Theme.of(context).colorScheme.errorContainer.withAlpha(200),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25)),
-      leading: const ColorIcon(icon: Icons.battery_alert, color: Colors.red),
+      leading: ColorIcon(
+        icon: Icons.battery_alert,
+        boxColor: Colors.red,
+        iconColor: Colors.white.withAlpha(255),
+      ),
       title: Text(
         S.of(context).Battery_Optimisation_title,
         style: TextStyle(color: Theme.of(context).colorScheme.onErrorContainer),
@@ -219,7 +223,11 @@ void showPaymentsModal(BuildContext context) {
         SizedBox(
           height: 40,
           width: 40,
-          child: ColorIcon(color: Colors.accents[14], icon: Icons.money),
+          child: ColorIcon(
+            boxColor: Colors.accents[14],
+            iconColor: Colors.white.withAlpha(255),
+            icon: Icons.money,
+          ),
         ),
       ],
     ),

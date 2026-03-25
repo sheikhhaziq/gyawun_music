@@ -294,9 +294,10 @@ class _SearchSectionItem extends StatelessWidget {
                 section['title'] ?? isFirst
                     ? S().Top_Results
                     : S().Other_Results,
-                style: const TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
+                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                  color: Theme.of(context).colorScheme.primary,
+                  fontWeight: FontWeight.w700,
+                  fontSize: 18,
                 ),
               ),
               trailing: section['trailing']?['text'] != null
