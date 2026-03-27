@@ -60,7 +60,7 @@ android {
             resValue("string", "app_name", "Gyawun Music Beta")
         }
 
-        create("production") {
+        create("stable") {
             dimension = "default"
             resValue("string", "app_name", "Gyawun Music")
         }

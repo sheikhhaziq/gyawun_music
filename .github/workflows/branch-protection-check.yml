@@ -3,7 +3,7 @@ name: Branch Protection Check
 on:
   pull_request:
     branches:
-      - main
+      - stable
       - beta
 
 jobs:
@@ -11,11 +11,11 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-      - name: Check PR to main is from beta
-        if: github.base_ref == 'main'
+      - name: Check PR to stable is from beta
+        if: github.base_ref == 'stable'
         run: |
           if [ "${{ github.head_ref }}" != "beta" ]; then
-            echo "❌ Error: Pull requests to 'main' branch must come from 'beta' branch only."
+            echo "❌ Error: Pull requests to 'stable' branch must come from 'beta' branch only."
             echo "Current source: ${{ github.head_ref }}"
             exit 1
           fi

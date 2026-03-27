@@ -127,18 +127,6 @@ jobs:
 
             ---
 
-            ### 📦 Available Downloads
-
-            📱 **Universal APK**
-            - `gyawun-beta-v${{ steps.app_version.outputs.version }}-universal.apk`
-
-            🎯 **Architecture-Specific APKs**
-            - `gyawun-beta-v${{ steps.app_version.outputs.version }}-arm64-v8a.apk`
-            - `gyawun-beta-v${{ steps.app_version.outputs.version }}-armeabi-v7a.apk`
-            - `gyawun-beta-v${{ steps.app_version.outputs.version }}-x86_64.apk`
-
-            ---
-
             ### 🧪 Testing Notes
             - Beta quality – expect some bugs
             - Please report issues on GitHub
