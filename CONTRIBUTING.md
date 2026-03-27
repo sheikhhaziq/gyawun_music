@@ -19,12 +19,12 @@ Please read this document fully before opening a pull request.
 
 This project uses **three long-lived branches**:
 
-### `dev` — Development
+### `main` — Development
 
 - All **active development** happens here
 - Used by the maintainer for **manual testing**
 - May be unstable or incomplete
-- **All pull requests must target `dev`**
+- **All pull requests must target `main`**
 
 ✅ This is the **only branch contributors should use**.
 
@@ -32,7 +32,7 @@ This project uses **three long-lived branches**:
 
 ### `beta` — Pre-release
 
-- Receives changes **only from `dev`**
+- Receives changes **only from `main`**
 - Used for wider testing and early access
 - Merging into `beta`:
   - Automatically publishes a **beta GitHub release**
@@ -42,15 +42,15 @@ This project uses **three long-lived branches**:
 
 ---
 
-### `main` — Stable
+### `stable` — Stable
 
 - Production-ready code only
 - Receives changes **only from `beta`**
-- Merging into `main`:
+- Merging into `stable`:
   - Automatically publishes a **stable GitHub release**
   - Version format: `x.y.z`
 
-🚫 Pull requests to `main` are not accepted.
+🚫 Pull requests to `stable` are not accepted.
 
 ---
 
@@ -61,7 +61,7 @@ This project uses **three long-lived branches**:
 ```bash
 git clone https://github.com/<your-username>/<repo>.git
 cd <repo>
-git checkout dev
+git checkout main
 ```
 
 ---
@@ -93,20 +93,20 @@ flutter analyze
 flutter test
 ```
 
-> Final testing is performed **manually by the maintainer** on the `dev` branch.
+> Final testing is performed **manually by the maintainer** on the `main` branch.
 
 ---
 
 ### 5. Open a Pull Request
 
-- **Base branch:** `dev`
+- **Base branch:** `main`
 - **Compare branch:** your feature/fix branch
 - Clearly explain:
   - What the change does
   - Why it is needed
   - Any user-facing or breaking changes
 
-🚫 PRs targeting `beta` or `main` will be **closed without review**.
+🚫 PRs targeting `beta` or `stable` will be **closed without review**.
 
 ---
 
@@ -114,9 +114,9 @@ flutter test
 
 | Action | Result |
 |------|-------|
-| Merge PR → `dev` | Change queued for manual testing |
-| Merge `dev` → `beta` | Beta release published |
-| Merge `beta` → `main` | Stable release published |
+| Merge PR → `main` | Change queued for manual testing |
+| Merge `main` → `beta` | Beta release published |
+| Merge `beta` → `stable` | Stable release published |
 
 Contributors do **not** need to manage versions, tags, or releases.
 
@@ -141,7 +141,7 @@ Contributors do **not** need to manage versions, tags, or releases.
 
 ## 🔒 Maintainer Notes
 
-- This is a **solo-maintained project**
+- This project is mantained by **Two maintainers**
 - Reviews and merges may take time
 - Large or architectural changes should be discussed **before** implementation
 
