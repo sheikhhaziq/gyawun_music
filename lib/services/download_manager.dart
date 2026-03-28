@@ -70,6 +70,11 @@ class DownloadManager {
     });
   }
 
+  Future<void> reInit() async {
+    await _cleanAndMigrateData();
+    await _refreshData();
+  }
+
   static Future<DownloadManager> create() async {
     final boxName = 'DOWNLOADS';
     await Hive.openBox(boxName);
@@ -418,11 +423,18 @@ class DownloadManager {
     Map? song = _box.get(key);
     final Map playlists = song?['playlists'];
     if (song != null && (playlists.keys.contains(playlistId))) {
-      if (playlists.length == 1) {
+      song['playlists'].remove(playlistId);
+      if (song['playlists'].isEmpty) {
         await _deleteSongInstance(song);
       } else {
-        // Remove playlist from Song Instance
-        song['playlists'].remove(playlistId);
+        if (song['status'] == "QUEUED") {
+          for (var item in _downloadQueue) {
+            if (item['videoId'] == song['videoId']) {
+              item['playlists'] = playlists;
+              break;
+            }
+          }
+        }
         await _box.put(key, song);
       }
     }
@@ -432,7 +444,7 @@ class DownloadManager {
   Future<void> deleteAllSongs() async {
     List<Map> songs = _box.values.toList().cast<Map>();
     for (Map song in songs) {
-      _deleteSongInstance(song);
+      await _deleteSongInstance(song);
     }
   }
 

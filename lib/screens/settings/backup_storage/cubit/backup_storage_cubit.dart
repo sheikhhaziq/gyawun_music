@@ -14,6 +14,8 @@ part 'backup_storage_state.dart';
 class BackupStorageCubit extends Cubit<BackupStorageState> {
   final SettingsManager _settingsManager = GetIt.I<SettingsManager>();
   final FileStorage _fileStorage = GetIt.I<FileStorage>();
+  final DownloadManager _downloadsManager = GetIt.I<DownloadManager>();
+  final LibraryService _library = GetIt.I<LibraryService>();
 
   late final VoidCallback _listener;
 
@@ -45,6 +47,10 @@ class BackupStorageCubit extends Cubit<BackupStorageState> {
 
   Future<void> restore() async {
     final success = await _fileStorage.loadBackup();
+    if (success) {
+      await _downloadsManager.reInit();
+      await _library.reInit();
+    }
     emit(
       state.copyWith(
         lastResult: success ? const RestoreSuccess() : const RestoreFailure(),

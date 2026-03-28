@@ -33,6 +33,12 @@ class LibraryService extends ChangeNotifier {
   );
   Map? getPlaylist(String playlistId) => _box.get(playlistId);
 
+  Future<void> reInit() async {
+    await _migrateLibIcons();
+    _playlists = _box.toMap();
+    notifyListeners();
+  }
+
   Future<void> _migrateLibIcons() async {
     for (final entry in userPlaylists.entries) {
       final id = entry.key;
