@@ -70,6 +70,11 @@ class DownloadManager {
     });
   }
 
+  Future<void> reInit() async {
+    await _cleanAndMigrateData();
+    await _refreshData();
+  }
+
   static Future<DownloadManager> create() async {
     final boxName = 'DOWNLOADS';
     await Hive.openBox(boxName);
