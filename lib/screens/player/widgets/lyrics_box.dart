@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_lyric/lyrics_reader.dart';
+import 'package:flutter_lyric/flutter_lyric.dart';
 import 'package:get_it/get_it.dart';
 import 'package:gyawun/services/lyrics.dart';
 import 'package:gyawun/services/media_player.dart';
@@ -8,6 +8,18 @@ import 'package:gyawun/services/settings_manager.dart';
 import 'package:loading_indicator_m3e/loading_indicator_m3e.dart';
 import 'package:provider/provider.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
+
+class ProgressSource implements LyricProgressSource {
+  @override
+  Duration get position =>
+      GetIt.I<MediaPlayer>().progressBarState.value.current;
+
+  @override
+  bool get isAdvancing => GetIt.I<MediaPlayer>().player.playing;
+
+  @override
+  Stream<void> get changes => GetIt.I<MediaPlayer>().player.positionStream;
+}
 
 class LyricsBox extends StatefulWidget {
   const LyricsBox({required this.currentSong, required this.size, super.key});
@@ -19,13 +31,16 @@ class LyricsBox extends StatefulWidget {
 }
 
 class _LyricsBoxState extends State<LyricsBox> {
+  late LyricController controller;
   Future<Map>? _fetchLyricsFuture;
   bool _lyricsLoaded = false;
 
   @override
   void initState() {
     super.initState();
+    controller = LyricController(progressSource: ProgressSource());
     _initFetchLyrics();
+
     _initWakelock();
   }
 
@@ -125,39 +140,18 @@ class _LyricsBoxState extends State<LyricsBox> {
                           return const Text('No Lyrics');
                         }
                         Map lyrics = snapshot.data!;
+                        controller.load(
+                          lyrics['syncedLyrics'],
+                          translation: lyrics['transLyrics'],
+                        );
                         return ValueListenableBuilder(
                           valueListenable:
                               GetIt.I<MediaPlayer>().progressBarState,
                           builder: (context, progress, child) {
                             try {
-                              return LyricsReader(
-                                padding: EdgeInsets.zero,
-                                position: progress.current.inMilliseconds,
-                                playing: context
-                                    .watch<MediaPlayer>()
-                                    .player
-                                    .playing,
-                                lyricUi: UINetease(
-                                  highlight: false,
-                                  defaultSize: 19,
-                                ),
-                                model: LyricsModelBuilder.create()
-                                    .bindLyricToMain(lyrics['syncedLyrics'])
-                                    .bindLyricToExt(lyrics['transLyrics'])
-                                    .getModel(),
-                                emptyBuilder: () => SingleChildScrollView(
-                                  child: Center(
-                                    child: Text(
-                                      lyrics['plainLyrics'] ?? "No Lyrics",
-                                      style: UINetease(
-                                        highlight: false,
-                                        defaultSize: 19,
-                                      ).getOtherMainTextStyle(),
-                                      textAlign: TextAlign.center,
-                                    ),
-                                  ),
-                                ),
-                                size: widget.size,
+                              return LyricView(
+                                controller: controller,
+                                preset: LyricPresets.appleMusic,
                               );
                             } catch (e) {
                               debugPrint("Error parsing lyrics: $e");
@@ -165,10 +159,7 @@ class _LyricsBoxState extends State<LyricsBox> {
                                 child: Center(
                                   child: Text(
                                     lyrics['plainLyrics'] ?? "No Lyrics",
-                                    style: UINetease(
-                                      highlight: false,
-                                      defaultSize: 19,
-                                    ).getOtherMainTextStyle(),
+
                                     textAlign: TextAlign.center,
                                   ),
                                 ),

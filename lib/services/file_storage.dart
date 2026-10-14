@@ -122,7 +122,7 @@ class FileStorage {
 
   Future<bool> loadBackup() async {
     if (!(await requestPermissions())) return false;
-    FilePickerResult? picker = await FilePicker.platform.pickFiles(
+    FilePickerResult? picker = await FilePicker.pickFiles(
       initialDirectory: _storagePaths.backupPath,
       allowMultiple: false,
       withData: true,

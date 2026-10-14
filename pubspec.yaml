@@ -11,9 +11,9 @@ dependencies:
   flutter_localizations:
     sdk: flutter
 
-  cupertino_icons: ^1.0.6
-  go_router: ^16.2.4
-  google_fonts: ^6.2.1
+  cupertino_icons: ^2.0.0
+  go_router: ^18.0.2
+  google_fonts: ^9.0.0
   intl: any
   http: ^1.5.0
   hive: ^2.2.3
@@ -22,9 +22,9 @@ dependencies:
     git:
       url: https://github.com/sheikhhaziq/youtube_explode_dart.git
   expandable_page_view: ^1.0.17
-  get_it: ^8.0.3
-  cached_network_image: ^3.3.1
-  flutter_typeahead: ^5.2.0
+  get_it: ^9.3.0
+  cached_network_image: ^4.0.4
+  flutter_typeahead: ^6.0.0
   expandable_text: ^2.3.0
   salomon_bottom_bar: ^3.3.2
   share_plus: ^12.0.0
@@ -42,13 +42,13 @@ dependencies:
   path_provider: ^2.1.3
   
   path: ^1.9.0
-  file_picker: ^10.1.9
+  file_picker: ^11.0.3
   dynamic_color: ^1.7.0
   audiotags: ^1.4.3
   pub_semver: ^2.1.4
   device_info_plus: ^12.1.0
-  flutter_expandable_fab: ^2.1.0
-  flutter_lyric: ^2.0.4+6
+  flutter_expandable_fab: ^3.0.0
+  flutter_lyric: ^4.1.0
   media_kit_libs_windows_audio: any
   media_kit_libs_linux: any
   just_audio_media_kit: ^2.0.6
@@ -58,14 +58,14 @@ dependencies:
       url: https://github.com/sheikhhaziq/receive_sharing_intent.git
   fl_toast: ^3.2.0 # Discontinued
   flutter_colorpicker: ^1.1.0
-  easy_folder_picker: ^1.3.3
-  permission_handler: ^11.4.0
+  easy_folder_picker: ^1.3.4
+
   http_server: ^1.0.0
   rxdart: ^0.28.0
   translator: ^1.0.4+1
   language_detector: ^1.0.1
   wakelock_plus: ^1.4.0
-  internet_connection_checker_plus: ^2.9.1
+  internet_connection_checker_plus: ^3.1.2
   collection: ^1.19.1
   flutter_bloc: ^9.1.1
   bloc: ^9.2.0
@@ -82,14 +82,15 @@ dependencies:
   fluentui_system_icons: ^1.1.273
   navigation_rail_m3e: ^0.3.5
   m3e_collection: ^0.3.7
-  font_awesome_flutter: ^10.12.0
+  font_awesome_flutter: ^11.0.0
+  permission_handler: ^11.4.0
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^6.0.0
   change_app_package_name: ^1.3.0
-  flutter_native_splash: ^2.4.7
+  # flutter_native_splash: ^2.4.7
   intl_utils: ^2.5.0
 flutter:
   uses-material-design: true

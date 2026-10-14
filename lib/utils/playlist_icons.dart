@@ -13,68 +13,68 @@ class PlaylistIcons {
   );
   static final compactDisc = MaterialPlaylistIcon(
     'compactDisc',
-    FontAwesomeIcons.compactDisc,
+    FontAwesomeIcons.compactDisc.data,
   );
-  static final radio = MaterialPlaylistIcon('radio', FontAwesomeIcons.radio);
+  static final radio = MaterialPlaylistIcon('radio', FontAwesomeIcons.radio.data);
   static final podcast = MaterialPlaylistIcon(
     'podcast',
-    FontAwesomeIcons.podcast,
+    FontAwesomeIcons.podcast.data,
   );
-  static final guitar = MaterialPlaylistIcon('guitar', FontAwesomeIcons.guitar);
-  static final drum = MaterialPlaylistIcon('drum', FontAwesomeIcons.drum);
+  static final guitar = MaterialPlaylistIcon('guitar', FontAwesomeIcons.guitar.data);
+  static final drum = MaterialPlaylistIcon('drum', FontAwesomeIcons.drum.data);
   static final dumbbell = MaterialPlaylistIcon(
     'dumbbell',
-    FontAwesomeIcons.dumbbell,
+    FontAwesomeIcons.dumbbell.data,
   );
   static final personRunning = MaterialPlaylistIcon(
     'person_running',
-    FontAwesomeIcons.personRunning,
+    FontAwesomeIcons.personRunning.data ,
   );
-  static final atom = MaterialPlaylistIcon('atom', FontAwesomeIcons.atom);
+  static final atom = MaterialPlaylistIcon('atom', FontAwesomeIcons.atom.data);
   static final circleRadiation = MaterialPlaylistIcon(
     'circleRadiation',
-    FontAwesomeIcons.circleRadiation,
+    FontAwesomeIcons.circleRadiation.data,
   );
-  static final spa = MaterialPlaylistIcon('spa', FontAwesomeIcons.spa);
-  static final bed = MaterialPlaylistIcon('bed', FontAwesomeIcons.bed);
-  static final sun = MaterialPlaylistIcon('sun', FontAwesomeIcons.sun);
-  static final water = MaterialPlaylistIcon('water', FontAwesomeIcons.water);
-  static final fire = MaterialPlaylistIcon('fire', FontAwesomeIcons.fire);
-  static final wind = MaterialPlaylistIcon('wind', FontAwesomeIcons.wind);
-  static final car = MaterialPlaylistIcon('car', FontAwesomeIcons.car);
+  static final spa = MaterialPlaylistIcon('spa', FontAwesomeIcons.spa.data);
+  static final bed = MaterialPlaylistIcon('bed', FontAwesomeIcons.bed.data);
+  static final sun = MaterialPlaylistIcon('sun', FontAwesomeIcons.sun.data);
+  static final water = MaterialPlaylistIcon('water', FontAwesomeIcons.water.data);
+  static final fire = MaterialPlaylistIcon('fire', FontAwesomeIcons.fire.data);
+  static final wind = MaterialPlaylistIcon('wind', FontAwesomeIcons.wind.data);
+  static final car = MaterialPlaylistIcon('car', FontAwesomeIcons.car.data);
   static final motorcycle = MaterialPlaylistIcon(
     'motorcycle',
-    FontAwesomeIcons.motorcycle,
+    FontAwesomeIcons.motorcycle.data,
   );
-  static final fly = MaterialPlaylistIcon('fly', FontAwesomeIcons.fly);
-  static final dna = MaterialPlaylistIcon('dna', FontAwesomeIcons.dna);
-  static final skull = MaterialPlaylistIcon('skull', FontAwesomeIcons.skull);
-  static final virus = MaterialPlaylistIcon('virus', FontAwesomeIcons.virus);
-  static final flask = MaterialPlaylistIcon('flask', FontAwesomeIcons.flask);
+  static final fly = MaterialPlaylistIcon('fly', FontAwesomeIcons.fly.data);
+  static final dna = MaterialPlaylistIcon('dna', FontAwesomeIcons.dna.data);
+  static final skull = MaterialPlaylistIcon('skull', FontAwesomeIcons.skull.data);
+  static final virus = MaterialPlaylistIcon('virus', FontAwesomeIcons.virus.data);
+  static final flask = MaterialPlaylistIcon('flask', FontAwesomeIcons.flask.data);
   static final faceLaugh = MaterialPlaylistIcon(
     'faceLaugh',
-    FontAwesomeIcons.faceLaugh,
+    FontAwesomeIcons.faceLaugh.data,
   );
   static final faceSadCry = MaterialPlaylistIcon(
     'faceSadCry',
-    FontAwesomeIcons.faceSadCry,
+    FontAwesomeIcons.faceSadCry.data,
   );
-  static final brain = MaterialPlaylistIcon('brain', FontAwesomeIcons.brain);
+  static final brain = MaterialPlaylistIcon('brain', FontAwesomeIcons.brain.data);
   static final earthAmericas = MaterialPlaylistIcon(
     'earthAmericas',
-    FontAwesomeIcons.earthAmericas,
+    FontAwesomeIcons.earthAmericas.data,
   );
   static final heartCrack = MaterialPlaylistIcon(
     'heartCrack',
-    FontAwesomeIcons.heartCrack,
+    FontAwesomeIcons.heartCrack.data,
   );
   static final spotify = MaterialPlaylistIcon(
     'spotify',
-    FontAwesomeIcons.spotify,
+    FontAwesomeIcons.spotify.data,
   );
   static final pizzaSlice = MaterialPlaylistIcon(
     'pizzaSlice',
-    FontAwesomeIcons.pizzaSlice,
+    FontAwesomeIcons.pizzaSlice.data,
   );
   static final pill = PolygonPlaylistIcon('pill', MaterialShapes.pill);
   static final arrow = PolygonPlaylistIcon('arrow', MaterialShapes.arrow);
