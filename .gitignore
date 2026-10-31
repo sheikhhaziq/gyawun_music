@@ -1,68 +1,27 @@
-# Miscellaneous
-*.class
-*.log
-*.pyc
-*.swp
-.DS_Store
-.atom/
-.buildlog/
-.history
-.svn/
-migrate_working_dir/
-
-# IntelliJ related
-*.iml
-*.ipr
-*.iws
-.idea/
-
-# The .vscode folder contains launch configuration and tasks you configure in
-# VS Code which you may wish to be included in version control, so this line
-# is commented out by default.
-#.vscode/
-
-# Flutter/Dart/Pub related
-**/doc/api/
-**/ios/Flutter/.last_build_id
+# Dart / Flutter
 .dart_tool/
+.packages
+build/
 .flutter-plugins
 .flutter-plugins-dependencies
-.packages
 .pub-cache/
 .pub/
-/build/
-**/Gyawun
-**/dist
 
-# Symbolication related
-app.*.symbols
+# Melos
+pubspec_overrides.yaml
+.melos_tool/
 
-# Obfuscation related
-app.*.map.json
+# IDEs
+.idea/
+*.iml
+.vscode/*
+!.vscode/settings.json
+!.vscode/launch.json
 
-# Android Studio will place build artifacts here
-/android/app/debug
-/android/app/profile
-/android/app/release
+# OS
+.DS_Store
+Thumbs.db
 
-**/android/**/gradle-wrapper.jar
-**/android/.gradle
-**/android/captures/
-**/android/gradlew
-**/android/gradlew.bat
-**/android/local.properties
-**/android/key.properties
-**/android/**/GeneratedPluginRegistrant.java
-
-/linux
-/macos
-/windows
-/ios
-/web
-.flatpak-builder
-
-.secrets
-
-# FVM Version Cache
-.fvm/
-repo
+# Coverage / logs
+coverage/
+*.log
