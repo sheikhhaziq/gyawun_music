@@ -14,7 +14,7 @@ typedef JsActionHandler = FutureOr<Object?> Function(
 class JsBridge {
   JsBridge({
     required this.runtime,
-    required this.onAction,
+    this.onAction,
     this.timeout = const Duration(seconds: 30),
   }) {
     if (timeout <= Duration.zero) {
@@ -31,7 +31,7 @@ class JsBridge {
   static const _channel = 'extensionAction';
 
   final JavascriptRuntime runtime;
-  final JsActionHandler onAction;
+  final JsActionHandler? onAction;
 
   final Duration timeout;
 
@@ -85,12 +85,18 @@ class JsBridge {
   Future<String> _receiveAction(dynamic raw) async {
     if (_disposed) return _error('JavaScript connection is disposed');
     try {
+      final handler = onAction;
+      if (handler == null) {
+        throw StateError('No action handler registered');
+      }
+
       final decoded = raw is String ? jsonDecode(raw) : raw;
       if (decoded is! Map) {
         throw const FormatException('Action must be a JSON object');
       }
+
       final action = Map<String, dynamic>.unmodifiable(decoded);
-      final value = await onAction(action);
+      final value = await handler(action);
       return jsonEncode({'ok': true, 'value': value}); // throws if not JSON
     } catch (e) {
       return _error(e.toString());

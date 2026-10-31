@@ -1,7 +1,32 @@
 name: gyawun_music
 publish_to: none
+
 environment:
   sdk: ^3.13.5
+
 workspace:
   - packages/*
   # - apps/*
+
+dev_dependencies:
+  melos: ^7.0.0
+
+melos:
+  scripts:
+    setup:quickjs:
+      run: dart run tools/setup_quickjs.dart
+      description: Build quickjs_engine's native library and link it into test packages.
+
+    analyze:
+      run: dart analyze --fatal-infos
+      exec:
+        concurrency: 4
+      description: Analyze all packages.
+
+    test:
+      run: flutter test
+      exec:
+        concurrency: 1
+      packageFilters:
+        dirExists: test
+      description: Run tests in all packages that have a test directory.
