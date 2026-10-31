@@ -7,11 +7,12 @@ homepage:
 
 environment:
   sdk: ^3.13.5
-  flutter: ">=1.17.0"
+  flutter: ">=3.47.9"
 
 dependencies:
   flutter:
     sdk: flutter
+  quickjs_engine: ^0.1.6
 
 dev_dependencies:
   flutter_test:
