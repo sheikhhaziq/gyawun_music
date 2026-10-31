@@ -15,14 +15,27 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Read Flutter version from .fvmrc
-        id: fvm
-        run: echo "version=$(jq -r '.flutter' .fvmrc)" >> "$GITHUB_OUTPUT"
+      - name: Read versions
+        id: versions
+        run: |
+          flutter_version=$(jq -r '.flutter' .fvmrc)
+          melos_version=$(awk '/^  melos:$/{f=1} f && /^    version:/{gsub(/"/,"",$2); print $2; exit}' pubspec.lock)
+          if [ -z "$flutter_version" ] || [ "$flutter_version" = "null" ]; then
+            echo "Could not read Flutter version from .fvmrc" >&2; exit 1
+          fi
+          if [ -z "$melos_version" ]; then
+            echo "Could not read Melos version from pubspec.lock" >&2; exit 1
+          fi
+          echo "flutter=$flutter_version" >> "$GITHUB_OUTPUT"
+          echo "melos=$melos_version" >> "$GITHUB_OUTPUT"
 
       - uses: subosito/flutter-action@v2
         with:
-          flutter-version: ${{ steps.fvm.outputs.version }}
+          flutter-version: ${{ steps.versions.outputs.flutter }}
           cache: true
+
+      - name: Install Melos
+        run: dart pub global activate melos ${{ steps.versions.outputs.melos }}
 
       - name: Bootstrap
         run: dart run melos bootstrap
@@ -35,20 +48,33 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Read Flutter version from .fvmrc
-        id: fvm
-        run: echo "version=$(jq -r '.flutter' .fvmrc)" >> "$GITHUB_OUTPUT"
+      - name: Read versions
+        id: versions
+        run: |
+          flutter_version=$(jq -r '.flutter' .fvmrc)
+          melos_version=$(awk '/^  melos:$/{f=1} f && /^    version:/{gsub(/"/,"",$2); print $2; exit}' pubspec.lock)
+          if [ -z "$flutter_version" ] || [ "$flutter_version" = "null" ]; then
+            echo "Could not read Flutter version from .fvmrc" >&2; exit 1
+          fi
+          if [ -z "$melos_version" ]; then
+            echo "Could not read Melos version from pubspec.lock" >&2; exit 1
+          fi
+          echo "flutter=$flutter_version" >> "$GITHUB_OUTPUT"
+          echo "melos=$melos_version" >> "$GITHUB_OUTPUT"
 
       - uses: subosito/flutter-action@v2
         with:
-          flutter-version: ${{ steps.fvm.outputs.version }}
+          flutter-version: ${{ steps.versions.outputs.flutter }}
           cache: true
+
+      - name: Install Melos
+        run: dart pub global activate melos ${{ steps.versions.outputs.melos }}
 
       - name: Bootstrap
         run: dart run melos bootstrap
 
       - name: Set up QuickJS native library
-        run: dart run melos run setup:quickjs
+        run: dart run melos setup:quickjs
 
       - name: Test
         run: dart run melos test
