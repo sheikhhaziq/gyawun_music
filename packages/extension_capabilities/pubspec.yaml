@@ -1,0 +1,11 @@
+name: extension_capabilities
+description: Capabilities (storage, logging, network) that Gyawun extensions can use.
+publish_to: none
+resolution: workspace
+
+environment:
+  sdk: ^3.13.5
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
