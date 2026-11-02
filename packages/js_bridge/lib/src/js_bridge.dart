@@ -80,6 +80,24 @@ class JsBridge {
     });
   }
 
+  Future<bool> hasFunction(String functionName) {
+    _ensureOpen();
+    _checkName(functionName);
+    final nameJson = jsonEncode(functionName);
+
+    return _enqueue(() async {
+      final result = runtime.evaluate(
+        'typeof globalThis[$nameJson] === "function"',
+      );
+      if (result.isError) {
+        throw StateError(
+          'JavaScript evaluation failed: ${result.stringResult}',
+        );
+      }
+      return result.stringResult == 'true';
+    });
+  }
+
   /// Handles `sendMessage('extensionAction', ...)` from JS. Never throws;
   /// always returns a JSON envelope.
   Future<String> _receiveAction(dynamic raw) async {
