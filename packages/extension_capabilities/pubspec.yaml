@@ -9,3 +9,8 @@ environment:
 dev_dependencies:
   flutter_test:
     sdk: flutter
+dependencies:
+  http: ^1.6.0
+  js_bridge:
+    path: ../js_bridge
+  quickjs_engine: ^0.1.6
