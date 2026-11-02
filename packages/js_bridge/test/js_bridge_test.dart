@@ -26,6 +26,29 @@ void main() {
     created.clear();
   });
 
+  group('constructor', () {
+    test('rejects a zero timeout', () {
+      expect(
+        () => JsBridge(runtime: createRuntime(), timeout: Duration.zero),
+        throwsArgumentError,
+      );
+    });
+
+    test('rejects a negative timeout', () {
+      expect(
+        () => JsBridge(
+          runtime: createRuntime(),
+          timeout: const Duration(seconds: -1),
+        ),
+        throwsArgumentError,
+      );
+    });
+
+    test('starts open', () {
+      expect(js.isDisposed, isFalse);
+    });
+  });
+
   group('load', () {
     test('defines globals usable by call', () async {
       js.load('function one() { return 1; }');
@@ -222,29 +245,6 @@ void main() {
 }
 
 void main() {
-  group('constructor', () {
-    test('rejects a zero timeout', () {
-      expect(
-        () => JsBridge(runtime: createRuntime(), timeout: Duration.zero),
-        throwsArgumentError,
-      );
-    });
-
-    test('rejects a negative timeout', () {
-      expect(
-        () => JsBridge(
-          runtime: createRuntime(),
-          timeout: const Duration(seconds: -1),
-        ),
-        throwsArgumentError,
-      );
-    });
-
-    test('starts open', () {
-      expect(js.isDisposed, isFalse);
-    });
-  });
-
   group('hasFunction', () {
     test('is true for a defined function', () async {
       js.load('function present() {}');
