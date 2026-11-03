@@ -117,6 +117,75 @@ void main() {
     });
   });
 
+  group('permissions', () {
+    test('only log is granted by default', () async {
+      final host = await start(
+        '(ctx) => ({ keys: () => Object.keys(ctx).sort() })',
+      );
+
+      expect(await host.invoke('keys'), ['log']);
+    });
+
+    test('storage is granted when declared', () async {
+      final host = await start(
+        '(ctx) => ({ keys: () => Object.keys(ctx).sort() })',
+        permissions: {'storage': true},
+      );
+
+      expect(await host.invoke('keys'), ['log', 'storage']);
+    });
+
+    test('http appears when network domains are declared', () async {
+      final host = await start(
+        '(ctx) => ({ keys: () => Object.keys(ctx).sort() })',
+        permissions: {
+          'network': {
+            'domains': ['api.example.com'],
+          },
+        },
+      );
+
+      expect(await host.invoke('keys'), ['http', 'log']);
+    });
+
+    test('log can be turned off', () async {
+      final host = await start(
+        '(ctx) => ({ keys: () => Object.keys(ctx).sort() })',
+        permissions: {'log': false},
+      );
+
+      expect(await host.invoke('keys'), isEmpty);
+    });
+
+    test('storage works when granted', () async {
+      final host = await start(
+        '''
+        (ctx) => ({
+          run: async () => {
+            await ctx.storage.set('k', 1);
+            return ctx.storage.get('k');
+          },
+        })
+      ''',
+        permissions: {'storage': true},
+      );
+
+      expect(await host.invoke('run'), 1);
+    });
+
+    test('an ungranted capability is undefined, not just refused', () async {
+      final host = await start('(ctx) => ({ t: () => typeof ctx.storage })');
+
+      expect(await host.invoke('t'), 'undefined');
+    });
+
+    test('sendMessage is not reachable', () async {
+      final host = await start('(ctx) => ({ t: () => typeof sendMessage })');
+
+      expect(await host.invoke('t'), 'undefined');
+    });
+  });
+
   group('dispose', () {
     test('marks the host as disposed', () async {
       final host = await start('(ctx) => ({ ping: () => 1 })');
