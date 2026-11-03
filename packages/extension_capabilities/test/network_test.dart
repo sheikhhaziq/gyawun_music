@@ -36,7 +36,6 @@ void main() {
     return NetworkCapability(
       policy: DomainPolicy(domains),
       client: client,
-      timeout: timeout,
       maxResponseBytes: maxResponseBytes,
       maxRedirects: maxRedirects,
     );

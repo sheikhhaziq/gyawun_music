@@ -30,11 +30,7 @@ void main() {
   late List<(LogLevel, String)> logs;
 
   JsBridge newBridge(CapabilityRouter router) {
-    js = JsBridge(
-      runtime: createRuntime(),
-      onAction: router.handle,
-      timeout: const Duration(seconds: 5),
-    );
+    js = JsBridge(runtime: createRuntime(), onAction: router.handle);
     created.add(js);
     return js;
   }
