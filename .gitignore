@@ -29,3 +29,6 @@ coverage/
 # FVM Version Cache
 .fvm/
 temps/
+
+#quickjs
+**/native/
