@@ -1,0 +1,21 @@
+name: extension_host
+description: Runs Gyawun extensions from .gmx archives with granted capabilities.
+publish_to: none
+resolution: workspace
+
+environment:
+  sdk: ^3.13.5
+
+dependencies:
+  extension_capabilities:
+    path: ../extension_capabilities
+  gmx:
+    path: ../gmx
+  http: ^1.2.0
+  js_bridge:
+    path: ../js_bridge
+  quickjs_engine: ^0.1.6
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
