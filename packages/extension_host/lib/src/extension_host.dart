@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:extension_capabilities/extension_capabilities.dart';
 import 'package:gmx/gmx.dart';
 import 'package:http/http.dart' as http;
@@ -7,14 +9,25 @@ import 'package:quickjs_engine/quickjs_engine.dart';
 /// Creates the storage backend for one extension. Called once per start.
 typedef StorageFactory = ExtensionStorage Function(String extensionId);
 
+/// Runs one extension from a validated [GmxArchive].
+///
 /// Each host owns its own JS runtime, so a timeout or crash in one extension
-/// can't affect another.
+/// can't affect another. All timeouts live here.
 class ExtensionHost {
-  ExtensionHost._(this.metadata, this._bridge);
+  ExtensionHost._(this.metadata, this._bridge, this._timeout);
 
   final GmxMetadata metadata;
   final JsBridge _bridge;
+  final Duration _timeout;
 
+  /// Builds the capabilities the extension asked for (and nothing else),
+  /// starts a runtime and loads the extension script.
+  ///
+  /// [timeout] bounds each [invoke]. Each capability call made by JS is
+  /// bounded by two thirds of it, so JS gets an error it can handle before
+  /// the call as a whole times out.
+  ///
+  /// Throws [StateError] if the script fails to load.
   static Future<ExtensionHost> start(
     GmxArchive archive, {
     required StorageFactory storageFor,
@@ -22,10 +35,16 @@ class ExtensionHost {
     required http.Client httpClient,
     Duration timeout = const Duration(seconds: 30),
   }) async {
+    if (timeout <= Duration.zero) {
+      throw ArgumentError.value(
+        timeout,
+        'timeout',
+        'Must be greater than zero',
+      );
+    }
     final metadata = archive.metadata;
     final permissions = metadata.permissions;
-
-    final networkTimeout = timeout * 2 ~/ 3;
+    final actionTimeout = timeout * 2 ~/ 3;
 
     final router = CapabilityRouter([
       if (permissions.storage) StorageCapability(storageFor(metadata.id)),
@@ -35,14 +54,18 @@ class ExtensionHost {
         NetworkCapability(
           policy: DomainPolicy(permissions.networkDomains),
           client: httpClient,
-          timeout: networkTimeout,
         ),
     ]);
 
     final bridge = JsBridge(
       runtime: getJavascriptRuntime(xhr: false),
-      onAction: router.handle,
-      timeout: timeout,
+      onAction: (action) => Future.sync(() => router.handle(action)).timeout(
+        actionTimeout,
+        onTimeout: () => throw TimeoutException(
+          'Capability call timed out after ${actionTimeout.inMilliseconds} ms',
+          actionTimeout,
+        ),
+      ),
     );
 
     try {
@@ -55,13 +78,34 @@ class ExtensionHost {
       rethrow;
     }
 
-    return ExtensionHost._(metadata, bridge);
+    return ExtensionHost._(metadata, bridge, timeout);
   }
 
-  bool get isDisposed => _bridge.isDisposed;
-
+  /// Calls a method the extension returned from its factory function.
+  ///
+  /// Arguments and the result must be JSON-compatible. Throws [StateError]
+  /// if the method doesn't exist, the extension throws, or the host is
+  /// disposed. Throws [TimeoutException] if the call exceeds the timeout, and
+  /// disposes the host, because a pending JS promise can't be cancelled.
+  ///
+  /// Calls run one at a time, so time spent waiting behind another call
+  /// counts toward the timeout.
   Future<Object?> invoke(String method, [List<Object?> args = const []]) =>
-      _bridge.call('__extensionCall', arguments: [method, ...args]);
+      _bridge
+          .call('__extensionCall', arguments: [method, ...args])
+          .timeout(
+            _timeout,
+            onTimeout: () {
+              dispose();
+              throw TimeoutException(
+                'Extension call "$method" timed out after '
+                '${_timeout.inMilliseconds} ms',
+                _timeout,
+              );
+            },
+          );
+
+  bool get isDisposed => _bridge.isDisposed;
 
   void dispose() => _bridge.dispose();
 }

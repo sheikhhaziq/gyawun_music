@@ -8,11 +8,7 @@ void main() {
   late JsBridge js;
 
   JsBridge create({JsActionHandler? onAction, Duration? timeout}) {
-    js = JsBridge(
-      runtime: createRuntime(),
-      onAction: onAction,
-      timeout: timeout ?? const Duration(seconds: 5),
-    );
+    js = JsBridge(runtime: createRuntime(), onAction: onAction);
     created.add(js);
     return js;
   }
@@ -27,23 +23,6 @@ void main() {
   });
 
   group('constructor', () {
-    test('rejects a zero timeout', () {
-      expect(
-        () => JsBridge(runtime: createRuntime(), timeout: Duration.zero),
-        throwsArgumentError,
-      );
-    });
-
-    test('rejects a negative timeout', () {
-      expect(
-        () => JsBridge(
-          runtime: createRuntime(),
-          timeout: const Duration(seconds: -1),
-        ),
-        throwsArgumentError,
-      );
-    });
-
     test('starts open', () {
       expect(js.isDisposed, isFalse);
     });

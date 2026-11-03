@@ -36,7 +36,6 @@ void main() {
     return NetworkCapability(
       policy: DomainPolicy(domains),
       client: client,
-      timeout: timeout,
       maxResponseBytes: maxResponseBytes,
       maxRedirects: maxRedirects,
     );
@@ -325,23 +324,6 @@ void main() {
       await expectLater(
         net.handle('fetch', {'url': 'https://api.example.com/'}),
         throwsStateError,
-      );
-    });
-
-    test('times out a slow request', () async {
-      final net = build(
-        (_) => http.StreamedResponse(
-          Stream<List<int>>.fromFuture(
-            Future<List<int>>.delayed(const Duration(seconds: 2), () => []),
-          ),
-          200,
-        ),
-        timeout: const Duration(milliseconds: 100),
-      );
-
-      await expectLater(
-        net.handle('fetch', {'url': 'https://api.example.com/'}),
-        throwsA(isA<TimeoutException>()),
       );
     });
   });

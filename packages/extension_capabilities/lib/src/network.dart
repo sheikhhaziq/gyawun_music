@@ -10,7 +10,6 @@ class NetworkCapability implements Capability {
   NetworkCapability({
     required this.policy,
     required this._client,
-    this.timeout = const Duration(seconds: 30),
     this.maxResponseBytes = 5 << 20,
     this.maxRedirects = 5,
   });
@@ -20,7 +19,6 @@ class NetworkCapability implements Capability {
 
   final NetworkPolicy policy;
   final http.Client _client;
-  final Duration timeout;
   final int maxResponseBytes;
   final int maxRedirects;
 
@@ -32,7 +30,7 @@ class NetworkCapability implements Capability {
     if (method != 'fetch') {
       throw ArgumentError('Unknown network method: $method');
     }
-    return _fetch(args).timeout(timeout);
+    return _fetch(args);
   }
 
   Future<Object?> _fetch(Map<String, dynamic> args) async {

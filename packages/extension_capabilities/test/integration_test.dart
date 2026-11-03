@@ -69,11 +69,7 @@ void main() {
       ),
     ]);
 
-    js = JsBridge(
-      runtime: createRuntime(),
-      onAction: router.handle,
-      timeout: const Duration(seconds: 5),
-    );
+    js = JsBridge(runtime: createRuntime(), onAction: router.handle);
     js.load(buildExtensionScript(source, granted: {'storage', 'log', 'http'}));
   }
 

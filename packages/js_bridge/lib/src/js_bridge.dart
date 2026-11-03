@@ -12,18 +12,7 @@ typedef JsActionHandler = FutureOr<Object?> Function(
 );
 
 class JsBridge {
-  JsBridge({
-    required this.runtime,
-    this.onAction,
-    this.timeout = const Duration(seconds: 30),
-  }) {
-    if (timeout <= Duration.zero) {
-      throw ArgumentError.value(
-        timeout,
-        'timeout',
-        'Must be greater than zero',
-      );
-    }
+  JsBridge({required this.runtime, this.onAction}) {
     runtime.onMessage(_channel, _receiveAction);
     load(jsBridgeScript, sourceUrl: 'js_bridge.js');
   }
@@ -32,8 +21,6 @@ class JsBridge {
 
   final JavascriptRuntime runtime;
   final JsActionHandler? onAction;
-
-  final Duration timeout;
 
   final _disposedSignal = Completer<void>();
   Future<void> _queue = Future<void>.value();
@@ -121,27 +108,15 @@ class JsBridge {
     }
   }
 
-  Future<dynamic> _awaitPromise(dynamic pending) async {
-    try {
-      return await Future.any<dynamic>([
-        runtime.handlePromise(pending),
-        _disposedSignal.future.then<dynamic>(
-          (_) => throw StateError(
-            'JavaScript connection was disposed during a call',
-          ),
-        ),
-      ]).timeout(
-        timeout,
-        onTimeout: () => throw TimeoutException(
-          'JavaScript call timed out after ${timeout.inMilliseconds} ms',
-          timeout,
-        ),
-      );
-    } on TimeoutException {
-      dispose();
-      rethrow;
-    }
-  }
+  /// Waits for a JS promise, or fails promptly if the connection is disposed.
+  /// There is no timeout here: the owner must bound calls and call [dispose].
+  Future<dynamic> _awaitPromise(dynamic pending) => Future.any<dynamic>([
+    runtime.handlePromise(pending),
+    _disposedSignal.future.then<dynamic>(
+      (_) =>
+          throw StateError('JavaScript connection was disposed during a call'),
+    ),
+  ]);
 
   /// Parses the `{ok, value | error, stack}` envelope produced by JS.
   Object? _unwrap(String json) {
