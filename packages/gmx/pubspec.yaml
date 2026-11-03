@@ -1,0 +1,14 @@
+name: gmx
+description: The .gmx extension archive format for Gyawun.
+publish_to: none
+resolution: workspace
+
+environment:
+  sdk: ^3.13.5
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+dependencies:
+  archive: ^4.6.0
+  pub_semver: ^2.2.1
