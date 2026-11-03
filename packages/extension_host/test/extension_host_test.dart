@@ -1,6 +1,7 @@
 import 'package:extension_capabilities/extension_capabilities.dart';
 import 'package:extension_host/extension_host.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 
 import 'helpers.dart';
@@ -22,18 +23,26 @@ class _MemoryStorage implements ExtensionStorage {
 void main() {
   final started = <ExtensionHost>[];
 
+  late List<http.BaseRequest> requests;
+
   Future<ExtensionHost> start(
     String script, {
     Map<String, Object?> permissions = const {},
+    http.Client? client,
+    Duration timeout = const Duration(seconds: 5),
   }) async {
+    requests = [];
     final host = await ExtensionHost.start(
       buildArchive(script, permissions: permissions),
       storageFor: (_) => _MemoryStorage(),
       logSink: (_, _, _) {},
-      httpClient: MockClient(
-        (_) async => throw StateError('no network in tests'),
-      ),
-      timeout: const Duration(seconds: 5),
+      httpClient:
+          client ??
+          MockClient((request) async {
+            requests.add(request);
+            return http.Response('{"ok":true}', 200);
+          }),
+      timeout: timeout,
     );
     started.add(host);
     return host;
@@ -183,6 +192,96 @@ void main() {
       final host = await start('(ctx) => ({ t: () => typeof sendMessage })');
 
       expect(await host.invoke('t'), 'undefined');
+    });
+  });
+
+  group('network', () {
+    const fetchScript = '''
+      (ctx) => ({
+        get: async (url) => {
+          try { return await ctx.http.fetch(url); }
+          catch (e) { return { error: e.message }; }
+        },
+      })
+    ''';
+
+    final perms = {
+      'network': {
+        'domains': ['api.example.com'],
+      },
+    };
+
+    test('a declared domain can be fetched', () async {
+      final host = await start(fetchScript, permissions: perms);
+
+      final result =
+          await host.invoke('get', ['https://api.example.com/x']) as Map;
+
+      expect(result['status'], 200);
+      expect(result['body'], '{"ok":true}');
+      expect(requests, hasLength(1));
+    });
+
+    test('an undeclared domain is refused and makes no request', () async {
+      final host = await start(fetchScript, permissions: perms);
+
+      final result = await host.invoke('get', ['https://evil.com/']) as Map;
+
+      expect(result['error'], contains('Domain not allowed'));
+      expect(requests, isEmpty);
+    });
+
+    test('a wildcard declaration allows subdomains only', () async {
+      final host = await start(
+        fetchScript,
+        permissions: {
+          'network': {
+            'domains': ['*.example.com'],
+          },
+        },
+      );
+
+      final ok = await host.invoke('get', ['https://cdn.example.com/']) as Map;
+      final bare = await host.invoke('get', ['https://example.com/']) as Map;
+
+      expect(ok['status'], 200);
+      expect(bare['error'], contains('Domain not allowed'));
+    });
+
+    test('http (not https) is refused', () async {
+      final host = await start(fetchScript, permissions: perms);
+
+      final result =
+          await host.invoke('get', ['http://api.example.com/']) as Map;
+
+      expect(result['error'], contains('Only https'));
+      expect(requests, isEmpty);
+    });
+
+    test('without a network permission, ctx.http does not exist', () async {
+      final host = await start('(ctx) => ({ t: () => typeof ctx.http })');
+
+      expect(await host.invoke('t'), 'undefined');
+    });
+
+    test('a slow request fails in JS before the bridge times out', () async {
+      final host = await start(
+        fetchScript,
+        permissions: perms,
+        timeout: const Duration(milliseconds: 900),
+        client: MockClient((_) async {
+          await Future<void>.delayed(const Duration(seconds: 3));
+          return http.Response('late', 200);
+        }),
+      );
+
+      // Network timeout is 2/3 of 900ms = 600ms, so JS gets an error and the
+      // bridge (900ms) stays alive.
+      final result =
+          await host.invoke('get', ['https://api.example.com/']) as Map;
+
+      expect(result['error'], isNotNull);
+      expect(host.isDisposed, isFalse);
     });
   });
 
