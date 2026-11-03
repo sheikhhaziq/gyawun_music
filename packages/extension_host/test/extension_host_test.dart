@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:extension_capabilities/extension_capabilities.dart';
 import 'package:extension_host/extension_host.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -282,6 +284,45 @@ void main() {
 
       expect(result['error'], isNotNull);
       expect(host.isDisposed, isFalse);
+    });
+  });
+  group('timeout', () {
+    test('a call that never finishes throws TimeoutException', () async {
+      final host = await start(
+        '(ctx) => ({ hang: () => new Promise(() => {}) })',
+        timeout: const Duration(milliseconds: 300),
+      );
+
+      await expectLater(host.invoke('hang'), throwsA(isA<TimeoutException>()));
+    });
+
+    test('a timeout disposes the host', () async {
+      final host = await start(
+        '(ctx) => ({ hang: () => new Promise(() => {}) })',
+        timeout: const Duration(milliseconds: 300),
+      );
+
+      await expectLater(host.invoke('hang'), throwsA(isA<TimeoutException>()));
+
+      expect(host.isDisposed, isTrue);
+      expect(() => host.invoke('hang'), throwsStateError);
+    });
+
+    test('a fast call does not time out', () async {
+      final host = await start(
+        '(ctx) => ({ ping: () => 1 })',
+        timeout: const Duration(milliseconds: 500),
+      );
+
+      expect(await host.invoke('ping'), 1);
+      expect(host.isDisposed, isFalse);
+    });
+
+    test('rejects a non-positive timeout', () async {
+      await expectLater(
+        start('(ctx) => ({ ping: () => 1 })', timeout: Duration.zero),
+        throwsArgumentError,
+      );
     });
   });
 
