@@ -1,6 +1,4 @@
-import 'endpoint.dart';
-import 'json_object.dart';
-import 'result_types.dart';
+import 'package:extension_api/extension_api.dart';
 
 /// How the app gets audio or video for a playable item.
 ///

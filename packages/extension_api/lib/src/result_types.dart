@@ -9,7 +9,3 @@ final class ItemsResult {
 final class QueueResult {
   const QueueResult._();
 }
-
-final class StreamResult {
-  const StreamResult._();
-}
