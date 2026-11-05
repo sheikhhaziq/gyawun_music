@@ -1,0 +1,18 @@
+name: extension_repository
+description: Parses extension repository indexes and finds updates.
+publish_to: none
+resolution: workspace
+
+environment:
+  sdk: ^3.13.5
+
+dependencies:
+  extension_api:
+    path: ../extension_api
+  gmx:
+    path: ../gmx
+  pub_semver: ^2.1.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
