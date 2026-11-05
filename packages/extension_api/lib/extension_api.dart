@@ -1,3 +1,6 @@
 export 'src/json_object.dart';
 export 'src/endpoint.dart';
 export 'src/thumbnails.dart';
+export 'src/item_kind.dart';
+export 'src/ref.dart';
+export 'src/result_types.dart';
