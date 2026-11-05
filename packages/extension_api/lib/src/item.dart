@@ -1,10 +1,4 @@
-import 'endpoint.dart';
-import 'item_kind.dart';
-import 'json_object.dart';
-import 'ref.dart';
-import 'result_types.dart';
-import 'stream_ref.dart';
-import 'thumbnails.dart';
+import 'package:extension_api/extension_api.dart';
 
 /// One entry in a section, list or queue.
 class Item {

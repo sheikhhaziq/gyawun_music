@@ -1,6 +1,4 @@
-import 'endpoint.dart';
-import 'json_object.dart';
-import 'result_types.dart';
+import 'package:extension_api/extension_api.dart';
 
 /// A named link to another screen, such as an artist or album on an item.
 class Ref {

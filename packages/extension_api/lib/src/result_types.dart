@@ -1,7 +1,3 @@
-final class BrowseResult {
-  const BrowseResult._();
-}
-
 final class ItemsResult {
   const ItemsResult._();
 }
