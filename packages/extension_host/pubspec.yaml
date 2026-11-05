@@ -12,6 +12,8 @@ dependencies:
     path: ../extension_capabilities
   gmx:
     path: ../gmx
+  extension_api:
+    path: ../extension_api
   http: ^1.2.0
   js_bridge:
     path: ../js_bridge
