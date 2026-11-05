@@ -4,3 +4,4 @@ export 'src/thumbnails.dart';
 export 'src/item_kind.dart';
 export 'src/ref.dart';
 export 'src/result_types.dart';
+export 'src/stream_ref.dart';
