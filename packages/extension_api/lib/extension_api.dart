@@ -14,3 +14,4 @@ export 'src/chip.dart';
 export 'src/header.dart';
 export 'src/browse_result.dart';
 export 'src/items_result.dart';
+export 'src/queue_result.dart';
