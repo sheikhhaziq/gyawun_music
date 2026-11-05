@@ -172,6 +172,102 @@ void main() {
     });
   });
 
+  group('httpsUri', () {
+    test('accepts an https URL', () {
+      expect(
+        obj({'u': 'https://a.com/x'}).httpsUri('u'),
+        Uri.parse('https://a.com/x'),
+      );
+    });
+
+    for (final bad in [
+      'http://a.com',
+      'file:///x',
+      '//a.com',
+      'not a url',
+      'https:///x',
+      'https://u:p@a.com/',
+      '',
+      5,
+    ]) {
+      test('rejects $bad', () {
+        expect(() => obj({'u': bad}).httpsUri('u'), throwsFormatException);
+      });
+    }
+
+    test('enforces max length', () {
+      const p = 'https://a.com/';
+      expect(
+        () => obj({'u': p + 'a' * 6}).httpsUri('u', max: 20),
+        returnsNormally,
+      );
+      expect(
+        () => obj({'u': p + 'a' * 7}).httpsUri('u', max: 20),
+        throwsFormatException,
+      );
+    });
+
+    test('optionalHttpsUri is null when absent', () {
+      expect(obj({}).optionalHttpsUri('u'), isNull);
+    });
+
+    test('the error names the path', () {
+      expect(() => obj({'u': 'http://a.com'}).httpsUri('u'), failsWith('x.u'));
+    });
+  });
+
+  group('stringMap', () {
+    test('a missing map is empty', () {
+      expect(obj({}).stringMap('m', maxEntries: 2), isEmpty);
+    });
+
+    test('returns string entries', () {
+      expect(
+        obj({
+          'm': {'a': 'b'},
+        }).stringMap('m', maxEntries: 2),
+        {'a': 'b'},
+      );
+    });
+
+    test('rejects a non-object', () {
+      expect(
+        () => obj({'m': []}).stringMap('m', maxEntries: 2),
+        throwsFormatException,
+      );
+    });
+
+    test('rejects non-string values', () {
+      expect(
+        () => obj({
+          'm': {'a': 1},
+        }).stringMap('m', maxEntries: 2),
+        throwsFormatException,
+      );
+    });
+
+    test('enforces the entry limit', () {
+      final m = {'a': '1', 'b': '2', 'c': '3'};
+      expect(
+        () => obj({'m': m}).stringMap('m', maxEntries: 3),
+        returnsNormally,
+      );
+      expect(
+        () => obj({'m': m}).stringMap('m', maxEntries: 2),
+        throwsFormatException,
+      );
+    });
+
+    test('enforces the value length', () {
+      expect(
+        () => obj({
+          'm': {'a': 'xxxx'},
+        }).stringMap('m', maxEntries: 1, maxValue: 3),
+        failsWith('x.m.a'),
+      );
+    });
+  });
+
   group('raw and pathOf', () {
     test('raw returns the value unchanged', () {
       expect(

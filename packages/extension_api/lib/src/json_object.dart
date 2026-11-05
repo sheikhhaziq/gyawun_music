@@ -57,6 +57,55 @@ class JsonObject {
     return value;
   }
 
+  /// An https URL with a host and no credentials.
+  Uri httpsUri(String key, {int max = 2048}) =>
+      _https(string(key, max: max), key);
+
+  Uri? optionalHttpsUri(String key, {int max = 2048}) =>
+      _map[key] == null ? null : httpsUri(key, max: max);
+
+  Uri _https(String text, String key) {
+    final uri = Uri.tryParse(text);
+    if (uri == null ||
+        uri.scheme != 'https' ||
+        uri.host.isEmpty ||
+        uri.userInfo.isNotEmpty) {
+      throw FormatException('${_at(key)} must be an https URL');
+    }
+    return uri;
+  }
+
+  /// A missing map is empty. Keys and values must be strings.
+  Map<String, String> stringMap(
+    String key, {
+    required int maxEntries,
+    int maxValue = 500,
+  }) {
+    final value = _map[key];
+    if (value == null) return const {};
+    if (value is! Map) throw FormatException('${_at(key)} must be an object');
+    if (value.length > maxEntries) {
+      throw FormatException(
+        '${_at(key)} must have at most $maxEntries entries',
+      );
+    }
+    final result = <String, String>{};
+    for (final entry in value.entries) {
+      final k = entry.key;
+      final v = entry.value;
+      if (k is! String || v is! String) {
+        throw FormatException('${_at(key)} must map strings to strings');
+      }
+      if (v.length > maxValue) {
+        throw FormatException(
+          '${_at(key)}.$k must be at most $maxValue characters',
+        );
+      }
+      result[k] = v;
+    }
+    return result;
+  }
+
   /// Raw value, for opaque data such as endpoints.
   Object? raw(String key) => _map[key];
 
