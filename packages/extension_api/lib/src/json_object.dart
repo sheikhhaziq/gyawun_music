@@ -47,6 +47,16 @@ class JsonObject {
     ];
   }
 
+  int? optionalInt(String key, {required int min, required int max}) {
+    final value = _map[key];
+    if (value == null) return null;
+    if (value is! int) throw FormatException('${_at(key)} must be an integer');
+    if (value < min || value > max) {
+      throw FormatException('${_at(key)} must be between $min and $max');
+    }
+    return value;
+  }
+
   /// Raw value, for opaque data such as endpoints.
   Object? raw(String key) => _map[key];
 

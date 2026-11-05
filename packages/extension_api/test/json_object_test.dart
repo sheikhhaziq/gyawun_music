@@ -144,6 +144,34 @@ void main() {
     });
   });
 
+  group('optionalInt', () {
+    test('is null when absent or null', () {
+      expect(obj({}).optionalInt('n', min: 0, max: 10), isNull);
+      expect(obj({'n': null}).optionalInt('n', min: 0, max: 10), isNull);
+    });
+
+    test('accepts values at both bounds', () {
+      expect(obj({'n': 0}).optionalInt('n', min: 0, max: 10), 0);
+      expect(obj({'n': 10}).optionalInt('n', min: 0, max: 10), 10);
+    });
+
+    for (final bad in [-1, 11, 1.5, 1.0, '5', true]) {
+      test('rejects $bad', () {
+        expect(
+          () => obj({'n': bad}).optionalInt('n', min: 0, max: 10),
+          throwsFormatException,
+        );
+      });
+    }
+
+    test('the error names the path', () {
+      expect(
+        () => obj({'n': 'x'}).optionalInt('n', min: 0, max: 1),
+        failsWith('x.n'),
+      );
+    });
+  });
+
   group('raw and pathOf', () {
     test('raw returns the value unchanged', () {
       expect(
