@@ -10,7 +10,7 @@ export 'src/stream_result.dart';
 export 'src/section_action.dart';
 export 'src/section_style.dart';
 export 'src/section.dart';
-export 'src/chip.dart';
+export 'src/browse_chip.dart';
 export 'src/header.dart';
 export 'src/browse_result.dart';
 export 'src/items_result.dart';

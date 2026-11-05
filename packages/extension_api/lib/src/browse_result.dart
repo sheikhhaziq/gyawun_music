@@ -10,7 +10,7 @@ class BrowseResult {
   });
 
   final Header? header;
-  final List<Chip> chips;
+  final List<BrowseChip> chips;
   final List<Section> sections;
 
   /// Loads more sections. Pass it back to `browse`; the response is appended.
@@ -35,7 +35,8 @@ class BrowseResult {
     return BrowseResult(
       header: Header.parseOptional(json, 'header'),
       chips: List.unmodifiable([
-        for (final c in json.objects('chips', max: maxChips)) Chip.parse(c),
+        for (final c in json.objects('chips', max: maxChips))
+          BrowseChip.parse(c),
       ]),
       sections: List.unmodifiable(sections),
       continuation: Endpoint.parseOptional<BrowseResult>(

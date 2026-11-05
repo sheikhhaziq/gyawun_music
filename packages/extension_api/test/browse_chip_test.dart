@@ -1,7 +1,7 @@
 import 'package:extension_api/extension_api.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-Chip parse(Object? v) => Chip.parse(JsonObject.of(v, 'c'));
+BrowseChip parse(Object? v) => BrowseChip.parse(JsonObject.of(v, 'c'));
 
 void main() {
   test('parses text and keeps the endpoint', () {
