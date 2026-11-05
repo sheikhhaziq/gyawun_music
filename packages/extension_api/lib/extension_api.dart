@@ -5,3 +5,4 @@ export 'src/item_kind.dart';
 export 'src/ref.dart';
 export 'src/result_types.dart';
 export 'src/stream_ref.dart';
+export 'src/item.dart';
