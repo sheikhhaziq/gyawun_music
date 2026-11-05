@@ -7,3 +7,5 @@ export 'src/result_types.dart';
 export 'src/stream_ref.dart';
 export 'src/item.dart';
 export 'src/stream_result.dart';
+export 'src/section_action.dart';
+export 'src/section_style.dart';
