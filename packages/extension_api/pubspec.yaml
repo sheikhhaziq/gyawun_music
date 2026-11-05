@@ -1,0 +1,11 @@
+name: extension_api
+description: Typed data contract (v1) between Gyawun extensions and the app.
+publish_to: none
+resolution: workspace
+
+environment:
+  sdk: ^3.13.5
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter

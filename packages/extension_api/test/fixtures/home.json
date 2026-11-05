@@ -1,0 +1,380 @@
+{
+  "header": {
+    "title": "Hello Extension",
+    "description": "Fake data from jsonplaceholder",
+    "thumbnails": {
+      "small": "https://picsum.photos/seed/header/100",
+      "medium": "https://picsum.photos/seed/header/300",
+      "large": "https://picsum.photos/seed/header/600"
+    }
+  },
+  "chips": [
+    {
+      "text": "Recent",
+      "endpoint": {
+        "screen": "recent"
+      }
+    },
+    {
+      "text": "Popular",
+      "endpoint": {
+        "screen": "popular"
+      }
+    }
+  ],
+  "sections": [
+    {
+      "title": "Trending",
+      "style": "horizontal",
+      "action": {
+        "type": "play",
+        "endpoint": {
+          "action": "play",
+          "section": "trending"
+        }
+      },
+      "items": [
+        {
+          "kind": "song",
+          "title": "sunt aut facere repellat provident occae",
+          "subtitle": "Post #1",
+          "thumbnails": {
+            "small": "https://picsum.photos/seed/post1/100",
+            "medium": "https://picsum.photos/seed/post1/300",
+            "large": "https://picsum.photos/seed/post1/600"
+          },
+          "artists": [
+            {
+              "name": "User 1",
+              "browse": {
+                "screen": "user",
+                "id": 1
+              }
+            }
+          ],
+          "play": {
+            "action": "play",
+            "id": 1
+          },
+          "radio": {
+            "action": "radio",
+            "id": 1
+          }
+        },
+        {
+          "kind": "song",
+          "title": "qui est esse",
+          "subtitle": "Post #2",
+          "thumbnails": {
+            "small": "https://picsum.photos/seed/post2/100",
+            "medium": "https://picsum.photos/seed/post2/300",
+            "large": "https://picsum.photos/seed/post2/600"
+          },
+          "artists": [
+            {
+              "name": "User 1",
+              "browse": {
+                "screen": "user",
+                "id": 1
+              }
+            }
+          ],
+          "play": {
+            "action": "play",
+            "id": 2
+          },
+          "radio": {
+            "action": "radio",
+            "id": 2
+          }
+        },
+        {
+          "kind": "song",
+          "title": "ea molestias quasi exercitationem repell",
+          "subtitle": "Post #3",
+          "thumbnails": {
+            "small": "https://picsum.photos/seed/post3/100",
+            "medium": "https://picsum.photos/seed/post3/300",
+            "large": "https://picsum.photos/seed/post3/600"
+          },
+          "artists": [
+            {
+              "name": "User 1",
+              "browse": {
+                "screen": "user",
+                "id": 1
+              }
+            }
+          ],
+          "play": {
+            "action": "play",
+            "id": 3
+          },
+          "radio": {
+            "action": "radio",
+            "id": 3
+          }
+        },
+        {
+          "kind": "song",
+          "title": "eum et est occaecati",
+          "subtitle": "Post #4",
+          "thumbnails": {
+            "small": "https://picsum.photos/seed/post4/100",
+            "medium": "https://picsum.photos/seed/post4/300",
+            "large": "https://picsum.photos/seed/post4/600"
+          },
+          "artists": [
+            {
+              "name": "User 1",
+              "browse": {
+                "screen": "user",
+                "id": 1
+              }
+            }
+          ],
+          "play": {
+            "action": "play",
+            "id": 4
+          },
+          "radio": {
+            "action": "radio",
+            "id": 4
+          }
+        },
+        {
+          "kind": "song",
+          "title": "nesciunt quas odio",
+          "subtitle": "Post #5",
+          "thumbnails": {
+            "small": "https://picsum.photos/seed/post5/100",
+            "medium": "https://picsum.photos/seed/post5/300",
+            "large": "https://picsum.photos/seed/post5/600"
+          },
+          "artists": [
+            {
+              "name": "User 1",
+              "browse": {
+                "screen": "user",
+                "id": 1
+              }
+            }
+          ],
+          "play": {
+            "action": "play",
+            "id": 5
+          },
+          "radio": {
+            "action": "radio",
+            "id": 5
+          }
+        },
+        {
+          "kind": "song",
+          "title": "dolorem eum magni eos aperiam quia",
+          "subtitle": "Post #6",
+          "thumbnails": {
+            "small": "https://picsum.photos/seed/post6/100",
+            "medium": "https://picsum.photos/seed/post6/300",
+            "large": "https://picsum.photos/seed/post6/600"
+          },
+          "artists": [
+            {
+              "name": "User 1",
+              "browse": {
+                "screen": "user",
+                "id": 1
+              }
+            }
+          ],
+          "play": {
+            "action": "play",
+            "id": 6
+          },
+          "radio": {
+            "action": "radio",
+            "id": 6
+          }
+        }
+      ]
+    },
+    {
+      "title": "More to explore",
+      "style": "vertical",
+      "action": {
+        "type": "browse",
+        "endpoint": {
+          "action": "items",
+          "section": "more"
+        }
+      },
+      "items": [
+        {
+          "kind": "song",
+          "title": "magnam facilis autem",
+          "subtitle": "Post #7",
+          "thumbnails": {
+            "small": "https://picsum.photos/seed/post7/100",
+            "medium": "https://picsum.photos/seed/post7/300",
+            "large": "https://picsum.photos/seed/post7/600"
+          },
+          "artists": [
+            {
+              "name": "User 1",
+              "browse": {
+                "screen": "user",
+                "id": 1
+              }
+            }
+          ],
+          "play": {
+            "action": "play",
+            "id": 7
+          },
+          "radio": {
+            "action": "radio",
+            "id": 7
+          }
+        },
+        {
+          "kind": "song",
+          "title": "dolorem dolore est ipsam",
+          "subtitle": "Post #8",
+          "thumbnails": {
+            "small": "https://picsum.photos/seed/post8/100",
+            "medium": "https://picsum.photos/seed/post8/300",
+            "large": "https://picsum.photos/seed/post8/600"
+          },
+          "artists": [
+            {
+              "name": "User 1",
+              "browse": {
+                "screen": "user",
+                "id": 1
+              }
+            }
+          ],
+          "play": {
+            "action": "play",
+            "id": 8
+          },
+          "radio": {
+            "action": "radio",
+            "id": 8
+          }
+        },
+        {
+          "kind": "song",
+          "title": "nesciunt iure omnis dolorem tempora et a",
+          "subtitle": "Post #9",
+          "thumbnails": {
+            "small": "https://picsum.photos/seed/post9/100",
+            "medium": "https://picsum.photos/seed/post9/300",
+            "large": "https://picsum.photos/seed/post9/600"
+          },
+          "artists": [
+            {
+              "name": "User 1",
+              "browse": {
+                "screen": "user",
+                "id": 1
+              }
+            }
+          ],
+          "play": {
+            "action": "play",
+            "id": 9
+          },
+          "radio": {
+            "action": "radio",
+            "id": 9
+          }
+        },
+        {
+          "kind": "song",
+          "title": "optio molestias id quia eum",
+          "subtitle": "Post #10",
+          "thumbnails": {
+            "small": "https://picsum.photos/seed/post10/100",
+            "medium": "https://picsum.photos/seed/post10/300",
+            "large": "https://picsum.photos/seed/post10/600"
+          },
+          "artists": [
+            {
+              "name": "User 1",
+              "browse": {
+                "screen": "user",
+                "id": 1
+              }
+            }
+          ],
+          "play": {
+            "action": "play",
+            "id": 10
+          },
+          "radio": {
+            "action": "radio",
+            "id": 10
+          }
+        },
+        {
+          "kind": "song",
+          "title": "et ea vero quia laudantium autem",
+          "subtitle": "Post #11",
+          "thumbnails": {
+            "small": "https://picsum.photos/seed/post11/100",
+            "medium": "https://picsum.photos/seed/post11/300",
+            "large": "https://picsum.photos/seed/post11/600"
+          },
+          "artists": [
+            {
+              "name": "User 2",
+              "browse": {
+                "screen": "user",
+                "id": 2
+              }
+            }
+          ],
+          "play": {
+            "action": "play",
+            "id": 11
+          },
+          "radio": {
+            "action": "radio",
+            "id": 11
+          }
+        },
+        {
+          "kind": "song",
+          "title": "in quibusdam tempore odit est dolorem",
+          "subtitle": "Post #12",
+          "thumbnails": {
+            "small": "https://picsum.photos/seed/post12/100",
+            "medium": "https://picsum.photos/seed/post12/300",
+            "large": "https://picsum.photos/seed/post12/600"
+          },
+          "artists": [
+            {
+              "name": "User 2",
+              "browse": {
+                "screen": "user",
+                "id": 2
+              }
+            }
+          ],
+          "play": {
+            "action": "play",
+            "id": 12
+          },
+          "radio": {
+            "action": "radio",
+            "id": 12
+          }
+        }
+      ]
+    }
+  ],
+  "continuation": {
+    "page": 2
+  }
+}
