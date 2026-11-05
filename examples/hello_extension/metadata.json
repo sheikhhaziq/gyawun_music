@@ -1,0 +1,15 @@
+{
+  "id": "com.example.hello",
+  "name": "Hello Extension",
+  "version": "0.1.0",
+  "apiVersion": 1,
+  "description": "Example extension for testing the host end to end",
+  "author": "You",
+  "permissions": {
+    "storage": true,
+    "log": true,
+    "network": {
+      "domains": ["jsonplaceholder.typicode.com"]
+    }
+  }
+}
