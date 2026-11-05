@@ -425,6 +425,28 @@ void main() {
       });
     });
 
+    group('validators', () {
+      test('isValidId matches the rules used by parsing', () {
+        expect(GmxMetadata.isValidId('com.example.music'), isTrue);
+        for (final bad in [
+          'music',
+          'Com.Example',
+          'com.example\n',
+          ' a.b',
+          '',
+        ]) {
+          expect(GmxMetadata.isValidId(bad), isFalse, reason: bad);
+        }
+      });
+
+      test('isValidVersion matches the rules used by parsing', () {
+        expect(GmxMetadata.isValidVersion('1.0.0-beta.1'), isTrue);
+        for (final bad in ['1.0', '01.0.0', 'v1.0.0', '1.0.0\n', '']) {
+          expect(GmxMetadata.isValidVersion(bad), isFalse, reason: bad);
+        }
+      });
+    });
+
     test('required and optional do not overlap', () {
       expect(GmxFiles.required.intersection(GmxFiles.optional), isEmpty);
     });
