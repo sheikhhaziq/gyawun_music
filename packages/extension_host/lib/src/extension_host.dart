@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:extension_api/extension_api.dart';
 import 'package:extension_capabilities/extension_capabilities.dart';
 import 'package:gmx/gmx.dart';
 import 'package:http/http.dart' as http;
@@ -104,6 +105,45 @@ class ExtensionHost {
               );
             },
           );
+
+  /// Without [endpoint]: the home screen. With one from a chip, a ref, an
+  /// item's `browse` or a `continuation`: that screen.
+  Future<BrowseResult> browse([Endpoint<BrowseResult>? endpoint]) => _typed(
+    'browse',
+    [if (endpoint != null) endpoint.toJson()],
+    BrowseResult.parse,
+  );
+
+  /// A flat list of items, for a section's `browse` action or an items
+  /// `continuation`.
+  Future<ItemsResult> items(Endpoint<ItemsResult> endpoint) =>
+      _typed('items', [endpoint.toJson()], ItemsResult.parse);
+
+  /// Playable items, for a `play` action or an item's play, radio or shuffle
+  /// endpoint, or a queue `continuation`.
+  Future<QueueResult> queue(Endpoint<QueueResult> endpoint) =>
+      _typed('queue', [endpoint.toJson()], QueueResult.parse);
+
+  /// Resolves an item's stream at play time.
+  Future<StreamResult> getStream(Endpoint<StreamResult> endpoint) =>
+      _typed('getStream', [endpoint.toJson()], StreamResult.parse);
+
+  /// Calls [method] and parses the result. Invalid data becomes a
+  /// [FormatException] that names the method and the field.
+  Future<T> _typed<T>(
+    String method,
+    List<Object?> args,
+    T Function(Object? value, String path) parse,
+  ) async {
+    final value = await invoke(method, args);
+    try {
+      return parse(value, method);
+    } on FormatException catch (e) {
+      throw FormatException(
+        'Extension returned invalid data from $method: ${e.message}',
+      );
+    }
+  }
 
   bool get isDisposed => _bridge.isDisposed;
 
