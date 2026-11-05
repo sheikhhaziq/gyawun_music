@@ -10,3 +10,4 @@ export 'src/stream_result.dart';
 export 'src/section_action.dart';
 export 'src/section_style.dart';
 export 'src/section.dart';
+export 'src/chip.dart';
