@@ -134,6 +134,10 @@ class GmxMetadata {
     r'(-[0-9A-Za-z.-]+)?(\+[0-9A-Za-z.-]+)?$',
   );
 
+  static bool isValidId(String id) => _id.hasMatch(id);
+
+  static bool isValidVersion(String version) => _version.hasMatch(version);
+
   /// Parses the text of metadata.json. Throws [FormatException] if invalid.
   factory GmxMetadata.parse(String source) {
     if (utf8.encode(source).length > maxBytes) {
