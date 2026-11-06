@@ -144,6 +144,17 @@ void main() {
     });
   });
 
+  test('description: 200 characters ok, 201 rejected', () {
+    expect(
+      () => parse({...valid(), 'description': 'a' * 200}),
+      returnsNormally,
+    );
+    expect(
+      () => parse({...valid(), 'description': 'a' * 201}),
+      throwsFormatException,
+    );
+  });
+
   test('rejects a name over 60 characters', () {
     expect(() => parse({...valid(), 'name': 'a' * 61}), throwsFormatException);
   });

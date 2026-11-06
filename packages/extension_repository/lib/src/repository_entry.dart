@@ -80,7 +80,7 @@ class RepositoryEntry {
       download: json.httpsUri('download'),
       sha256: sha256,
       size: size,
-      description: json.optionalString('description', max: 500),
+      description: json.optionalString('description', max: 200),
       author: json.optionalString('author', max: 100),
       icon: json.optionalHttpsUri('icon'),
     );
