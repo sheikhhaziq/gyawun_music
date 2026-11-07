@@ -10,6 +10,7 @@ final _metadata = jsonEncode({
   'name': 'Example',
   'version': '1.0.0',
   'apiVersion': 1,
+  'provides': ['browse'],
 });
 
 /// A minimal valid PNG header with the given size (enough for our checks).
