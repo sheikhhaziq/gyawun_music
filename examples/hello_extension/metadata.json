@@ -5,6 +5,7 @@
   "apiVersion": 1,
   "description": "Example extension for testing the host end to end",
   "author": "You",
+  "provides": ["browse"],
   "permissions": {
     "storage": true,
     "log": true,

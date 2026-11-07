@@ -2,6 +2,14 @@ import 'dart:convert';
 
 import 'package:pub_semver/pub_semver.dart';
 
+/// What an extension can do. The app uses this to decide how to show an
+/// extension without starting it. Add values here as new kinds of content
+/// (search, auth, library) are supported.
+enum GmxCapability {
+  /// Produces content: screens, items, and later queues and streams.
+  browse,
+}
+
 /// What an extension asks to be allowed to do.
 class GmxPermissions {
   const GmxPermissions({
@@ -104,6 +112,7 @@ class GmxMetadata {
     required this.version,
     required this.semver,
     required this.apiVersion,
+    required this.provides,
     this.description,
     this.author,
     this.permissions = const GmxPermissions(),
@@ -119,11 +128,16 @@ class GmxMetadata {
   final Version semver;
 
   final int apiVersion;
+
+  /// What the extension offers. Never empty.
+  final Set<GmxCapability> provides;
+
   final String? description;
   final String? author;
   final GmxPermissions permissions;
 
   static const maxBytes = 64 * 1024;
+  static const maxProvides = 20;
 
   // Reverse-domain style: at least two lowercase segments.
   static final _id = RegExp(r'^[a-z][a-z0-9_]*(\.[a-z][a-z0-9_]*)+$');
@@ -134,8 +148,10 @@ class GmxMetadata {
     r'(-[0-9A-Za-z.-]+)?(\+[0-9A-Za-z.-]+)?$',
   );
 
+  /// Whether [id] is a valid extension id (lowercase reverse-domain style).
   static bool isValidId(String id) => _id.hasMatch(id);
 
+  /// Whether [version] is a strict semantic version.
   static bool isValidVersion(String version) => _version.hasMatch(version);
 
   /// Parses the text of metadata.json. Throws [FormatException] if invalid.
@@ -177,6 +193,7 @@ class GmxMetadata {
       // Safe: the strict regex above already passed.
       semver: Version.parse(version),
       apiVersion: apiVersion,
+      provides: _provides(json['provides']),
       description: _optional(json, 'description', max: 500),
       author: _optional(json, 'author', max: 100),
       permissions: GmxPermissions.fromJson(json['permissions']),
@@ -202,5 +219,29 @@ class GmxMetadata {
   static String? _optional(Map json, String key, {required int max}) {
     if (json[key] == null) return null;
     return _required(json, key, max: max);
+  }
+
+  /// Unknown values are rejected, not ignored: an older app should say it may
+  /// be too old rather than install an extension that offers nothing it knows.
+  static Set<GmxCapability> _provides(Object? raw) {
+    if (raw is! List || raw.isEmpty || raw.length > maxProvides) {
+      throw const FormatException(
+        '"provides" must be a non-empty list of capabilities',
+      );
+    }
+    final byName = GmxCapability.values.asNameMap();
+    final result = <GmxCapability>{};
+    for (final item in raw) {
+      final capability = item is String ? byName[item] : null;
+      if (capability == null) {
+        throw FormatException(
+          'Unknown capability in "provides": $item (this app may be too old)',
+        );
+      }
+      if (!result.add(capability)) {
+        throw FormatException('Duplicate capability in "provides": $item');
+      }
+    }
+    return Set.unmodifiable(result);
   }
 }

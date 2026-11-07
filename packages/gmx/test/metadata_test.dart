@@ -8,6 +8,7 @@ Map<String, Object?> valid() => {
   'name': 'Example',
   'version': '1.0.0',
   'apiVersion': 1,
+  'provides': ['browse'],
 };
 
 GmxMetadata parse(Map<String, Object?> json) => GmxMetadata.fromJson(json);
@@ -207,6 +208,71 @@ void main() {
         );
       });
     }
+  });
+  group('provides', () {
+    Map<String, Object?> withProvides(Object? p) => {...valid(), 'provides': p};
+
+    test('parses browse', () {
+      expect(parse(valid()).provides, {GmxCapability.browse});
+    });
+
+    test('is required', () {
+      expect(
+        () => parse({...valid()}..remove('provides')),
+        throwsFormatException,
+      );
+    });
+
+    for (final bad in [
+      <Object?>[],
+      'browse',
+      5,
+      null,
+      {'browse': true},
+    ]) {
+      test('rejects $bad', () {
+        expect(() => parse(withProvides(bad)), throwsFormatException);
+      });
+    }
+
+    test('rejects an unknown capability and says the app may be too old', () {
+      expect(
+        () => parse(withProvides(['browse', 'podcasts'])),
+        throwsA(
+          isA<FormatException>().having(
+            (e) => e.message,
+            'message',
+            contains('too old'),
+          ),
+        ),
+      );
+    });
+
+    test('rejects names with different case or non-strings', () {
+      expect(() => parse(withProvides(['Browse'])), throwsFormatException);
+      expect(() => parse(withProvides([1])), throwsFormatException);
+    });
+
+    test('rejects duplicates', () {
+      expect(
+        () => parse(withProvides(['browse', 'browse'])),
+        throwsFormatException,
+      );
+    });
+
+    test('rejects more than 20 entries', () {
+      expect(
+        () => parse(withProvides([for (var i = 0; i < 21; i++) 'browse'])),
+        throwsFormatException,
+      );
+    });
+
+    test('the set is unmodifiable', () {
+      expect(
+        () => parse(valid()).provides.add(GmxCapability.browse),
+        throwsUnsupportedError,
+      );
+    });
   });
 
   group('name, description, author', () {
@@ -423,6 +489,26 @@ void main() {
         'CHANGELOG.md',
         'LICENSE',
       });
+    });
+
+    test('required and optional do not overlap', () {
+      expect(GmxFiles.required.intersection(GmxFiles.optional), isEmpty);
+    });
+  });
+
+  group('validators', () {
+    test('isValidId matches the rules used by parsing', () {
+      expect(GmxMetadata.isValidId('com.example.music'), isTrue);
+      for (final bad in ['music', 'Com.Example', 'com.example\n', ' a.b', '']) {
+        expect(GmxMetadata.isValidId(bad), isFalse, reason: bad);
+      }
+    });
+
+    test('isValidVersion matches the rules used by parsing', () {
+      expect(GmxMetadata.isValidVersion('1.0.0-beta.1'), isTrue);
+      for (final bad in ['1.0', '01.0.0', 'v1.0.0', '1.0.0\n', '']) {
+        expect(GmxMetadata.isValidVersion(bad), isFalse, reason: bad);
+      }
     });
 
     group('validators', () {
