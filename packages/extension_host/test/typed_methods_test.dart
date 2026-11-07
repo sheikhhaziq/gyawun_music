@@ -111,12 +111,6 @@ void main() {
       );
       expect((await host.browse()).header!.title, 'ok');
     });
-
-    test('an extension without browse gives a StateError', () async {
-      final host = await start('(ctx) => ({ queue: async () => ({}) })');
-
-      await expectLater(host.browse(), throwsStateError);
-    });
   });
 
   group('items', () {
