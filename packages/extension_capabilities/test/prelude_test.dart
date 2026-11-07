@@ -164,6 +164,28 @@ void main() {
 
       expect(await invoke('a'), 'a');
     });
+    test('__extensionMethods lists what the extension returned', () async {
+      start('(ctx) => ({ a: () => 1, b: async () => 2 })');
+
+      final names = await js.call('__extensionMethods') as List;
+
+      expect(names, unorderedEquals(['a', 'b']));
+    });
+
+    test('__extensionMethods cannot be replaced', () async {
+      start('''
+        (ctx) => ({
+          t: () => {
+            try { globalThis.__extensionMethods = () => ['x']; } catch (_) {}
+            return 'done';
+          },
+        })
+      ''');
+
+      await invoke('t');
+
+      expect(await js.call('__extensionMethods'), ['t']);
+    });
   });
 
   group('sandbox', () {

@@ -103,5 +103,11 @@ const _template = r'''
     writable: false,
     configurable: false,
   });
+    // Lets Dart see what the extension implements without calling anything.
+  Object.defineProperty(globalThis, '__extensionMethods', {
+    value: () => Object.keys(frozen),
+    writable: false,
+    configurable: false,
+  });
 })();
 ''';
