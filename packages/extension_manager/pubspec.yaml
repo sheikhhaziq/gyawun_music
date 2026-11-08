@@ -1,0 +1,17 @@
+name: extension_manager
+description: Installs, enables, updates and restores Gyawun extensions.
+publish_to: none
+resolution: workspace
+
+environment:
+  sdk: ^3.13.5
+
+dependencies:
+  crypto: ^3.0.3
+  extension_repository:
+    path: ../extension_repository
+  http: ^1.2.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
