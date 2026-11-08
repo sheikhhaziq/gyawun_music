@@ -22,7 +22,6 @@ class ExtensionManager {
   final InstalledExtensionStore _store;
   final ArchiveFiles _files;
   final ArchiveDownloader _downloader;
-  // ignore: unused_field
   final Future<void> Function(String extensionId)? _clearStorage;
   final DateTime Function() _clock;
 
@@ -106,6 +105,15 @@ class ExtensionManager {
       rethrow;
     }
     return record;
+  }
+
+  Future<void> uninstall(String id, {bool deleteData = false}) async {
+    if (deleteData && _clearStorage == null) {
+      throw StateError('No clearStorage callback was configured');
+    }
+    await _store.delete(id);
+    await _files.delete(id);
+    if (deleteData) await _clearStorage!(id);
   }
 
   GmxArchive _read(Uint8List bytes) {
