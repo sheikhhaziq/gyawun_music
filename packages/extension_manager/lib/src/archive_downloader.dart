@@ -19,10 +19,10 @@ class ArchiveDownloadException implements Exception {
 /// timeout.
 class ArchiveDownloader {
   ArchiveDownloader({
-    required http.Client client,
+    required this._client,
     this.timeout = const Duration(seconds: 60),
     this.maxRedirects = 3,
-  }) : _client = client;
+  });
 
   final http.Client _client;
   final Duration timeout;
