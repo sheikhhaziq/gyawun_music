@@ -10,8 +10,12 @@ dependencies:
   crypto: ^3.0.3
   extension_repository:
     path: ../extension_repository
+  gmx:
+    path: ../gmx
   http: ^1.2.0
+  pub_semver: ^2.1.0
 
 dev_dependencies:
+  archive: ^4.0.0
   flutter_test:
     sdk: flutter
